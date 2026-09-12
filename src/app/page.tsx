@@ -1,69 +1,124 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useMemo } from 'react';
+import { Header } from '../components/dashboard/Header';
+import { KpiMetrics } from '../components/dashboard/KpiMetrics';
+import { TradeTable } from '../components/dashboard/TradeTable';
+import { NewTradeModal } from '../components/dashboard/NewTradeModal';
+import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../lib/sample-data';
+import { calculateAccountStats } from '../lib/forex-math';
+import { Trade, TradingAccount } from '../types/trade';
+import { Calendar, Download, RefreshCw, Upload } from 'lucide-react';
+
+export default function DashboardPage() {
+  const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(INITIAL_ACCOUNTS[0].id);
+  const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Filter trades for the selected account
+  const accountTrades = useMemo(() => {
+    return trades.filter((t) => t.accountId === selectedAccountId);
+  }, [trades, selectedAccountId]);
+
+  const selectedAccount = useMemo(() => {
+    return accounts.find((a) => a.id === selectedAccountId) || accounts[0];
+  }, [accounts, selectedAccountId]);
+
+  // Dynamic portfolio stats calculation
+  const stats = useMemo(() => {
+    return calculateAccountStats(accountTrades, selectedAccount.initialBalance);
+  }, [accountTrades, selectedAccount]);
+
+  const handleSaveTrade = (newTrade: Trade) => {
+    setTrades([newTrade, ...trades]);
+
+    // Update account balance
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        if (acc.id === newTrade.accountId) {
+          return {
+            ...acc,
+            currentBalance: Number((acc.currentBalance + newTrade.netPnl).toFixed(2)),
+          };
+        }
+        return acc;
+      })
+    );
+  };
+
+  const handleDeleteTrade = (id: string) => {
+    const tradeToDelete = trades.find((t) => t.id === id);
+    if (!tradeToDelete) return;
+
+    setTrades((prev) => prev.filter((t) => t.id !== id));
+
+    // Reverse the balance impact
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        if (acc.id === tradeToDelete.accountId) {
+          return {
+            ...acc,
+            currentBalance: Number((acc.currentBalance - tradeToDelete.netPnl).toFixed(2)),
+          };
+        }
+        return acc;
+      })
+    );
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-[#080b11] text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-300">
+      {/* Institutional Navigation Header */}
+      <Header
+        accounts={accounts}
+        selectedAccountId={selectedAccountId}
+        onSelectAccount={setSelectedAccountId}
+        onOpenNewTrade={() => setIsModalOpen(true)}
+      />
+
+      {/* Main Dashboard Workspace */}
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 space-y-6">
+        {/* Section: Subheader & Quick Info */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-100">
+              Performance Analytics & Journal
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Account: <span className="text-slate-300 font-medium">{selectedAccount.name}</span> · Real-time statistical edge monitoring
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <Upload className="w-3.5 h-3.5 text-slate-400" />
+              <span>Import MT4/MT5 CSV</span>
+            </button>
+            <div className="flex items-center gap-1 bg-[#0e131f] border border-[#1b2336] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span>September 2026</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* Section: 5 KPI Metrics Cards */}
+        <KpiMetrics stats={stats} />
+
+        {/* Section: High-Density Trade Execution Table */}
+        <TradeTable trades={accountTrades} onDeleteTrade={handleDeleteTrade} />
       </main>
+
+      {/* Manual Trade Entry Modal */}
+      <NewTradeModal
+        isOpen={isModalOpen}
+        accountId={selectedAccountId}
+        onClose={() => setIsModalOpen(false)}
+        onSaveTrade={handleSaveTrade}
+      />
     </div>
   );
 }

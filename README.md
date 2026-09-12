@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📈 ApexJournal — Institutional Forex Trading Journal SaaS
 
-## Getting Started
+> **Institutional-grade Forex trading journal and performance analytics SaaS with real-time MT4/MT5 auto-sync, R-multiple tracking, and execution replay.**
 
-First, run the development server:
+---
 
+## ⚡ Key Features
+
+- **Institutional Dark Theme**: Deep obsidian surfaces, crisp 1px borders, and monospaced tabular figures. Zero AI slop, designed specifically for disciplined traders.
+- **5 High-Density Core KPI Cards**:
+  - Net Realized P&L with % account return.
+  - Win Rate % with visual win/loss ratio distribution.
+  - Profit Factor with automatic benchmark rating.
+  - Realized R-Multiple average per trade.
+  - Total volume in lots and total trade executions.
+- **High-Density Trade Log Table**:
+  - Filter by session (London, New York, Asian, Overlap).
+  - Filter by direction (BUY / SELL) and outcome (Wins / Losses).
+  - Search by instrument, ticket number, tags, or execution notes.
+- **Fast Trade Logger Modal**:
+  - Live calculation of pips and realized R-Multiple as you type entry, stop loss, and take profit.
+  - Quick setup tagging (e.g., *Liquidity Sweep*, *Silver Bullet*, *Order Block Retest*).
+  - Behavioral mistake tracking (e.g., *FOMO Entry*, *Moved Stop Loss*, *Overleveraged*).
+- **Forex Math Engine**: Accurate pip valuation for standard pairs (`0.0001`), JPY pairs (`0.01`), Gold/XAUUSD, and Indices.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Run the Development Server
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Build for Production
+```bash
+npm run build
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🗺️ SaaS Roadmap
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [x] **Sprint 1**: Core High-Density Dashboard, Forex Math Engine, Trade Log, and Manual Entry Modal.
+- [ ] **Sprint 2**: Real-time MT4/MT5 Sync EA (MQL5 Webhook) + Automated Statement CSV/HTML Parser.
+- [ ] **Sprint 3**: Interactive P&L Calendar Heatmap & Psychological Mistake Analytics.
+- [ ] **Sprint 4**: TradingView Candlestick Execution Replay (`@tradingview/lightweight-charts`).
+- [ ] **Sprint 5**: Multi-Tenancy (Supabase Auth + PostgreSQL RLS) & Stripe Subscription Billing.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Built With
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js 16 (App Router)](https://nextjs.org/)
+- [React 19](https://react.dev/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [Lucide Icons](https://lucide.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
