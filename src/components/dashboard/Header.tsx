@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { TradingAccount } from '../../types/trade';
 import { ChevronDown, Plus, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
 
@@ -26,8 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* Brand & Account Selector */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-sm tracking-tighter">
+          <Link href="/" className="flex items-center gap-2.5 group cursor-pointer" title="Go to Home Landing Page">
+            <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-sm tracking-tighter group-hover:scale-105 transition-transform">
               AJ
             </div>
             <div>
@@ -41,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <p className="text-[11px] text-slate-400 font-medium">Institutional FX Analytics</p>
             </div>
-          </div>
+          </Link>
 
           <div className="h-5 w-px bg-[#1b2336] hidden md:block" />
 
