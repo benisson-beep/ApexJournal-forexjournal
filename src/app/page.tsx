@@ -5,16 +5,20 @@ import { Header } from '../components/dashboard/Header';
 import { KpiMetrics } from '../components/dashboard/KpiMetrics';
 import { TradeTable } from '../components/dashboard/TradeTable';
 import { NewTradeModal } from '../components/dashboard/NewTradeModal';
+import { SyncModal } from '../components/dashboard/SyncModal';
+import { ImportStatementModal } from '../components/dashboard/ImportStatementModal';
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../lib/sample-data';
 import { calculateAccountStats } from '../lib/forex-math';
 import { Trade, TradingAccount } from '../types/trade';
-import { Calendar, Download, RefreshCw, Upload } from 'lucide-react';
+import { Calendar, Upload } from 'lucide-react';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(INITIAL_ACCOUNTS[0].id);
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
   // Filter trades for the selected account
   const accountTrades = useMemo(() => {
@@ -31,7 +35,7 @@ export default function DashboardPage() {
   }, [accountTrades, selectedAccount]);
 
   const handleSaveTrade = (newTrade: Trade) => {
-    setTrades([newTrade, ...trades]);
+    setTrades((prev) => [newTrade, ...prev]);
 
     // Update account balance
     setAccounts((prev) =>
@@ -40,6 +44,24 @@ export default function DashboardPage() {
           return {
             ...acc,
             currentBalance: Number((acc.currentBalance + newTrade.netPnl).toFixed(2)),
+          };
+        }
+        return acc;
+      })
+    );
+  };
+
+  const handleImportTrades = (importedTrades: Trade[]) => {
+    setTrades((prev) => [...importedTrades, ...prev]);
+
+    const totalImportedPnl = importedTrades.reduce((sum, t) => sum + t.netPnl, 0);
+
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        if (acc.id === selectedAccountId) {
+          return {
+            ...acc,
+            currentBalance: Number((acc.currentBalance + totalImportedPnl).toFixed(2)),
           };
         }
         return acc;
@@ -75,6 +97,7 @@ export default function DashboardPage() {
         selectedAccountId={selectedAccountId}
         onSelectAccount={setSelectedAccountId}
         onOpenNewTrade={() => setIsModalOpen(true)}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
       />
 
       {/* Main Dashboard Workspace */}
@@ -92,8 +115,8 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5 text-slate-400" />
               <span>Import MT4/MT5 CSV</span>
@@ -118,6 +141,21 @@ export default function DashboardPage() {
         accountId={selectedAccountId}
         onClose={() => setIsModalOpen(false)}
         onSaveTrade={handleSaveTrade}
+      />
+
+      {/* MetaTrader Real-Time Sync Modal */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        onTradeSynced={handleSaveTrade}
+      />
+
+      {/* Statement CSV / HTML Importer Modal */}
+      <ImportStatementModal
+        isOpen={isImportModalOpen}
+        accountId={selectedAccountId}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportTrades={handleImportTrades}
       />
     </div>
   );

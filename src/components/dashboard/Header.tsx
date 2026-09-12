@@ -9,6 +9,7 @@ interface HeaderProps {
   selectedAccountId: string;
   onSelectAccount: (id: string) => void;
   onOpenNewTrade: () => void;
+  onOpenSyncModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   selectedAccountId,
   onSelectAccount,
   onOpenNewTrade,
+  onOpenSyncModal,
 }) => {
   const currentAccount = accounts.find((a) => a.id === selectedAccountId) || accounts[0];
 
@@ -96,8 +98,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Action Bar */}
         <div className="flex items-center gap-3">
-          {/* MT4/MT5 Auto-Sync Status Badge */}
-          <div className="hidden sm:flex items-center gap-2 bg-[#0e131f] border border-[#1b2336] px-3 py-1.5 rounded-lg">
+          {/* MT4/MT5 Auto-Sync Status Badge (Clickable) */}
+          <button
+            onClick={onOpenSyncModal}
+            className="hidden sm:flex items-center gap-2 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 transition-colors px-3 py-1.5 rounded-lg cursor-pointer"
+          >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -106,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
               CONNECTED
             </span>
-          </div>
+          </button>
 
           {/* Log Trade Button */}
           <button
