@@ -37,6 +37,9 @@ export const LandingNavbar: React.FC = () => {
           <a href="#faq" className="hover:text-slate-100 transition-colors">
             FAQ
           </a>
+          <a href="#contact" className="hover:text-slate-100 transition-colors">
+            Contact
+          </a>
         </nav>
 
         {/* Right CTA */}

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { TradingAccount } from '../../types/trade';
-import { ChevronDown, Plus, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
+import { ChevronDown, HelpCircle, Plus, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
 
 interface HeaderProps {
   accounts: TradingAccount[];
@@ -113,6 +113,16 @@ export const Header: React.FC<HeaderProps> = ({
               CONNECTED
             </span>
           </button>
+
+          {/* Support Link */}
+          <Link
+            href="/#contact"
+            className="hidden lg:flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-slate-500 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title="Contact Support Desk"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+            <span>Support</span>
+          </Link>
 
           {/* Log Trade Button */}
           <button

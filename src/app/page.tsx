@@ -7,6 +7,7 @@ import { PropFirmStrip } from '../components/landing/PropFirmStrip';
 import { FeatureBento } from '../components/landing/FeatureBento';
 import { PricingSection } from '../components/landing/PricingSection';
 import { FaqSection } from '../components/landing/FaqSection';
+import { ContactSection } from '../components/landing/ContactSection';
 import { LandingFooter } from '../components/landing/LandingFooter';
 
 export default function HomePage() {
@@ -19,6 +20,7 @@ export default function HomePage() {
         <FeatureBento />
         <PricingSection />
         <FaqSection />
+        <ContactSection />
       </main>
       <LandingFooter />
     </div>

@@ -53,6 +53,9 @@ export const LandingFooter: React.FC = () => {
             <a href="#faq" className="hover:text-slate-200 transition-colors">
               FAQ
             </a>
+            <a href="#contact" className="hover:text-slate-200 transition-colors">
+              Contact
+            </a>
             <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300 font-medium">
               Open App $\rightarrow$
             </Link>
