@@ -12,7 +12,7 @@ import { LandingFooter } from '../components/landing/LandingFooter';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#080b11] text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-300">
+    <div className="min-h-screen bg-black text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-300">
       <LandingNavbar />
       <main className="flex-1">
         <HeroSection />

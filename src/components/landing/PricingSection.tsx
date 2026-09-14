@@ -12,7 +12,7 @@ export const PricingSection: React.FC = () => {
       {/* Section Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
-          Transparent SaaS Pricing
+          Transparent Pricing
         </span>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
           Invest in Your Trading Discipline
@@ -26,7 +26,7 @@ export const PricingSection: React.FC = () => {
           <span className={!annualBilling ? 'text-slate-200' : 'text-slate-400'}>Monthly</span>
           <button
             onClick={() => setAnnualBilling(!annualBilling)}
-            className="w-12 h-6 bg-[#131929] border border-[#1b2336] rounded-full p-1 transition-colors relative"
+            className="w-12 h-6 bg-black border border-white/10 rounded-full p-1 transition-colors relative cursor-pointer"
           >
             <div
               className={`w-4 h-4 bg-emerald-500 rounded-full transition-transform ${
@@ -43,7 +43,7 @@ export const PricingSection: React.FC = () => {
       {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Tier 1: Free Starter */}
-        <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl p-7 flex flex-col justify-between space-y-6">
+        <div className="bg-black border border-white/10 rounded-2xl p-7 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-bold text-slate-100">Starter</h3>
@@ -55,7 +55,7 @@ export const PricingSection: React.FC = () => {
               <span className="text-xs text-slate-400 font-sans">/ month</span>
             </div>
 
-            <ul className="space-y-2.5 text-xs text-slate-300 pt-3 border-t border-[#1b2336]">
+            <ul className="space-y-2.5 text-xs text-slate-300 pt-3 border-t border-white/10">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Up to 30 trades per month</span>
@@ -81,14 +81,14 @@ export const PricingSection: React.FC = () => {
 
           <Link
             href="/dashboard"
-            className="w-full text-center bg-[#131929] hover:bg-[#182136] border border-[#1b2336] text-slate-200 font-semibold text-xs py-3 rounded-xl transition-colors block"
+            className="w-full text-center bg-[#0c1018] hover:bg-[#131929] border border-white/10 text-slate-200 font-semibold text-xs py-3 rounded-xl transition-colors block"
           >
             Get Started Free
           </Link>
         </div>
 
         {/* Tier 2: Pro Trader (Featured) */}
-        <div className="bg-[#0e131f] border-2 border-emerald-500/50 rounded-2xl p-7 flex flex-col justify-between space-y-6 relative shadow-2xl shadow-emerald-500/10">
+        <div className="bg-black border-2 border-emerald-500/50 rounded-2xl p-7 flex flex-col justify-between space-y-6 relative shadow-2xl shadow-emerald-500/10">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-[#080b11] font-extrabold text-[10px] tracking-widest uppercase px-3 py-0.5 rounded-full shadow-md">
             Most Popular
           </div>
@@ -113,7 +113,7 @@ export const PricingSection: React.FC = () => {
               </span>
             </div>
 
-            <ul className="space-y-2.5 text-xs text-slate-200 pt-3 border-t border-[#1b2336]">
+            <ul className="space-y-2.5 text-xs text-slate-200 pt-3 border-t border-white/10">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <strong className="text-slate-100">Unlimited Trades & Accounts</strong>
@@ -150,7 +150,7 @@ export const PricingSection: React.FC = () => {
         </div>
 
         {/* Tier 3: Prop Desk / Team */}
-        <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl p-7 flex flex-col justify-between space-y-6">
+        <div className="bg-black border border-white/10 rounded-2xl p-7 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-bold text-slate-100">Prop Desk / Team</h3>
@@ -164,7 +164,7 @@ export const PricingSection: React.FC = () => {
               <span className="text-xs text-slate-400 font-sans">/ month</span>
             </div>
 
-            <ul className="space-y-2.5 text-xs text-slate-300 pt-3 border-t border-[#1b2336]">
+            <ul className="space-y-2.5 text-xs text-slate-300 pt-3 border-t border-white/10">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Everything in Pro Plan</span>
@@ -190,7 +190,7 @@ export const PricingSection: React.FC = () => {
 
           <Link
             href="/dashboard"
-            className="w-full text-center bg-[#131929] hover:bg-[#182136] border border-[#1b2336] text-slate-200 font-semibold text-xs py-3 rounded-xl transition-colors block"
+            className="w-full text-center bg-[#0c1018] hover:bg-[#131929] border border-white/10 text-slate-200 font-semibold text-xs py-3 rounded-xl transition-colors block"
           >
             Contact Prop Desk Team
           </Link>

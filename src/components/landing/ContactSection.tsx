@@ -43,13 +43,13 @@ export const ContactSection: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Left: Contact Info & Support Channels (2 Cols) */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 space-y-4">
+          <div className="bg-black border border-white/10 rounded-2xl p-6 space-y-4">
             <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
               Direct Communication Channels
             </h3>
 
             {/* Channel 1: Email */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#131929] border border-[#1b2336]">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#080c14] border border-white/10">
               <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
                 <Mail className="w-4 h-4" />
               </div>
@@ -61,7 +61,7 @@ export const ContactSection: React.FC = () => {
             </div>
 
             {/* Channel 2: Discord Lounge */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#131929] border border-[#1b2336]">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#080c14] border border-white/10">
               <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
                 <MessageSquare className="w-4 h-4" />
               </div>
@@ -73,7 +73,7 @@ export const ContactSection: React.FC = () => {
             </div>
 
             {/* Channel 3: Response SLA */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#131929] border border-[#1b2336]">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-[#080c14] border border-white/10">
               <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
                 <Clock className="w-4 h-4" />
               </div>
@@ -92,7 +92,7 @@ export const ContactSection: React.FC = () => {
         </div>
 
         {/* Right: Contact Form (3 Cols) */}
-        <div className="lg:col-span-3 bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 sm:p-8 relative">
+        <div className="lg:col-span-3 bg-black border border-white/10 rounded-2xl p-6 sm:p-8 relative">
           {isSubmitted ? (
             <div className="py-12 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
               <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
@@ -124,7 +124,7 @@ export const ContactSection: React.FC = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Alex Morgan"
-                    className="w-full bg-[#131929] border border-[#1b2336] focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none placeholder-slate-500"
+                    className="w-full bg-[#080c14] border border-white/10 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none placeholder-slate-500"
                   />
                 </div>
 
@@ -138,7 +138,7 @@ export const ContactSection: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@trader.com"
-                    className="w-full bg-[#131929] border border-[#1b2336] focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none placeholder-slate-500"
+                    className="w-full bg-[#080c14] border border-white/10 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none placeholder-slate-500"
                   />
                 </div>
               </div>
@@ -150,7 +150,7 @@ export const ContactSection: React.FC = () => {
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-[#131929] border border-[#1b2336] focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none cursor-pointer"
+                  className="w-full bg-[#080c14] border border-white/10 focus:border-emerald-500/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none cursor-pointer"
                 >
                   <option value="General Inquiry">General Inquiry / Feedback</option>
                   <option value="MT4/MT5 Integration">MT4 / MT5 EA Setup & Webhook Support</option>
@@ -170,7 +170,7 @@ export const ContactSection: React.FC = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="How can our trading desk assist you today?"
-                  className="w-full bg-[#131929] border border-[#1b2336] focus:border-emerald-500/50 rounded-lg p-3 text-xs text-slate-200 outline-none resize-none placeholder-slate-500"
+                  className="w-full bg-[#080c14] border border-white/10 focus:border-emerald-500/50 rounded-lg p-3 text-xs text-slate-200 outline-none resize-none placeholder-slate-500"
                 />
               </div>
 

@@ -22,7 +22,7 @@ export const FeatureBento: React.FC = () => {
       {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Bento 1: Real-Time Auto-Sync (Col Span 2) */}
-        <div className="md:col-span-2 bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group hover:border-[#242f48] transition-colors">
+        <div className="md:col-span-2 bg-black border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-colors">
           <div className="space-y-3 max-w-md relative z-10">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Zap className="w-5 h-5" />
@@ -36,8 +36,8 @@ export const FeatureBento: React.FC = () => {
           </div>
 
           {/* Code/Terminal Preview Graphic */}
-          <div className="mt-6 bg-[#080b11] border border-[#1b2336] rounded-xl p-4 font-mono text-[11px] text-slate-300 space-y-1.5 shadow-inner">
-            <div className="flex items-center justify-between text-slate-500 border-b border-[#1b2336] pb-2 mb-2 text-[10px]">
+          <div className="mt-6 bg-[#080c14] border border-white/10 rounded-xl p-4 font-mono text-[11px] text-slate-300 space-y-1.5 shadow-inner">
+            <div className="flex items-center justify-between text-slate-500 border-b border-white/10 pb-2 mb-2 text-[10px]">
               <span>POST /api/sync/trade</span>
               <span className="text-emerald-400">200 OK (142ms)</span>
             </div>
@@ -52,7 +52,7 @@ export const FeatureBento: React.FC = () => {
         </div>
 
         {/* Bento 2: Behavioral Psychology & Cost of Mistakes */}
-        <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-[#242f48] transition-colors">
+        <div className="bg-black border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-white/20 transition-colors">
           <div className="space-y-3">
             <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
               <Brain className="w-5 h-5" />
@@ -65,7 +65,7 @@ export const FeatureBento: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-6 bg-[#131929] border border-[#1b2336] rounded-xl p-4 space-y-2">
+          <div className="mt-6 bg-[#080c14] border border-white/10 rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-rose-300 font-semibold">#FOMO Entry</span>
               <span className="text-rose-400 font-mono font-bold">-$1,041.00</span>
@@ -74,7 +74,7 @@ export const FeatureBento: React.FC = () => {
               <span className="text-rose-300 font-semibold">#Moved Stop Loss</span>
               <span className="text-rose-400 font-mono font-bold">-$948.00</span>
             </div>
-            <div className="border-t border-[#1b2336] pt-2 mt-2 flex items-center justify-between text-[11px] text-slate-400">
+            <div className="border-t border-white/10 pt-2 mt-2 flex items-center justify-between text-[11px] text-slate-400">
               <span>Theoretical Clean P&L:</span>
               <span className="text-emerald-400 font-mono font-bold">+$11,850.00</span>
             </div>
@@ -82,7 +82,7 @@ export const FeatureBento: React.FC = () => {
         </div>
 
         {/* Bento 3: P&L Calendar Heatmap */}
-        <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-[#242f48] transition-colors">
+        <div className="bg-black border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-white/20 transition-colors">
           <div className="space-y-3">
             <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Calendar className="w-5 h-5" />
@@ -96,19 +96,19 @@ export const FeatureBento: React.FC = () => {
           </div>
 
           <div className="mt-6 grid grid-cols-4 gap-2 text-center text-xs font-mono">
-            <div className="bg-emerald-950/30 border border-emerald-500/30 p-2 rounded-lg">
+            <div className="bg-emerald-950/20 border border-emerald-500/30 p-2 rounded-lg">
               <span className="text-[10px] text-slate-400 block">Mon</span>
               <span className="text-emerald-400 font-bold">+$994</span>
             </div>
-            <div className="bg-emerald-950/30 border border-emerald-500/30 p-2 rounded-lg">
+            <div className="bg-emerald-950/20 border border-emerald-500/30 p-2 rounded-lg">
               <span className="text-[10px] text-slate-400 block">Tue</span>
               <span className="text-emerald-400 font-bold">+$3,305</span>
             </div>
-            <div className="bg-rose-950/30 border border-rose-500/30 p-2 rounded-lg">
+            <div className="bg-rose-950/20 border border-rose-500/30 p-2 rounded-lg">
               <span className="text-[10px] text-slate-400 block">Wed</span>
               <span className="text-rose-400 font-bold">-$948</span>
             </div>
-            <div className="bg-emerald-950/30 border border-emerald-500/30 p-2 rounded-lg">
+            <div className="bg-emerald-950/20 border border-emerald-500/30 p-2 rounded-lg">
               <span className="text-[10px] text-slate-400 block">Thu</span>
               <span className="text-emerald-400 font-bold">+$4,050</span>
             </div>
@@ -116,7 +116,7 @@ export const FeatureBento: React.FC = () => {
         </div>
 
         {/* Bento 4: Setup Playbook Statistical Edge (Col Span 2) */}
-        <div className="md:col-span-2 bg-[#0e131f] border border-[#1b2336] rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-[#242f48] transition-colors">
+        <div className="md:col-span-2 bg-black border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col justify-between group hover:border-white/20 transition-colors">
           <div className="space-y-3 max-w-md">
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
               <Target className="w-5 h-5" />
@@ -130,7 +130,7 @@ export const FeatureBento: React.FC = () => {
           </div>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="bg-[#131929] border border-[#1b2336] p-3 rounded-xl flex items-center justify-between">
+            <div className="bg-[#080c14] border border-white/10 p-3 rounded-xl flex items-center justify-between">
               <div>
                 <span className="font-bold text-slate-200">Liquidity Sweep</span>
                 <span className="text-[11px] text-slate-400 block font-mono">100% Win Rate · +2.41R</span>
@@ -138,7 +138,7 @@ export const FeatureBento: React.FC = () => {
               <span className="text-emerald-400 font-mono font-bold">+$5,857.50</span>
             </div>
 
-            <div className="bg-[#131929] border border-[#1b2336] p-3 rounded-xl flex items-center justify-between">
+            <div className="bg-[#080c14] border border-white/10 p-3 rounded-xl flex items-center justify-between">
               <div>
                 <span className="font-bold text-slate-200">Silver Bullet</span>
                 <span className="text-[11px] text-slate-400 block font-mono">100% Win Rate · +1.88R</span>

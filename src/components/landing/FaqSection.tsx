@@ -63,11 +63,11 @@ export const FaqSection: React.FC = () => {
           return (
             <div
               key={faq.question}
-              className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden transition-colors"
+              className="bg-black border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-colors"
             >
               <button
                 onClick={() => toggleFaq(idx)}
-                className="w-full p-4 px-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#131929]/50 transition-colors"
+                className="w-full p-4 px-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
               >
                 <span className="text-sm font-semibold text-slate-200">
                   {faq.question}
@@ -80,7 +80,7 @@ export const FaqSection: React.FC = () => {
               </button>
 
               {isOpen && (
-                <div className="p-4 px-5 pt-0 text-xs text-slate-400 leading-relaxed border-t border-[#1b2336]/60 bg-[#090d16]/30">
+                <div className="p-4 px-5 pt-3 pb-4 text-xs text-slate-400 leading-relaxed border-t border-white/10 bg-[#080c14]">
                   {faq.answer}
                 </div>
               )}

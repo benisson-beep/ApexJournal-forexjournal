@@ -6,7 +6,7 @@ import { ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 
 export const LandingNavbar: React.FC = () => {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1b2336] bg-[#080b11]/85 backdrop-blur-md px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md px-6 py-4">
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -24,38 +24,38 @@ export const LandingNavbar: React.FC = () => {
         </Link>
 
         {/* Center Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-400">
-          <a href="#features" className="hover:text-slate-100 transition-colors">
+        <nav className="hidden md:flex items-center gap-9 text-sm font-bold text-slate-200">
+          <a href="#features" className="hover:text-white transition-colors">
             Features
           </a>
-          <a href="#integrations" className="hover:text-slate-100 transition-colors">
+          <a href="#integrations" className="hover:text-white transition-colors">
             MT4 & MT5 Sync
           </a>
-          <a href="#pricing" className="hover:text-slate-100 transition-colors">
+          <a href="#pricing" className="hover:text-white transition-colors">
             Pricing
           </a>
-          <a href="#faq" className="hover:text-slate-100 transition-colors">
+          <a href="#faq" className="hover:text-white transition-colors">
             FAQ
           </a>
-          <a href="#contact" className="hover:text-slate-100 transition-colors">
+          <a href="#contact" className="hover:text-white transition-colors">
             Contact
           </a>
         </nav>
 
         {/* Right CTA */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="text-xs font-semibold text-slate-300 hover:text-slate-100 px-3 py-1.5 rounded-lg transition-colors hidden sm:block"
+            className="text-sm font-bold text-slate-200 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:block"
           >
             Live Demo
           </Link>
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs px-4 py-2 rounded-lg transition-all shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/25"
           >
             <span>Launch Journal</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </Link>
         </div>
       </div>

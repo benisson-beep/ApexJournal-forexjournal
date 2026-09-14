@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ApexJournal — Institutional Forex Trading Journal SaaS",
+  title: "ApexJournal — Institutional Forex Trading Journal",
   description: "Advanced Forex trading journal with automated MT4/MT5 sync, R-multiple analytics, and execution replay.",
 };
 

@@ -22,7 +22,7 @@ export const HeroSection: React.FC = () => {
 
       <div className="max-w-[1280px] mx-auto text-center space-y-8 relative z-10">
         {/* Eyebrow Pill */}
-        <div className="inline-flex items-center gap-2 bg-[#0e131f] border border-[#1b2336] px-3 py-1.5 rounded-full text-xs text-slate-300 shadow-sm">
+        <div className="inline-flex items-center gap-2 bg-black border border-white/10 px-3 py-1.5 rounded-full text-xs text-slate-300 shadow-sm">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -59,7 +59,7 @@ export const HeroSection: React.FC = () => {
 
           <a
             href="#pricing"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-slate-600 text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-black hover:bg-[#0c1018] border border-white/10 hover:border-white/30 text-slate-200 font-semibold text-sm px-6 py-3.5 rounded-xl transition-colors"
           >
             <span>View Pricing & Tiers</span>
           </a>
@@ -83,9 +83,9 @@ export const HeroSection: React.FC = () => {
 
         {/* Product Showcase Mockup */}
         <div className="pt-8">
-          <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl shadow-2xl p-2.5 max-w-5xl mx-auto overflow-hidden">
+          <div className="bg-[#080c14] border border-white/10 rounded-2xl shadow-2xl p-2.5 max-w-5xl mx-auto overflow-hidden">
             {/* Terminal Window Header Bar */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-[#1b2336] bg-[#090d16] rounded-t-xl mb-2 text-xs text-slate-400">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-black rounded-t-xl mb-2 text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
@@ -98,28 +98,28 @@ export const HeroSection: React.FC = () => {
             </div>
 
             {/* Inner Dashboard Preview */}
-            <div className="p-4 sm:p-6 space-y-4 bg-[#080b11] rounded-xl text-left">
+            <div className="p-4 sm:p-6 space-y-4 bg-black rounded-xl text-left">
               {/* Top Quick Stats Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#0e131f] border border-[#1b2336] p-3.5 rounded-xl">
+                <div className="bg-[#080c14] border border-white/10 p-3.5 rounded-xl">
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Net P&L</span>
                   <span className="text-xl font-bold font-mono text-emerald-400 tabular-nums">+$10,382.50</span>
                   <span className="text-[10px] text-emerald-400 block mt-1">+10.38% return</span>
                 </div>
 
-                <div className="bg-[#0e131f] border border-[#1b2336] p-3.5 rounded-xl">
+                <div className="bg-[#080c14] border border-white/10 p-3.5 rounded-xl">
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Win Rate</span>
                   <span className="text-xl font-bold font-mono text-slate-100 tabular-nums">71.4%</span>
                   <span className="text-[10px] text-slate-400 block mt-1">5 Wins · 2 Losses</span>
                 </div>
 
-                <div className="bg-[#0e131f] border border-[#1b2336] p-3.5 rounded-xl">
+                <div className="bg-[#080c14] border border-white/10 p-3.5 rounded-xl">
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Profit Factor</span>
                   <span className="text-xl font-bold font-mono text-slate-100 tabular-nums">3.42</span>
                   <span className="text-[10px] text-emerald-400 block mt-1 font-semibold">EXCELLENT</span>
                 </div>
 
-                <div className="bg-[#0e131f] border border-[#1b2336] p-3.5 rounded-xl">
+                <div className="bg-[#080c14] border border-white/10 p-3.5 rounded-xl">
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Avg Realized R:R</span>
                   <span className="text-xl font-bold font-mono text-emerald-400 tabular-nums">+2.15R</span>
                   <span className="text-[10px] text-slate-400 block mt-1">per winning trade</span>
@@ -127,14 +127,14 @@ export const HeroSection: React.FC = () => {
               </div>
 
               {/* Sample Deal Table Snippet */}
-              <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden text-xs">
-                <div className="p-3 px-4 border-b border-[#1b2336] bg-[#090d16] flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase">
+              <div className="bg-[#080c14] border border-white/10 rounded-xl overflow-hidden text-xs">
+                <div className="p-3 px-4 border-b border-white/10 bg-black flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase">
                   <span>Recent Executed Trades</span>
                   <span className="text-emerald-400 font-mono">Synced from MT5 Terminal</span>
                 </div>
 
-                <div className="divide-y divide-[#1b2336]/60">
-                  <div className="p-3 px-4 flex items-center justify-between hover:bg-[#131929]/50 transition-colors">
+                <div className="divide-y divide-white/10">
+                  <div className="p-3 px-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-slate-200">EURUSD</span>
                       <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-1.5 py-0.5 rounded font-mono">
@@ -150,7 +150,7 @@ export const HeroSection: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 px-4 flex items-center justify-between hover:bg-[#131929]/50 transition-colors">
+                  <div className="p-3 px-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-slate-200">XAUUSD</span>
                       <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-1.5 py-0.5 rounded font-mono">
