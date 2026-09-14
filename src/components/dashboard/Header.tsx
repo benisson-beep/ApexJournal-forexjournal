@@ -23,12 +23,12 @@ export const Header: React.FC<HeaderProps> = ({
   const currentAccount = accounts.find((a) => a.id === selectedAccountId) || accounts[0];
 
   return (
-    <header className="border-b border-[#1b2336] bg-[#080b11]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5">
+    <header className="border-b border-white/10 bg-black/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* Brand & Account Selector */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer" title="Go to Home Landing Page">
-            <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-sm tracking-tighter group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-xs tracking-tighter group-hover:scale-105 transition-transform">
               AJ
             </div>
             <div>
@@ -44,11 +44,11 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </Link>
 
-          <div className="h-5 w-px bg-[#1b2336] hidden md:block" />
+          <div className="h-5 w-px bg-white/10 hidden md:block" />
 
           {/* Account Dropdown */}
           <div className="relative group">
-            <div className="flex items-center gap-3 bg-[#0e131f] border border-[#1b2336] hover:border-[#242f48] transition-colors rounded-lg px-3 py-1.5 cursor-pointer">
+            <div className="flex items-center gap-3 bg-[#080c14] border border-white/10 hover:border-white/25 transition-colors rounded-lg px-3 py-1.5 cursor-pointer">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <div>
                 <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Dropdown Menu */}
-            <div className="absolute left-0 mt-1 w-64 bg-[#0e131f] border border-[#1b2336] rounded-lg shadow-2xl p-1.5 hidden group-hover:block z-50">
+            <div className="absolute left-0 mt-1 w-64 bg-black border border-white/10 rounded-lg shadow-2xl p-1.5 hidden group-hover:block z-50">
               <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">
                 Connected Accounts
               </div>
@@ -76,10 +76,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={acc.id}
                   onClick={() => onSelectAccount(acc.id)}
-                  className={`w-full text-left px-2.5 py-2 rounded-md text-xs transition-colors flex items-center justify-between ${
+                  className={`w-full text-left px-2.5 py-2 rounded-md text-xs transition-colors flex items-center justify-between cursor-pointer ${
                     acc.id === selectedAccountId
-                      ? 'bg-[#182030] text-emerald-400 font-medium border border-[#242f48]'
-                      : 'text-slate-300 hover:bg-[#131929]'
+                      ? 'bg-white/10 text-emerald-400 font-medium border border-emerald-500/30'
+                      : 'text-slate-300 hover:bg-white/5'
                   }`}
                 >
                   <div>
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* MT4/MT5 Auto-Sync Status Badge (Clickable) */}
           <button
             onClick={onOpenSyncModal}
-            className="hidden sm:flex items-center gap-2 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 transition-colors px-3 py-1.5 rounded-lg cursor-pointer"
+            className="hidden sm:flex items-center gap-2 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-emerald-500/40 transition-colors px-3 py-1.5 rounded-lg cursor-pointer"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Support Link */}
           <Link
             href="/#contact"
-            className="hidden lg:flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-slate-500 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-white/30 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Contact Support Desk"
           >
             <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Log Trade Button */}
           <button
             onClick={onOpenNewTrade}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-semibold text-xs px-3.5 py-2 rounded-lg transition-all shadow-lg shadow-emerald-500/10"
+            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-lg transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Log Trade</span>

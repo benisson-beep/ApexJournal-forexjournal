@@ -12,15 +12,16 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
-import { Brain, Calendar, CalendarDays, ListFilter, Upload } from 'lucide-react';
+import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Upload } from 'lucide-react';
+import { AccountOverview } from '../../components/dashboard/AccountOverview';
 
-type TabView = 'LOG' | 'CALENDAR' | 'PSYCHOLOGY';
+type TabView = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'PSYCHOLOGY';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(INITIAL_ACCOUNTS[0].id);
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
-  const [activeTab, setActiveTab] = useState<TabView>('LOG');
+  const [activeTab, setActiveTab] = useState<TabView>('OVERVIEW');
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -103,7 +104,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080b11] text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-300">
+    <div className="min-h-screen bg-black text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-300">
       {/* Institutional Navigation Header */}
       <Header
         accounts={accounts}
@@ -118,41 +119,50 @@ export default function DashboardPage() {
         {/* Section: Subheader & Quick Info */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-100">
-              Performance Analytics & Journal
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Institutional Performance & Accounts
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              Account: <span className="text-slate-300 font-medium">{selectedAccount.name}</span> · Real-time statistical edge monitoring
+              Active Account: <span className="text-slate-200 font-semibold">{selectedAccount.name}</span> · Real-time statistical edge monitoring
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#0e131f] hover:bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-emerald-500/40 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5 text-slate-400" />
               <span>Import MT4/MT5 CSV</span>
             </button>
-            <div className="flex items-center gap-1 bg-[#0e131f] border border-[#1b2336] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
+            <div className="flex items-center gap-1 bg-[#080c14] border border-white/10 text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <span>September 2026</span>
             </div>
           </div>
         </div>
 
-        {/* Section: 5 KPI Metrics Cards */}
-        <KpiMetrics stats={stats} />
-
         {/* View Mode Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-[#1b2336] pb-2">
-          <div className="flex items-center gap-1.5 bg-[#0e131f] border border-[#1b2336] p-1 rounded-xl">
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <div className="flex items-center gap-1.5 bg-black border border-white/10 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveTab('OVERVIEW')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'OVERVIEW'
+                  ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Overview & Accounts</span>
+            </button>
+
             <button
               onClick={() => setActiveTab('LOG')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'LOG'
-                  ? 'bg-emerald-500 text-[#080b11] shadow-lg shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#131929]'
+                  ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <ListFilter className="w-3.5 h-3.5" />
@@ -161,10 +171,10 @@ export default function DashboardPage() {
 
             <button
               onClick={() => setActiveTab('CALENDAR')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'CALENDAR'
-                  ? 'bg-emerald-500 text-[#080b11] shadow-lg shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#131929]'
+                  ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
@@ -173,10 +183,10 @@ export default function DashboardPage() {
 
             <button
               onClick={() => setActiveTab('PSYCHOLOGY')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'PSYCHOLOGY'
-                  ? 'bg-emerald-500 text-[#080b11] shadow-lg shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#131929]'
+                  ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <Brain className="w-3.5 h-3.5" />
@@ -197,12 +207,28 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Tab 1: Execution Log Table */}
+        {/* Tab 1 (DEFAULT): Performance & Accounts Overview */}
+        {activeTab === 'OVERVIEW' && (
+          <AccountOverview
+            account={selectedAccount}
+            accounts={accounts}
+            onSelectAccount={setSelectedAccountId}
+            stats={stats}
+            trades={accountTrades}
+            onViewAllTrades={() => setActiveTab('LOG')}
+            onOpenNewTrade={() => setIsModalOpen(true)}
+            onOpenSyncModal={() => setIsSyncModalOpen(true)}
+            onSelectDate={setSelectedDateStr}
+            selectedDateStr={selectedDateStr}
+          />
+        )}
+
+        {/* Tab 2: Execution Log Table */}
         {activeTab === 'LOG' && (
           <TradeTable trades={displayedTrades} onDeleteTrade={handleDeleteTrade} />
         )}
 
-        {/* Tab 2: P&L Calendar Heatmap + Filtered Table below */}
+        {/* Tab 3: P&L Calendar Heatmap + Filtered Table below */}
         {activeTab === 'CALENDAR' && (
           <div className="space-y-6">
             <CalendarHeatmap
@@ -220,7 +246,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Tab 3: Psychology & Edge Analytics */}
+        {/* Tab 4: Psychology & Edge Analytics */}
         {activeTab === 'PSYCHOLOGY' && (
           <PsychologyAnalytics trades={accountTrades} />
         )}
