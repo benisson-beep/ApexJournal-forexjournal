@@ -18,7 +18,7 @@ const PARTNERS: Partner[] = [
     name: 'FTMO',
     category: "The World's Leading Prop Firm",
     badge: 'PROP FIRM',
-    glowColor: 'group-hover:border-cyan-500/40 group-hover:shadow-[0_0_25px_rgba(0,178,254,0.15)]',
+    glowColor: 'group-hover:border-cyan-500/40',
     logoSrc: '/logos/ftmo.png',
     imgClassName: 'w-7 h-7 object-contain',
   },
@@ -28,7 +28,7 @@ const PARTNERS: Partner[] = [
     name: 'MetaTrader 5',
     category: 'Native Terminal Webhook',
     badge: 'MT5 ENGINE',
-    glowColor: 'group-hover:border-blue-500/40 group-hover:shadow-[0_0_25px_rgba(0,132,255,0.15)]',
+    glowColor: 'group-hover:border-blue-500/40',
     logoSrc: '/logos/mt5.png',
     imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
   },
@@ -38,7 +38,7 @@ const PARTNERS: Partner[] = [
     name: 'IC Markets',
     category: 'True ECN Raw Spreads',
     badge: 'GLOBAL BROKER',
-    glowColor: 'group-hover:border-emerald-500/40 group-hover:shadow-[0_0_25px_rgba(0,242,155,0.15)]',
+    glowColor: 'group-hover:border-emerald-500/40',
     logoSrc: '/logos/icmarkets.png',
     imgClassName: 'h-6 w-auto object-contain max-w-[120px]',
   },
@@ -48,7 +48,7 @@ const PARTNERS: Partner[] = [
     name: 'FundedNext',
     category: 'Futures & FX Evaluation',
     badge: 'PROP FIRM',
-    glowColor: 'group-hover:border-fuchsia-500/40 group-hover:shadow-[0_0_25px_rgba(217,70,239,0.15)]',
+    glowColor: 'group-hover:border-fuchsia-500/40',
     logoSrc: '/logos/fundednext.png',
     imgClassName: 'w-7 h-7 object-contain rounded-md',
   },
@@ -58,7 +58,7 @@ const PARTNERS: Partner[] = [
     name: 'Pepperstone',
     category: 'ASIC / FCA Regulated',
     badge: 'ECN BROKER',
-    glowColor: 'group-hover:border-rose-500/40 group-hover:shadow-[0_0_25px_rgba(244,63,94,0.15)]',
+    glowColor: 'group-hover:border-rose-500/40',
     logoSrc: '/logos/pepperstone.png',
     imgClassName: 'w-7 h-7 object-contain',
   },
@@ -68,7 +68,7 @@ const PARTNERS: Partner[] = [
     name: 'Apex Funding',
     category: 'Prop Futures Trading',
     badge: 'FUTURES',
-    glowColor: 'group-hover:border-emerald-500/40 group-hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]',
+    glowColor: 'group-hover:border-emerald-500/40',
     logoSrc: '/logos/apex.png',
     imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
   },
@@ -78,7 +78,7 @@ const PARTNERS: Partner[] = [
     name: 'Topstep',
     category: 'Funded Trader Program',
     badge: 'PROP FIRM',
-    glowColor: 'group-hover:border-amber-500/40 group-hover:shadow-[0_0_25px_rgba(245,158,11,0.15)]',
+    glowColor: 'group-hover:border-amber-500/40',
     logoSrc: '/logos/topstep.webp',
     imgClassName: 'h-5 w-auto object-contain max-w-[100px]',
   },
@@ -88,7 +88,7 @@ const PARTNERS: Partner[] = [
     name: 'MetaTrader 4',
     category: 'Legacy Terminal Webhook',
     badge: 'MT4 ENGINE',
-    glowColor: 'group-hover:border-amber-500/40 group-hover:shadow-[0_0_25px_rgba(255,184,0,0.15)]',
+    glowColor: 'group-hover:border-amber-500/40',
     logoSrc: '/logos/mt4.png',
     imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
   },
@@ -98,7 +98,7 @@ const PARTNERS: Partner[] = [
     name: 'cTrader',
     category: 'Spotware Open API Platform',
     badge: 'API BRIDGE',
-    glowColor: 'group-hover:border-cyan-400/40 group-hover:shadow-[0_0_25px_rgba(0,210,196,0.15)]',
+    glowColor: 'group-hover:border-cyan-400/40',
     logoSrc: '/logos/ctrader.png',
     imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
   },
@@ -125,7 +125,7 @@ export const PropFirmStrip: React.FC = () => {
           {PARTNERS.map((partner, index) => (
             <div
               key={`p1-${index}`}
-              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group shadow-md hover:border-white/25`}
+              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
             >
               <div className="p-1.5 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[38px] h-9">
                 <img
@@ -155,7 +155,7 @@ export const PropFirmStrip: React.FC = () => {
           {PARTNERS.map((partner, index) => (
             <div
               key={`p2-${index}`}
-              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group shadow-md hover:border-white/25`}
+              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
             >
               <div className="p-1.5 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[38px] h-9">
                 <img

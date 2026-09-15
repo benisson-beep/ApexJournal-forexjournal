@@ -52,7 +52,7 @@ export const LandingNavbar: React.FC = () => {
           </Link>
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/25"
+            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all"
           >
             <span>Launch Journal</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />

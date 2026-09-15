@@ -36,7 +36,7 @@ export const FeatureBento: React.FC = () => {
           </div>
 
           {/* Code/Terminal Preview Graphic */}
-          <div className="mt-6 bg-[#080c14] border border-white/10 rounded-xl p-4 font-mono text-[11px] text-slate-300 space-y-1.5 shadow-inner">
+          <div className="mt-6 bg-[#080c14] border border-white/10 rounded-xl p-4 font-mono text-[11px] text-slate-300 space-y-1.5">
             <div className="flex items-center justify-between text-slate-500 border-b border-white/10 pb-2 mb-2 text-[10px]">
               <span>POST /api/sync/trade</span>
               <span className="text-emerald-400">200 OK (142ms)</span>

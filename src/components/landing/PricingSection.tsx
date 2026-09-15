@@ -88,8 +88,8 @@ export const PricingSection: React.FC = () => {
         </div>
 
         {/* Tier 2: Pro Trader (Featured) */}
-        <div className="bg-black border-2 border-emerald-500/50 rounded-2xl p-7 flex flex-col justify-between space-y-6 relative shadow-2xl shadow-emerald-500/10">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-[#080b11] font-extrabold text-[10px] tracking-widest uppercase px-3 py-0.5 rounded-full shadow-md">
+        <div className="bg-black border-2 border-emerald-500/50 rounded-2xl p-7 flex flex-col justify-between space-y-6 relative">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-[#080b11] font-extrabold text-[10px] tracking-widest uppercase px-3 py-0.5 rounded-full">
             Most Popular
           </div>
 
@@ -143,7 +143,7 @@ export const PricingSection: React.FC = () => {
 
           <Link
             href="/dashboard"
-            className="w-full text-center bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/25 block"
+            className="w-full text-center bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs py-3 rounded-xl transition-all block"
           >
             Start 7-Day Free Trial
           </Link>

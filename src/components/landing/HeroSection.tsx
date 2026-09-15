@@ -22,7 +22,7 @@ export const HeroSection: React.FC = () => {
 
       <div className="max-w-[1280px] mx-auto text-center space-y-8 relative z-10">
         {/* Eyebrow Pill */}
-        <div className="inline-flex items-center gap-2 bg-black border border-white/10 px-3 py-1.5 rounded-full text-xs text-slate-300 shadow-sm">
+        <div className="inline-flex items-center gap-2 bg-black border border-white/10 px-3 py-1.5 rounded-full text-xs text-slate-300">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -51,7 +51,7 @@ export const HeroSection: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-emerald-500/25"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-sm px-7 py-3.5 rounded-xl transition-all"
           >
             <span>Launch Live Demo</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -83,7 +83,7 @@ export const HeroSection: React.FC = () => {
 
         {/* Product Showcase Mockup */}
         <div className="pt-8">
-          <div className="bg-[#080c14] border border-white/10 rounded-2xl shadow-2xl p-2.5 max-w-5xl mx-auto overflow-hidden">
+          <div className="bg-[#080c14] border border-white/10 rounded-2xl p-2.5 max-w-5xl mx-auto overflow-hidden">
             {/* Terminal Window Header Bar */}
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-black rounded-t-xl mb-2 text-xs text-slate-400">
               <div className="flex items-center gap-2">

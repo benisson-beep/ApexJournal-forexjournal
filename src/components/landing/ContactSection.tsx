@@ -177,7 +177,7 @@ export const ContactSection: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs px-6 py-3 rounded-lg transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs px-6 py-3 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{isSubmitting ? 'Sending...' : 'Send Message to Desk'}</span>

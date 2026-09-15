@@ -76,7 +76,7 @@ export default function LoginPage() {
         {/* Brand Logo & Name */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <Link href="/" className="inline-flex items-center gap-3 group cursor-pointer">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-base tracking-tighter group-hover:scale-105 transition-transform shadow-lg shadow-emerald-500/10">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-base tracking-tighter group-hover:scale-105 transition-transform">
               AJ
             </div>
             <div className="flex items-center gap-1.5">
@@ -129,7 +129,7 @@ export default function LoginPage() {
               className={`w-full rounded-xl px-4 py-3 text-sm transition-all outline-none border focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] ${
                 isDarkMode
                   ? 'bg-[#0d111a] border-[#1e2638] text-slate-100 placeholder:text-slate-500'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 shadow-xs'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
               }`}
             />
           </div>
@@ -155,7 +155,7 @@ export default function LoginPage() {
                 className={`w-full rounded-xl px-4 py-3 pr-11 text-sm font-mono transition-all outline-none border focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] ${
                   isDarkMode
                     ? 'bg-[#0d111a] border-[#1e2638] text-slate-100 placeholder:text-slate-500'
-                    : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 shadow-xs'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
                 }`}
               />
               <button
@@ -237,7 +237,7 @@ export default function LoginPage() {
             className={`w-full font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border ${
               isDarkMode
                 ? 'bg-[#121622] hover:bg-[#181d2c] border-white/10 hover:border-white/20 text-slate-200'
-                : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700 shadow-xs'
+                : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
             }`}
           >
             {/* Official Google SVG Icon */}
