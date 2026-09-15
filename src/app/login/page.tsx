@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Sun, Moon } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,15 +33,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-center items-center px-4 py-12 selection:bg-blue-600/30 selection:text-blue-200">
+    <div
+      className={`min-h-screen flex flex-col justify-center items-center px-4 py-12 transition-colors duration-200 relative ${
+        isDarkMode
+          ? 'bg-[#07090e] text-slate-100 selection:bg-blue-600/30 selection:text-blue-200'
+          : 'bg-[#f8fafc] text-slate-900 selection:bg-blue-500/20 selection:text-blue-700'
+      }`}
+    >
       {/* Back to website button */}
       <Link
         href="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/5"
+        className={`absolute top-6 left-6 flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+          isDarkMode
+            ? 'text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5'
+            : 'text-slate-600 hover:text-slate-900 bg-black/5 hover:bg-black/10 border-black/5'
+        }`}
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         <span>Back to Home</span>
       </Link>
+
+      {/* Light / Dark Mode Toggle Button */}
+      <button
+        type="button"
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`absolute top-6 right-6 p-2 rounded-xl transition-colors cursor-pointer ${
+          isDarkMode
+            ? 'text-slate-400 hover:text-white hover:bg-white/5'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-black/5'
+        }`}
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        aria-label="Toggle light or dark theme"
+      >
+        {isDarkMode ? (
+          <Sun className="w-5 h-5 stroke-[2]" />
+        ) : (
+          <Moon className="w-5 h-5 stroke-[2]" />
+        )}
+      </button>
 
       <div className="w-full max-w-[420px] mx-auto space-y-8">
         {/* Brand Logo & Name */}
@@ -50,15 +80,29 @@ export default function LoginPage() {
               AJ
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-black tracking-tight text-white font-sans">
+              <span
+                className={`text-2xl font-black tracking-tight font-sans ${
+                  isDarkMode ? 'text-white' : 'text-slate-900'
+                }`}
+              >
                 Apex<span className="text-emerald-400">Journal</span>
               </span>
-              <span className="text-[11px] font-mono font-bold text-slate-400">®</span>
+              <span
+                className={`text-[11px] font-mono font-bold ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                ®
+              </span>
             </div>
           </Link>
 
           {/* Heading */}
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white pt-2">
+          <h1
+            className={`text-2xl sm:text-3xl font-bold tracking-tight pt-2 ${
+              isDarkMode ? 'text-white' : 'text-slate-900'
+            }`}
+          >
             Sign in to your account
           </h1>
         </div>
@@ -69,7 +113,9 @@ export default function LoginPage() {
           <div className="space-y-2 text-left">
             <label
               htmlFor="email"
-              className="block text-sm font-semibold text-slate-200"
+              className={`block text-sm font-semibold ${
+                isDarkMode ? 'text-slate-200' : 'text-slate-700'
+              }`}
             >
               Email address
             </label>
@@ -80,7 +126,11 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="w-full bg-[#0d111a] border border-[#1e2638] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 transition-all outline-none"
+              className={`w-full rounded-xl px-4 py-3 text-sm transition-all outline-none border focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] ${
+                isDarkMode
+                  ? 'bg-[#0d111a] border-[#1e2638] text-slate-100 placeholder:text-slate-500'
+                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 shadow-xs'
+              }`}
             />
           </div>
 
@@ -88,7 +138,9 @@ export default function LoginPage() {
           <div className="space-y-2 text-left">
             <label
               htmlFor="password"
-              className="block text-sm font-semibold text-slate-200"
+              className={`block text-sm font-semibold ${
+                isDarkMode ? 'text-slate-200' : 'text-slate-700'
+              }`}
             >
               Password
             </label>
@@ -100,12 +152,20 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-[#0d111a] border border-[#1e2638] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] rounded-xl px-4 py-3 pr-11 text-sm text-slate-100 placeholder:text-slate-500 transition-all outline-none font-mono"
+                className={`w-full rounded-xl px-4 py-3 pr-11 text-sm font-mono transition-all outline-none border focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] ${
+                  isDarkMode
+                    ? 'bg-[#0d111a] border-[#1e2638] text-slate-100 placeholder:text-slate-500'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 shadow-xs'
+                }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
+                className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1 transition-colors ${
+                  isDarkMode
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
@@ -119,29 +179,37 @@ export default function LoginPage() {
 
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2.5 text-sm text-slate-300 cursor-pointer select-none">
+            <label
+              className={`flex items-center gap-2.5 text-sm cursor-pointer select-none ${
+                isDarkMode ? 'text-slate-300' : 'text-slate-600'
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded bg-[#0d111a] border border-[#1e2638] text-[#2563eb] focus:ring-0 focus:ring-offset-0 focus:outline-none accent-[#2563eb] cursor-pointer"
+                className={`w-4 h-4 rounded text-[#2563eb] focus:ring-0 focus:ring-offset-0 focus:outline-none accent-[#2563eb] cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-[#0d111a] border-[#1e2638]'
+                    : 'bg-white border-slate-300'
+                }`}
               />
               <span>Remember Me</span>
             </label>
 
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-[#2563eb] hover:text-blue-400 transition-colors"
+              className="text-sm font-medium text-[#2563eb] hover:text-blue-500 transition-colors"
             >
               Forgot Password?
             </Link>
           </div>
 
-          {/* Sign In Button */}
+          {/* Sign In Button (Flat, without drop shadow) */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:bg-[#1e40af] text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:bg-[#1e40af] text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -152,7 +220,13 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="py-1 text-center">
-            <span className="text-xs font-bold text-slate-400 tracking-wider">OR</span>
+            <span
+              className={`text-xs font-bold tracking-wider ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}
+            >
+              OR
+            </span>
           </div>
 
           {/* Continue with Google Button */}
@@ -160,7 +234,11 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full bg-[#121622] hover:bg-[#181d2c] border border-white/10 hover:border-white/20 text-slate-200 font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            className={`w-full font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border ${
+              isDarkMode
+                ? 'bg-[#121622] hover:bg-[#181d2c] border-white/10 hover:border-white/20 text-slate-200'
+                : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700 shadow-xs'
+            }`}
           >
             {/* Official Google SVG Icon */}
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -187,11 +265,15 @@ export default function LoginPage() {
 
         {/* Bottom Signup Link */}
         <div className="text-center pt-2">
-          <p className="text-sm text-slate-300">
+          <p
+            className={`text-sm ${
+              isDarkMode ? 'text-slate-300' : 'text-slate-600'
+            }`}
+          >
             Ready to trade?{' '}
             <Link
               href="/register"
-              className="text-[#2563eb] hover:text-blue-400 font-semibold transition-colors"
+              className="text-[#2563eb] hover:text-blue-500 font-semibold transition-colors"
             >
               Create your account
             </Link>
