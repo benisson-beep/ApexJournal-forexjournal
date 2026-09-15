@@ -65,7 +65,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Account Portfolio Hub Card */}
-      <div className="bg-black border border-white/10 rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-black border border-white/10 rounded-xl p-5 sm:p-6 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Left: Account Identity & Primary Numbers */}
           <div className="space-y-3">
@@ -124,7 +124,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={onOpenNewTrade}
-              className="flex items-center gap-1.5 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+              className="flex items-center gap-1.5 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2.5 rounded-lg transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Log Manual Trade</span>
@@ -241,7 +241,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
       </div>
 
       {/* 3. Monthly P&L Calendar Consistency Heatmap */}
-      <div className="bg-black border border-white/10 rounded-xl p-5 shadow-xl">
+      <div className="bg-black border border-white/10 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-emerald-400" />
@@ -346,7 +346,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
       </div>
 
       {/* 5. Recent Executions & Call-to-Action to Full Trade Log */}
-      <div className="bg-black border border-white/10 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-black border border-white/10 rounded-xl overflow-hidden">
         <div className="p-4 px-5 border-b border-white/10 flex items-center justify-between bg-[#080c14]">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-slate-400" />
@@ -417,10 +417,10 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
         <div className="p-4 bg-[#080c14] border-t border-white/10 text-center">
           <button
             onClick={onViewAllTrades}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-7 py-3 rounded-lg transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-7 py-3 rounded-lg transition-all cursor-pointer"
           >
             <span>Go to Dedicated Trade Execution Log Table</span>
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
         </div>
       </div>

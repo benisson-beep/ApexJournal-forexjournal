@@ -56,7 +56,7 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade })
   };
 
   return (
-    <div className="bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+    <div className="bg-black border border-white/10 rounded-xl overflow-hidden">
       {/* Table Controls & Filter Bar */}
       <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black">
         <div className="flex items-center gap-3">

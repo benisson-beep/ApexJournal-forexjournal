@@ -53,7 +53,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   const totalMonthTrades = allDays.reduce((sum, d) => sum + d.tradeCount, 0);
 
   return (
-    <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden shadow-xl">
+    <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden">
       {/* Calendar Header / Month Switcher */}
       <div className="p-4 border-b border-[#1b2336] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0a0d14]/40">
         <div className="flex items-center gap-3">

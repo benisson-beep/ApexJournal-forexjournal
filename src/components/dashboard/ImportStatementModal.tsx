@@ -62,7 +62,7 @@ export const ImportStatementModal: React.FC<ImportStatementModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl w-full max-w-xl overflow-hidden">
         {/* Header */}
         <div className="p-4 px-6 border-b border-[#1b2336] flex items-center justify-between bg-[#0a0d14]/60">
           <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export const ImportStatementModal: React.FC<ImportStatementModalProps> = ({
               type="button"
               onClick={handleConfirmImport}
               disabled={previewTrades.length === 0}
-              className="px-5 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] rounded-lg transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-5 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Import {previewTrades.length > 0 ? `${previewTrades.length} Trades` : ''}
             </button>

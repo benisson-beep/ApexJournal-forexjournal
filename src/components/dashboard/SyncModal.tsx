@@ -89,7 +89,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+      <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl w-full max-w-2xl overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 px-6 border-b border-[#1b2336] flex items-center justify-between bg-[#0a0d14]/60">
           <div className="flex items-center gap-2.5">

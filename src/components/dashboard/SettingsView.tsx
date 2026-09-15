@@ -126,7 +126,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={handleSaveSettings}
-          className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+          className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
         >
           {savedSuccess ? (
             <>

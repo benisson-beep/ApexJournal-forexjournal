@@ -94,7 +94,7 @@ export const PsychologyAnalytics: React.FC<PsychologyAnalyticsProps> = ({ trades
       </div>
 
       {/* 2. Setup Playbook Edge Matrix */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl overflow-hidden">
         <div className="p-4 border-b border-[#1b2336] flex items-center justify-between bg-[#0a0d14]/40">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-emerald-400" />

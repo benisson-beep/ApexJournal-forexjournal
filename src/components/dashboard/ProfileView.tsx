@@ -71,7 +71,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           {/* Avatar and Details */}
           <div className="flex items-center gap-5">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 flex items-center justify-center text-white font-extrabold text-2xl shadow-xl ring-4 ring-emerald-500/20">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 flex items-center justify-center text-white font-extrabold text-2xl ring-4 ring-emerald-500/20">
                 AV
               </div>
               <div className="absolute -bottom-1.5 -right-1.5 bg-[#00c97b] text-black text-[10px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-black flex items-center gap-0.5">
@@ -140,7 +140,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
 
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 bg-[#00c97b] hover:bg-emerald-400 text-black text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+              className="flex items-center gap-1.5 bg-[#00c97b] hover:bg-emerald-400 text-black text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>{copied ? 'Link Copied!' : 'Share Profile'}</span>

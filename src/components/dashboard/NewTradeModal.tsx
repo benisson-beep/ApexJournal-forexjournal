@@ -125,7 +125,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-black border border-white/10 rounded-xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-black border border-white/10 rounded-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
         <div className="p-4 px-6 border-b border-white/10 flex items-center justify-between bg-[#080c14]">
           <div>
@@ -414,7 +414,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-bold bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black rounded-lg transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+              className="px-5 py-2 text-xs font-bold bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black rounded-lg transition-all cursor-pointer"
             >
               Save to Journal
             </button>
