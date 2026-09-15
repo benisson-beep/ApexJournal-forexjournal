@@ -45,10 +45,10 @@ export const LandingNavbar: React.FC = () => {
         {/* Right CTA */}
         <div className="flex items-center gap-4">
           <Link
-            href="/dashboard"
+            href="/login"
             className="text-sm font-bold text-slate-200 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:block"
           >
-            Live Demo
+            Sign In
           </Link>
           <Link
             href="/dashboard"
