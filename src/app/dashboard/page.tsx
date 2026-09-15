@@ -5,6 +5,7 @@ import { Header } from '../../components/dashboard/Header';
 import { Sidebar, DashboardTab } from '../../components/dashboard/Sidebar';
 import { ProfileView } from '../../components/dashboard/ProfileView';
 import { SettingsView } from '../../components/dashboard/SettingsView';
+import { AccountsView } from '../../components/dashboard/AccountsView';
 import { AccountOverview } from '../../components/dashboard/AccountOverview';
 import { TradeTable } from '../../components/dashboard/TradeTable';
 import { CalendarHeatmap } from '../../components/dashboard/CalendarHeatmap';
@@ -15,7 +16,7 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
-import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Upload } from 'lucide-react';
+import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Upload, Wallet } from 'lucide-react';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
@@ -119,24 +120,23 @@ export default function DashboardPage() {
         onOpenNewTrade={() => setIsModalOpen(true)}
         onOpenSyncModal={() => setIsSyncModalOpen(true)}
         tradeCount={accountTrades.length}
+        accounts={accounts}
+        selectedAccountId={selectedAccountId}
+        onSelectAccount={setSelectedAccountId}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Institutional Navigation Header */}
+        {/* Minimal Navigation Header with ONLY Log Trade button */}
         <Header
-          accounts={accounts}
-          selectedAccountId={selectedAccountId}
-          onSelectAccount={setSelectedAccountId}
           onOpenNewTrade={() => setIsModalOpen(true)}
-          onOpenSyncModal={() => setIsSyncModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
         />
 
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
           {/* Workspace Tabs (shown when browsing primary analytical views) */}
-          {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'PSYCHOLOGY') && (
+          {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
             <>
               {/* Section: Subheader & Quick Info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
               {/* View Mode Navigation Tabs */}
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <div className="flex items-center gap-1.5 bg-black border border-white/10 p-1 rounded-xl">
+                <div className="flex flex-wrap items-center gap-1.5 bg-black border border-white/10 p-1 rounded-xl">
                   <button
                     onClick={() => setActiveTab('OVERVIEW')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
@@ -177,6 +177,18 @@ export default function DashboardPage() {
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
                     <span>Overview & Accounts</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('ACCOUNTS')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTab === 'ACCOUNTS'
+                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Wallet className="w-3.5 h-3.5" />
+                    <span>Accounts ({accounts.length})</span>
                   </button>
 
                   <button
@@ -244,6 +256,18 @@ export default function DashboardPage() {
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onSelectDate={setSelectedDateStr}
               selectedDateStr={selectedDateStr}
+            />
+          )}
+
+          {/* View: Dedicated Accounts Management View */}
+          {activeTab === 'ACCOUNTS' && (
+            <AccountsView
+              accounts={accounts}
+              selectedAccountId={selectedAccountId}
+              onSelectAccount={setSelectedAccountId}
+              trades={trades}
+              onOpenSyncModal={() => setIsSyncModalOpen(true)}
+              onOpenImportModal={() => setIsImportModalOpen(true)}
             />
           )}
 

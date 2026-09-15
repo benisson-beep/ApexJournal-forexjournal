@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -12,11 +12,13 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
-  ShieldCheck,
+  Wallet,
 } from 'lucide-react';
+import { TradingAccount } from '../../types/trade';
 
-export type DashboardTab = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'PSYCHOLOGY' | 'PROFILE' | 'SETTINGS';
+export type DashboardTab = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'PSYCHOLOGY' | 'ACCOUNTS' | 'PROFILE' | 'SETTINGS';
 
 interface SidebarProps {
   activeTab: DashboardTab;
@@ -28,6 +30,9 @@ interface SidebarProps {
   onOpenNewTrade: () => void;
   onOpenSyncModal: () => void;
   tradeCount?: number;
+  accounts?: TradingAccount[];
+  selectedAccountId?: string;
+  onSelectAccount?: (id: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,13 +45,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenNewTrade,
   onOpenSyncModal,
   tradeCount = 0,
+  accounts = [],
+  selectedAccountId,
+  onSelectAccount,
 }) => {
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const currentAccount = accounts.find((a) => a.id === selectedAccountId) || accounts[0];
+
   const navItems = [
     {
       id: 'OVERVIEW' as DashboardTab,
       label: 'Dashboard',
       icon: LayoutDashboard,
       badge: null,
+    },
+    {
+      id: 'ACCOUNTS' as DashboardTab,
+      label: 'Accounts',
+      icon: Wallet,
+      badge: accounts.length > 0 ? accounts.length.toString() : null,
     },
     {
       id: 'LOG' as DashboardTab,
@@ -92,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between select-none">
-      {/* Top section: Logo & Nav Items */}
+      {/* Top section: Logo, Account Selector & Nav Items */}
       <div className="space-y-4">
         {/* Brand Header */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-4 py-4 border-b border-white/10`}>
@@ -128,6 +145,73 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Account Selector in Sidebar */}
+        {!isCollapsed && accounts && accounts.length > 0 && (
+          <div className="px-3">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
+                className="w-full flex items-center justify-between gap-2 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 text-left transition-colors cursor-pointer"
+                title="Switch Account"
+              >
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <div className="truncate">
+                    <p className="text-xs font-semibold text-slate-200 truncate">{currentAccount?.name}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      ${currentAccount?.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Account Dropdown Menu */}
+              {isAccountDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-black border border-white/15 rounded-xl shadow-2xl p-1.5 z-50 space-y-1">
+                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+                    <span>Connected Accounts</span>
+                    <button
+                      onClick={() => {
+                        setIsAccountDropdownOpen(false);
+                        onSelectTab('ACCOUNTS');
+                      }}
+                      className="text-emerald-400 hover:underline cursor-pointer text-[10px]"
+                    >
+                      View All
+                    </button>
+                  </div>
+                  {accounts.map((acc) => (
+                    <button
+                      key={acc.id}
+                      onClick={() => {
+                        onSelectAccount?.(acc.id);
+                        setIsAccountDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                        acc.id === selectedAccountId
+                          ? 'bg-emerald-500/15 text-emerald-300 font-semibold border border-emerald-500/30'
+                          : 'text-slate-300 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="truncate">
+                        <p className="font-semibold text-slate-200 truncate">{acc.name}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">
+                          ${acc.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} · {acc.broker}
+                        </p>
+                      </div>
+                      {acc.id === selectedAccountId && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 ml-1.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Quick Action Button: New Trade */}
         <div className="px-3">
@@ -248,34 +332,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom section: User Profile snippet & Desktop Collapse Toggle */}
-      <div className="p-3 border-t border-white/10 space-y-2">
-        {/* User Card */}
-        <button
-          onClick={() => handleItemClick('PROFILE')}
-          className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer text-left ${
-            isCollapsed ? 'justify-center p-1' : ''
-          }`}
-          title="View Trader Profile"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/10 shrink-0">
-            AV
-          </div>
-          {!isCollapsed && (
-            <div className="flex-1 overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs font-bold text-slate-200 truncate">Alex Vance</p>
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              </div>
-              <p className="text-[10px] text-slate-400 truncate">Funded Pro · $200k</p>
-            </div>
-          )}
-        </button>
-
-        {/* Collapse / Expand Toggle Button (desktop only) */}
+      {/* Bottom section: Desktop Collapse Toggle (Profile widget removed as requested) */}
+      <div className="p-3 border-t border-white/10">
         <button
           onClick={onToggleCollapse}
-          className="hidden md:flex w-full items-center justify-center gap-2 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 text-xs transition-colors cursor-pointer"
+          className="hidden md:flex w-full items-center justify-center gap-2 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 text-xs transition-colors cursor-pointer"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? (
