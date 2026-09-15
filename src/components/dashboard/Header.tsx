@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { TradingAccount } from '../../types/trade';
-import { ChevronDown, HelpCircle, Plus, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
+import { ChevronDown, HelpCircle, Menu, Plus } from 'lucide-react';
 
 interface HeaderProps {
   accounts: TradingAccount[];
@@ -11,6 +11,7 @@ interface HeaderProps {
   onSelectAccount: (id: string) => void;
   onOpenNewTrade: () => void;
   onOpenSyncModal: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectAccount,
   onOpenNewTrade,
   onOpenSyncModal,
+  onOpenMobileMenu,
 }) => {
   const currentAccount = accounts.find((a) => a.id === selectedAccountId) || accounts[0];
 
@@ -26,7 +28,17 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="border-b border-white/10 bg-black/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* Brand & Account Selector */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
+          {onOpenMobileMenu && (
+            <button
+              onClick={onOpenMobileMenu}
+              className="md:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer" title="Go to Home Landing Page">
             <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-xs tracking-tighter group-hover:scale-105 transition-transform">
               AJ
@@ -85,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <div>
                     <p className="font-semibold text-slate-200">{acc.name}</p>
                     <p className="text-[10px] text-slate-400 font-mono">
-                      ${acc.currentBalance.toLocaleString()} · {acc.broker}
+                      ${acc.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })} · {acc.broker}
                     </p>
                   </div>
                   {acc.id === selectedAccountId && (
