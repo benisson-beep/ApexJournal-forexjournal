@@ -131,6 +131,8 @@ export default function DashboardPage() {
         <Header
           onOpenNewTrade={() => setIsModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
         />
 
         {/* Main Dashboard Workspace */}
@@ -138,52 +140,26 @@ export default function DashboardPage() {
           {/* Workspace Tabs (shown when browsing primary analytical views) */}
           {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
             <>
-              {/* Section: Subheader & Quick Info */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl font-bold tracking-tight text-white">
-                    Institutional Performance & Accounts
-                  </h1>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Active Account: <span className="text-slate-200 font-semibold">{selectedAccount.name}</span> · Real-time statistical edge monitoring
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsImportModalOpen(true)}
-                    className="flex items-center gap-1.5 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-emerald-500/40 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Import MT4/MT5 CSV</span>
-                  </button>
-                  <div className="flex items-center gap-1 bg-[#080c14] border border-white/10 text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>September 2026</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* View Mode Navigation Tabs */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              {/* View Mode Navigation Tabs & Quick Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
                 <div className="flex flex-wrap items-center gap-1.5 bg-black border border-white/10 p-1 rounded-xl">
                   <button
                     onClick={() => setActiveTab('OVERVIEW')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'OVERVIEW'
-                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        ? 'bg-[#00c97b] text-black'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Overview & Accounts</span>
+                    <span>Overview</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('ACCOUNTS')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'ACCOUNTS'
-                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        ? 'bg-[#00c97b] text-black'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -195,19 +171,19 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab('LOG')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'LOG'
-                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        ? 'bg-[#00c97b] text-black'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <ListFilter className="w-3.5 h-3.5" />
-                    <span>Trade Execution Log</span>
+                    <span>Trade Journal</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('CALENDAR')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'CALENDAR'
-                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        ? 'bg-[#00c97b] text-black'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -219,7 +195,7 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab('PSYCHOLOGY')}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'PSYCHOLOGY'
-                        ? 'bg-[#00c97b] text-black shadow-lg shadow-emerald-500/20'
+                        ? 'bg-[#00c97b] text-black'
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -228,17 +204,32 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                {selectedDateStr && (
-                  <div className="text-xs text-slate-400 font-mono flex items-center gap-2">
-                    <span>Date Filter: <strong className="text-emerald-400">{selectedDateStr}</strong></span>
-                    <button
-                      onClick={() => setSelectedDateStr(null)}
-                      className="text-[11px] underline text-slate-400 hover:text-slate-200 cursor-pointer"
-                    >
-                      Clear
-                    </button>
+                <div className="flex items-center gap-2">
+                  {selectedDateStr && (
+                    <div className="text-xs text-slate-400 font-mono flex items-center gap-2 mr-2">
+                      <span>Date Filter: <strong className="text-emerald-400">{selectedDateStr}</strong></span>
+                      <button
+                        onClick={() => setSelectedDateStr(null)}
+                        className="text-[11px] underline text-slate-400 hover:text-slate-200 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="flex items-center gap-1.5 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-emerald-500/40 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Import CSV</span>
+                  </button>
+
+                  <div className="flex items-center gap-1 bg-[#080c14] border border-white/10 text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>September 2026</span>
                   </div>
-                )}
+                </div>
               </div>
             </>
           )}

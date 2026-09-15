@@ -60,7 +60,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </button>
           <button
             onClick={onOpenSyncModal}
-            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
           >
             <Zap className="w-3.5 h-3.5" />
             <span>Connect MT4/MT5</span>
@@ -121,7 +121,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               key={acc.id}
               className={`bg-[#080c14] border rounded-2xl p-5 transition-all relative ${
                 isSelected
-                  ? 'border-emerald-500/50 shadow-xl shadow-emerald-500/5 ring-1 ring-emerald-500/30'
+                  ? 'border-emerald-500/50 ring-1 ring-emerald-500/30'
                   : 'border-white/10 hover:border-white/20'
               }`}
             >
@@ -198,7 +198,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 ) : (
                   <button
                     onClick={() => onSelectAccount(acc.id)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-black bg-[#00c97b] hover:bg-emerald-400 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+                    className="flex items-center gap-1.5 text-xs font-bold text-black bg-[#00c97b] hover:bg-emerald-400 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer"
                   >
                     <span>Switch to Account</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
