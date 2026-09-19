@@ -86,10 +86,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleExportCSV = () => {
     if (!trades || trades.length === 0) return;
-    const headers = ['ID', 'Pair', 'Direction', 'Lots', 'EntryPrice', 'ExitPrice', 'OpenTime', 'CloseTime', 'NetPnl', 'Pips', 'Strategy'];
+    const headers = ['ID', 'Symbol', 'Direction', 'Lots', 'EntryPrice', 'ExitPrice', 'OpenTime', 'CloseTime', 'NetPnl', 'Pips', 'Tags'];
     const rows = trades.map((t) => [
       t.id,
-      t.pair,
+      t.symbol,
       t.direction,
       t.lotSize,
       t.openPrice,
@@ -98,7 +98,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       t.closeTime,
       t.netPnl,
       t.pips,
-      `"${t.strategy || ''}"`,
+      `"${t.tags?.map((tag) => tag.name).join(';') || ''}"`,
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -115,27 +115,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* Header with Save Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Sliders className="w-5 h-5 text-emerald-400" />
-            <span>Platform & Risk Settings</span>
+          <h2 className="text-lg font-bold tracking-tight text-white font-heading">
+            Platform & Risk Settings
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Configure automated risk guardrails, MT4/MT5 webhooks, and interface preferences
           </p>
         </div>
 
         <button
           onClick={handleSaveSettings}
-          className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-md transition-colors cursor-pointer"
         >
           {savedSuccess ? (
             <>
-              <Check className="w-4 h-4 stroke-[3]" />
+              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Saved Successfully</span>
             </>
           ) : (
             <>
-              <Save className="w-4 h-4" />
+              <Save className="w-3.5 h-3.5" />
               <span>Save Changes</span>
             </>
           )}
@@ -143,15 +142,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* Section 1: Risk & Prop Firm Guardrails */}
-      <div className="bg-[#080c14] border border-white/10 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-white/10 pb-3">
-          <Shield className="w-4 h-4 text-emerald-400" />
+      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200 uppercase tracking-wider border-b border-white/[0.06] pb-3 font-heading">
+          <Shield className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
           <span>Risk Management Engine & Guardrails</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Max Risk Per Trade (%)</label>
+            <label className="text-xs font-medium text-zinc-300">Max Risk Per Trade (%)</label>
             <div className="relative">
               <input
                 type="number"
@@ -160,57 +159,57 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 max="10"
                 value={riskPerTrade}
                 onChange={(e) => setRiskPerTrade(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white font-mono tabular-nums focus:outline-none"
               />
-              <span className="absolute right-3 top-2 text-xs font-mono text-slate-400">%</span>
+              <span className="absolute right-3 top-2 text-xs font-mono text-zinc-400">%</span>
             </div>
-            <p className="text-[10px] text-slate-400">Institutional standard is 0.5% – 1.0%</p>
+            <p className="text-[10px] text-zinc-500">Institutional standard is 0.5% – 1.0%</p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Max Daily Loss Limit ($)</label>
+            <label className="text-xs font-medium text-zinc-300">Max Daily Loss Limit ($)</label>
             <div className="relative">
               <input
                 type="number"
                 step="100"
                 value={maxDailyLoss}
                 onChange={(e) => setMaxDailyLoss(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white font-mono tabular-nums focus:outline-none"
               />
-              <span className="absolute right-3 top-2 text-xs font-mono text-slate-400">USD</span>
+              <span className="absolute right-3 top-2 text-xs font-mono text-zinc-400">USD</span>
             </div>
-            <p className="text-[10px] text-slate-400">Halts journal and triggers breach alert</p>
+            <p className="text-[10px] text-zinc-500">Halts journal and triggers breach alert</p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Max Daily Trades</label>
+            <label className="text-xs font-medium text-zinc-300">Max Daily Trades</label>
             <input
               type="number"
               min="1"
               max="20"
               value={maxDailyTrades}
               onChange={(e) => setMaxDailyTrades(e.target.value)}
-              className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none"
+              className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white font-mono tabular-nums focus:outline-none"
             />
-            <p className="text-[10px] text-slate-400">Enforces high-conviction selectivity</p>
+            <p className="text-[10px] text-zinc-500">Enforces high-conviction selectivity</p>
           </div>
         </div>
 
         {/* Toggle Option */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/5">
+        <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
           <div>
-            <p className="text-xs font-semibold text-slate-200">Mandatory Stop-Loss Guardrail</p>
-            <p className="text-[10px] text-slate-400">Flag trades entered without a predefined SL as psychological violations</p>
+            <p className="text-xs font-medium text-zinc-200">Mandatory Stop-Loss Guardrail</p>
+            <p className="text-[10px] text-zinc-500">Flag trades entered without a predefined SL as psychological violations</p>
           </div>
           <button
             onClick={() => setRequireStopLoss(!requireStopLoss)}
-            className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-              requireStopLoss ? 'bg-[#00c97b]' : 'bg-slate-700'
+            className={`w-10 h-5.5 rounded-full transition-colors relative cursor-pointer ${
+              requireStopLoss ? 'bg-blue-600' : 'bg-zinc-700'
             }`}
           >
             <span
-              className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                requireStopLoss ? 'translate-x-5' : 'translate-x-0'
+              className={`absolute top-0.5 left-0.5 bg-white w-4.5 h-4.5 rounded-full transition-transform ${
+                requireStopLoss ? 'translate-x-4.5' : 'translate-x-0'
               }`}
             />
           </button>
@@ -218,29 +217,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* Section 2: MT4 / MT5 Webhook & API Gateway */}
-      <div className="bg-[#080c14] border border-white/10 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <Zap className="w-4 h-4 text-emerald-400" />
+      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200 uppercase tracking-wider font-heading">
+            <Zap className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
             <span>MetaTrader 4 / 5 Automated Webhook Gateway</span>
           </div>
-          <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             HTTP POST 200 OK
           </span>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">
+            <label className="text-xs font-medium text-zinc-300 block mb-1">
               Your Unique Ingestion Webhook URL
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-black/70 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-emerald-400 truncate">
+              <div className="flex-1 bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs font-mono text-zinc-300 truncate">
                 {webhookEndpoint}
               </div>
               <button
                 onClick={handleCopyToken}
-                className="flex items-center gap-1.5 bg-[#101624] hover:bg-[#182236] border border-white/10 text-slate-200 text-xs px-3.5 py-2 rounded-xl transition-colors shrink-0 cursor-pointer font-semibold"
+                className="flex items-center gap-1.5 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 text-xs px-3.5 py-2 rounded-md transition-colors shrink-0 cursor-pointer font-medium"
               >
                 {copiedToken ? (
                   <>
@@ -249,37 +249,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-slate-400" />
+                    <Copy className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Copy URL</span>
                   </>
                 )}
               </button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-zinc-500 mt-1">
               Paste this URL into your MetaTrader Expert Advisor (EA) or cTrader webhook alert setting.
             </p>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+          <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
             <div>
-              <p className="text-xs font-semibold text-slate-200">Test Connection Ping</p>
-              <p className="text-[10px] text-slate-400">Verify webhook endpoint responsiveness</p>
+              <p className="text-xs font-medium text-zinc-200">Test Connection Ping</p>
+              <p className="text-[10px] text-zinc-500">Verify webhook endpoint responsiveness</p>
             </div>
             <div className="flex items-center gap-2">
               {pingSuccess && (
-                <span className="text-xs text-emerald-400 font-mono font-semibold">Latency: 24ms ✓</span>
+                <span className="text-xs text-emerald-400 font-mono font-medium">Latency: 24ms ✓</span>
               )}
               <button
                 onClick={handleTestPing}
                 disabled={isPinging}
-                className="flex items-center gap-1.5 bg-[#101624] hover:bg-[#182236] border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer font-medium"
               >
-                <Terminal className="w-3.5 h-3.5 text-slate-400" />
+                <Terminal className="w-3.5 h-3.5 text-zinc-400" />
                 <span>{isPinging ? 'Sending Ping...' : 'Send Test Ping'}</span>
               </button>
               <button
                 onClick={handleRegenerateToken}
-                className="text-xs text-slate-400 hover:text-rose-400 underline px-2 cursor-pointer"
+                className="text-xs text-zinc-400 hover:text-rose-400 underline px-2 cursor-pointer"
               >
                 Regenerate Token
               </button>
@@ -289,19 +289,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* Section 3: General & Account Defaults */}
-      <div className="bg-[#080c14] border border-white/10 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-white/10 pb-3">
-          <DollarSign className="w-4 h-4 text-emerald-400" />
+      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200 uppercase tracking-wider border-b border-white/[0.06] pb-3 font-heading">
+          <DollarSign className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
           <span>Account Defaults & Localization</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Base Account Currency</label>
+            <label className="text-xs font-medium text-zinc-300">Base Account Currency</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
+              className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
             >
               <option value="USD">USD ($) — US Dollar</option>
               <option value="EUR">EUR (€) — Euro</option>
@@ -312,11 +312,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Journal Timezone</label>
+            <label className="text-xs font-medium text-zinc-300">Journal Timezone</label>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
+              className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
             >
               <option value="UTC">UTC (Universal Coordinated Time)</option>
               <option value="EST">EST / EDT (New York Time)</option>
@@ -326,31 +326,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">Default Lot Size</label>
+            <label className="text-xs font-medium text-zinc-300">Default Lot Size</label>
             <input
               type="number"
               step="0.01"
               value={defaultLotSize}
               onChange={(e) => setDefaultLotSize(e.target.value)}
-              className="w-full bg-black/60 border border-white/10 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none"
+              className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-md px-3 py-2 text-xs text-white font-mono tabular-nums focus:outline-none"
             />
           </div>
         </div>
 
         {/* Display & Sound Toggles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/5">
-          <div className="flex items-center justify-between p-3 bg-black/40 border border-white/5 rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/[0.04]">
+          <div className="flex items-center justify-between p-3 bg-[#0D0D0F]/70 border border-white/[0.06] rounded-md">
             <div className="flex items-center gap-2.5">
-              <Volume2 className="w-4 h-4 text-slate-400" />
+              <Volume2 className="w-4 h-4 text-zinc-400" />
               <div>
-                <p className="text-xs font-semibold text-slate-200">Execution Sound Effects</p>
-                <p className="text-[10px] text-slate-400">Auditory feedback upon trade import & logging</p>
+                <p className="text-xs font-medium text-zinc-200">Execution Sound Effects</p>
+                <p className="text-[10px] text-zinc-500">Auditory feedback upon trade import & logging</p>
               </div>
             </div>
             <button
               onClick={() => setSoundEffects(!soundEffects)}
               className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                soundEffects ? 'bg-[#00c97b]' : 'bg-slate-700'
+                soundEffects ? 'bg-blue-600' : 'bg-zinc-700'
               }`}
             >
               <span
@@ -361,15 +361,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/40 border border-white/5 rounded-xl">
+          <div className="flex items-center justify-between p-3 bg-[#0D0D0F]/70 border border-white/[0.06] rounded-md">
             <div>
-              <p className="text-xs font-semibold text-slate-200">Compact Table Density</p>
-              <p className="text-[10px] text-slate-400">Display more trade rows per page</p>
+              <p className="text-xs font-medium text-zinc-200">Compact Table Density</p>
+              <p className="text-[10px] text-zinc-500">Display more trade rows per page</p>
             </div>
             <button
               onClick={() => setCompactDensity(!compactDensity)}
               className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                compactDensity ? 'bg-[#00c97b]' : 'bg-slate-700'
+                compactDensity ? 'bg-blue-600' : 'bg-zinc-700'
               }`}
             >
               <span
@@ -383,47 +383,47 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* Section 4: Data Management */}
-      <div className="bg-[#080c14] border border-white/10 rounded-2xl p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-white/10 pb-3">
-          <Database className="w-4 h-4 text-emerald-400" />
+      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200 uppercase tracking-wider border-b border-white/[0.06] pb-3 font-heading">
+          <Database className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
           <span>Data Management & Backups</span>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold text-slate-200">Export Journal Data</p>
-            <p className="text-[10px] text-slate-400">Download all trade history, metrics, and tags as a CSV spreadsheet</p>
+            <p className="text-xs font-medium text-zinc-200">Export Journal Data</p>
+            <p className="text-[10px] text-zinc-500">Download all trade history, metrics, and tags as a CSV spreadsheet</p>
           </div>
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 bg-[#101624] hover:bg-[#182236] border border-white/10 hover:border-emerald-500/40 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 text-xs font-medium px-4 py-2 rounded-md transition-colors cursor-pointer shrink-0"
           >
-            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <Download className="w-3.5 h-3.5 text-zinc-400" />
             <span>Export CSV ({trades.length} trades)</span>
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/[0.04]">
           <div>
-            <p className="text-xs font-semibold text-slate-200">Restore Sample Dataset</p>
-            <p className="text-[10px] text-slate-400">Reset default demo trading accounts and benchmark trades</p>
+            <p className="text-xs font-medium text-zinc-200">Restore Sample Dataset</p>
+            <p className="text-[10px] text-zinc-500">Reset default demo trading accounts and benchmark trades</p>
           </div>
           <button
             onClick={() => {
               if (onResetSampleData) onResetSampleData();
               alert('Sample data reloaded.');
             }}
-            className="flex items-center gap-2 bg-[#101624] hover:bg-[#182236] border border-white/10 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 text-xs font-medium px-4 py-2 rounded-md transition-colors cursor-pointer shrink-0"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+            <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
             <span>Reset Demo Data</span>
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/[0.04]">
           <div>
-            <p className="text-xs font-semibold text-rose-300">Clear All Journal Records</p>
-            <p className="text-[10px] text-slate-400">Permanently remove all trades from active memory</p>
+            <p className="text-xs font-medium text-rose-300">Clear All Journal Records</p>
+            <p className="text-[10px] text-zinc-500">Permanently remove all trades from active memory</p>
           </div>
           <button
             onClick={() => {
@@ -431,7 +431,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 if (onClearAllTrades) onClearAllTrades();
               }
             }}
-            className="flex items-center gap-2 bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/30 text-rose-300 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="flex items-center gap-2 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-500/20 text-rose-300 text-xs font-medium px-4 py-2 rounded-md transition-colors cursor-pointer shrink-0"
           >
             <Trash2 className="w-3.5 h-3.5 text-rose-400" />
             <span>Clear All Trades</span>

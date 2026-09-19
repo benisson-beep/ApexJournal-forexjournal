@@ -108,7 +108,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-slate-100 flex selection:bg-emerald-500/20 selection:text-emerald-300">
+    <div className="min-h-screen bg-[#0D0D0F] text-slate-100 flex selection:bg-blue-600/30 selection:text-blue-200">
       {/* Side Navigation Bar */}
       <Sidebar
         activeTab={activeTab}
@@ -136,70 +136,70 @@ export default function DashboardPage() {
         />
 
         {/* Main Dashboard Workspace */}
-        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
           {/* Workspace Tabs (shown when browsing primary analytical views) */}
           {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
             <>
               {/* View Mode Navigation Tabs & Quick Actions */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-                <div className="flex flex-wrap items-center gap-1.5 bg-black border border-white/10 p-1 rounded-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                <div className="flex flex-wrap items-center gap-1 bg-[#131317] border border-white/[0.06] p-1 rounded-md">
                   <button
                     onClick={() => setActiveTab('OVERVIEW')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'OVERVIEW'
-                        ? 'bg-[#00c97b] text-black'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                     }`}
                   >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>Overview</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('ACCOUNTS')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'ACCOUNTS'
-                        ? 'bg-[#00c97b] text-black'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                     }`}
                   >
-                    <Wallet className="w-3.5 h-3.5" />
+                    <Wallet className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>Accounts ({accounts.length})</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('LOG')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'LOG'
-                        ? 'bg-[#00c97b] text-black'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                     }`}
                   >
-                    <ListFilter className="w-3.5 h-3.5" />
+                    <ListFilter className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>Trade Journal</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('CALENDAR')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'CALENDAR'
-                        ? 'bg-[#00c97b] text-black'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                     }`}
                   >
-                    <CalendarDays className="w-3.5 h-3.5" />
+                    <CalendarDays className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>P&L Calendar</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('PSYCHOLOGY')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'PSYCHOLOGY'
-                        ? 'bg-[#00c97b] text-black'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                     }`}
                   >
-                    <Brain className="w-3.5 h-3.5" />
+                    <Brain className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>Edge & Psychology</span>
                   </button>
                 </div>
@@ -219,14 +219,14 @@ export default function DashboardPage() {
 
                   <button
                     onClick={() => setIsImportModalOpen(true)}
-                    className="flex items-center gap-1.5 bg-[#080c14] hover:bg-[#101624] border border-white/10 hover:border-emerald-500/40 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 bg-[#131317] hover:bg-[#18181E] border border-white/[0.06] hover:border-white/[0.12] text-slate-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors cursor-pointer"
                   >
-                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <Upload className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
                     <span>Import CSV</span>
                   </button>
 
-                  <div className="flex items-center gap-1 bg-[#080c14] border border-white/10 text-xs font-mono text-slate-400 px-3 py-1.5 rounded-lg">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
                     <span>September 2026</span>
                   </div>
                 </div>

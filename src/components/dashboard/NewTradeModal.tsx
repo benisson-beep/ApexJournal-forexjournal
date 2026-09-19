@@ -125,20 +125,20 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-black border border-white/10 rounded-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-[#18181E] border border-white/[0.08] rounded-lg w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="p-4 px-6 border-b border-white/10 flex items-center justify-between bg-[#080c14]">
+        <div className="p-4 px-6 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
           <div>
-            <h3 className="font-bold text-slate-100 text-sm tracking-tight flex items-center gap-2">
-              <span>Log Manual Trade Execution</span>
+            <h3 className="font-semibold text-zinc-100 text-sm tracking-tight font-heading">
+              Log Manual Trade Execution
             </h3>
-            <p className="text-[11px] text-slate-400">Add an executed trade to your journal</p>
+            <p className="text-[11px] text-zinc-400">Add an executed trade to your journal</p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 p-1 rounded-md hover:bg-white/5 cursor-pointer"
+            className="text-zinc-400 hover:text-zinc-200 p-1 rounded-md hover:bg-white/5 cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -147,7 +147,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
           {/* Symbol & Direction Toggle */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Instrument
               </label>
               <input
@@ -156,22 +156,22 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                 placeholder="e.g. EURUSD, XAUUSD, NAS100..."
                 required
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-100 uppercase outline-none focus:border-emerald-500/50 placeholder:normal-case placeholder:font-sans placeholder:font-normal placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs font-mono font-bold text-zinc-100 uppercase outline-none focus:border-blue-500/50 placeholder:normal-case placeholder:font-sans placeholder:font-normal placeholder:text-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Direction
               </label>
-              <div className="grid grid-cols-2 gap-1.5 bg-[#080c14] p-1 rounded-lg border border-white/10">
+              <div className="grid grid-cols-2 gap-1.5 bg-[#0D0D0F] p-1 rounded-md border border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setDirection('BUY')}
-                  className={`py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
+                  className={`py-1 text-xs font-semibold rounded transition-colors cursor-pointer ${
                     direction === 'BUY'
-                      ? 'bg-emerald-500 text-black'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   BUY / LONG
@@ -179,10 +179,10 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setDirection('SELL')}
-                  className={`py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
+                  className={`py-1 text-xs font-semibold rounded transition-colors cursor-pointer ${
                     direction === 'SELL'
-                      ? 'bg-rose-500 text-white'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   SELL / SHORT
@@ -194,7 +194,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
           {/* Lots & Session */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Volume (Lots)
               </label>
               <input
@@ -205,18 +205,18 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 onChange={(e) => setLotSize(e.target.value)}
                 placeholder="e.g. 1.0"
                 required
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 outline-none focus:border-emerald-500/50 placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs font-mono tabular-nums text-zinc-200 outline-none focus:border-blue-500/50 placeholder:text-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Session
               </label>
               <select
                 value={session}
                 onChange={(e) => setSession(e.target.value as SessionType)}
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-emerald-500/50 cursor-pointer"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-zinc-200 outline-none focus:border-blue-500/50 cursor-pointer"
               >
                 <option value="London">London Session</option>
                 <option value="New York">New York Session</option>
@@ -229,7 +229,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
           {/* Price Entries: Open, Close, Stop Loss, Take Profit */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-zinc-400 uppercase tracking-wider mb-1">
                 Open Price
               </label>
               <input
@@ -239,12 +239,12 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 onChange={(e) => setOpenPrice(e.target.value)}
                 placeholder="e.g. 1.08420"
                 required
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 outline-none focus:border-emerald-500/50 placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs font-mono tabular-nums text-zinc-200 outline-none focus:border-blue-500/50 placeholder:text-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-zinc-400 uppercase tracking-wider mb-1">
                 Close Price
               </label>
               <input
@@ -254,12 +254,12 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 onChange={(e) => setClosePrice(e.target.value)}
                 placeholder="e.g. 1.08940"
                 required
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 outline-none focus:border-emerald-500/50 placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs font-mono tabular-nums text-zinc-200 outline-none focus:border-blue-500/50 placeholder:text-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-semibold text-rose-400/90 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-rose-400/90 uppercase tracking-wider mb-1">
                 Stop Loss
               </label>
               <input
@@ -268,12 +268,12 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 value={stopLoss}
                 onChange={(e) => setStopLoss(e.target.value)}
                 placeholder="Optional"
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 outline-none focus:border-rose-500/50 placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs font-mono tabular-nums text-zinc-200 outline-none focus:border-rose-500/50 placeholder:text-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-semibold text-emerald-400/90 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-emerald-400/90 uppercase tracking-wider mb-1">
                 Take Profit
               </label>
               <input
@@ -282,36 +282,36 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                 value={takeProfit}
                 onChange={(e) => setTakeProfit(e.target.value)}
                 placeholder="Optional"
-                className="w-full bg-[#080c14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200 outline-none focus:border-emerald-500/50 placeholder:text-slate-500"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs font-mono tabular-nums text-zinc-200 outline-none focus:border-emerald-500/50 placeholder:text-zinc-500"
               />
             </div>
           </div>
 
           {/* Live Calculated Stats Strip */}
-          <div className="bg-[#080c14] border border-white/10 p-3 rounded-lg flex items-center justify-around text-xs font-mono">
+          <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md flex items-center justify-around text-xs font-mono tabular-nums">
             <div>
-              <span className="text-[10px] text-slate-400 block font-sans uppercase">Pips</span>
-              <span className={`font-bold ${pips >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-[10px] text-zinc-400 block font-sans uppercase">Pips</span>
+              <span className={`font-semibold ${pips >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {pips !== 0 ? (pips >= 0 ? `+${pips}` : pips) : '—'}
               </span>
             </div>
-            <div className="h-6 w-px bg-white/10" />
+            <div className="h-6 w-px bg-white/[0.08]" />
             <div>
-              <span className="text-[10px] text-slate-400 block font-sans uppercase">Realized R:R</span>
-              <span className="font-bold text-slate-200">
+              <span className="text-[10px] text-zinc-400 block font-sans uppercase">Realized R:R</span>
+              <span className="font-semibold text-zinc-200">
                 {rMultiple !== undefined ? `${rMultiple > 0 ? '+' : ''}${rMultiple}R` : '—'}
               </span>
             </div>
-            <div className="h-6 w-px bg-white/10" />
+            <div className="h-6 w-px bg-white/[0.08]" />
             <div>
-              <span className="text-[10px] text-slate-400 block font-sans uppercase">Net P&L ($)</span>
+              <span className="text-[10px] text-zinc-400 block font-sans uppercase">Net P&L ($)</span>
               <input
                 type="number"
                 step="any"
                 value={netPnl}
                 onChange={(e) => setNetPnl(e.target.value)}
                 placeholder="0.00"
-                className={`w-24 bg-transparent font-bold text-xs border-b border-white/20 outline-none text-right ${
+                className={`w-24 bg-transparent font-semibold text-xs border-b border-white/20 outline-none text-right tabular-nums ${
                   numNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               />
@@ -321,10 +321,10 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
           {/* Tags Selector (Setups & Psychology Mistakes) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
                 Setup & Psychology Tags
               </label>
-              <span className="text-[10px] text-slate-500 font-mono">Click to toggle</span>
+              <span className="text-[10px] text-zinc-500 font-mono">Click to toggle</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -338,9 +338,9 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                     className={`text-[11px] px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? tag.type === 'MISTAKE'
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold'
-                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold'
-                        : 'bg-[#080c14] text-slate-400 border border-white/10 hover:border-white/25 hover:text-slate-200'
+                          ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium'
+                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium'
+                        : 'bg-[#0D0D0F] text-zinc-400 border border-white/[0.08] hover:border-white/25 hover:text-zinc-200'
                     }`}
                   >
                     {isSelected && <Check className="w-3 h-3 text-emerald-400" />}
@@ -364,14 +364,14 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
                     }
                   }}
                   placeholder="Add custom tag (e.g. Fair Value Gap, Revenge Entry)..."
-                  className="w-full bg-[#080c14] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-500/50 placeholder:text-slate-500"
+                  className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-blue-500/50 placeholder:text-zinc-500"
                 />
               </div>
 
               <select
                 value={newTagType}
                 onChange={(e) => setNewTagType(e.target.value as 'SETUP' | 'MISTAKE' | 'CUSTOM')}
-                className="bg-[#080c14] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 outline-none cursor-pointer"
+                className="bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs text-zinc-300 outline-none cursor-pointer"
               >
                 <option value="SETUP">Setup</option>
                 <option value="MISTAKE">Mistake</option>
@@ -381,9 +381,9 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleAddCustomTag()}
-                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                className="flex items-center gap-1 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors cursor-pointer shrink-0"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
                 <span>Add Tag</span>
               </button>
             </div>
@@ -391,7 +391,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
               Execution Notes / Trade Retrospective
             </label>
             <textarea
@@ -399,22 +399,22 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Why did you take this entry? Did you follow your trading rules?"
-              className="w-full bg-[#080c14] border border-white/10 rounded-lg p-2.5 text-xs text-slate-200 outline-none focus:border-emerald-500/50 resize-none placeholder-slate-500"
+              className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md p-2.5 text-xs text-zinc-200 outline-none focus:border-blue-500/50 resize-none placeholder-zinc-500"
             />
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="pt-3 flex items-center justify-end gap-3 border-t border-white/10">
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] rounded-md transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-bold bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black rounded-lg transition-all cursor-pointer"
+              className="px-5 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-md transition-colors cursor-pointer"
             >
               Save to Journal
             </button>

@@ -2,30 +2,49 @@
 
 @layer base {
   :root {
-    --bg-main: #080b11;
-    --bg-card: #0e131f;
-    --bg-card-hover: #131929;
-    --border-subtle: #1b2336;
-    --border-muted: #242f48;
+    --bg-main: #0D0D0F;
+    --bg-surface-1: #131317;
+    --bg-surface-2: #18181E;
+    --bg-surface-3: #202027;
     
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-muted: rgba(255, 255, 255, 0.12);
     
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    /* Trading P&L financial conventions ONLY */
     --profit: #10b981;
-    --profit-bg: rgba(16, 185, 129, 0.10);
-    --profit-border: rgba(16, 185, 129, 0.25);
+    --profit-bg: rgba(16, 185, 129, 0.08);
+    --profit-border: rgba(16, 185, 129, 0.2);
     
     --loss: #f43f5e;
-    --loss-bg: rgba(244, 63, 94, 0.10);
-    --loss-border: rgba(244, 63, 94, 0.25);
+    --loss-bg: rgba(244, 63, 94, 0.08);
+    --loss-border: rgba(244, 63, 94, 0.2);
+
+    /* Restrained Institutional Accent (Non-Green) */
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-subtle: rgba(37, 99, 235, 0.12);
+    --accent-border: rgba(37, 99, 235, 0.25);
   }
 
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum" 1;
   }
+}
+
+.font-heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Custom scrollbars for high-density tables */

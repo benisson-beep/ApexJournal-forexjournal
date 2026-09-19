@@ -88,37 +88,37 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-2xl w-full max-w-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="bg-[#18181E] border border-white/[0.08] rounded-lg w-full max-w-2xl overflow-hidden">
         {/* Modal Header */}
-        <div className="p-4 px-6 border-b border-[#1b2336] flex items-center justify-between bg-[#0a0d14]/60">
+        <div className="p-4 px-6 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <Zap className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-md bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300">
+              <Zap className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="font-bold text-slate-100 text-sm tracking-tight">
+              <h3 className="font-semibold text-zinc-100 text-sm tracking-tight font-heading">
                 MetaTrader 4 / 5 Real-Time Auto-Sync
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-zinc-400">
                 Stream trades directly from your MT4/MT5 desktop terminal
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-[#1b2336]"
+            className="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-md hover:bg-white/5 cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         {/* Modal Content */}
         <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Credentials Card */}
-          <div className="bg-[#131929] border border-[#1b2336] rounded-xl p-4 space-y-3">
+          <div className="bg-[#131317] border border-white/[0.06] rounded-md p-4 space-y-3">
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-zinc-400 uppercase tracking-wider mb-1">
                 Your Secret API Key
               </label>
               <div className="flex items-center gap-2">
@@ -126,20 +126,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                   type="text"
                   readOnly
                   value={apiKey}
-                  className="w-full bg-[#0e131f] border border-[#1b2336] rounded-lg px-3 py-1.5 text-xs font-mono text-emerald-400 outline-none"
+                  className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-1.5 text-xs font-mono text-zinc-300 outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(apiKey, true)}
-                  className="bg-[#1b2336] hover:bg-[#242f48] text-slate-200 p-2 rounded-lg text-xs transition-colors flex items-center gap-1 shrink-0"
+                  className="bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 p-2 rounded-md text-xs transition-colors flex items-center gap-1 shrink-0 font-medium cursor-pointer"
                 >
-                  {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
                   <span>{copiedKey ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-medium text-zinc-400 uppercase tracking-wider mb-1">
                 Webhook Endpoint URL
               </label>
               <div className="flex items-center gap-2">
@@ -147,11 +147,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                   type="text"
                   readOnly
                   value={webhookUrl}
-                  className="w-full bg-[#0e131f] border border-[#1b2336] rounded-lg px-3 py-1.5 text-xs font-mono text-slate-300 outline-none"
+                  className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-1.5 text-xs font-mono text-zinc-300 outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(webhookUrl, false)}
-                  className="bg-[#1b2336] hover:bg-[#242f48] text-slate-200 p-2 rounded-lg text-xs transition-colors flex items-center gap-1 shrink-0"
+                  className="bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-200 p-2 rounded-md text-xs transition-colors flex items-center gap-1 shrink-0 font-medium cursor-pointer"
                 >
                   {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
@@ -162,90 +162,90 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
           {/* Download EA Files */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-2">
               Download Sync Expert Advisors (EAs)
             </label>
             <div className="grid grid-cols-2 gap-3">
               <a
                 href="/downloads/ApexJournalSync.mq5"
                 download="ApexJournalSync.mq5"
-                className="flex items-center justify-between p-3 rounded-xl bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 hover:bg-[#182136] transition-all group"
+                className="flex items-center justify-between p-3 rounded-md bg-[#131317] border border-white/[0.07] hover:border-white/[0.15] transition-colors group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">
                     5
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-200 block group-hover:text-emerald-400 transition-colors">
+                    <span className="text-xs font-medium text-zinc-200 block group-hover:text-white transition-colors">
                       MetaTrader 5 EA
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">ApexJournalSync.mq5</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">ApexJournalSync.mq5</span>
                   </div>
                 </div>
-                <Download className="w-4 h-4 text-slate-400 group-hover:text-emerald-400" />
+                <Download className="w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition-colors" strokeWidth={1.5} />
               </a>
 
               <a
                 href="/downloads/ApexJournalSync.mq4"
                 download="ApexJournalSync.mq4"
-                className="flex items-center justify-between p-3 rounded-xl bg-[#131929] border border-[#1b2336] hover:border-emerald-500/40 hover:bg-[#182136] transition-all group"
+                className="flex items-center justify-between p-3 rounded-md bg-[#131317] border border-white/[0.07] hover:border-white/[0.15] transition-colors group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">
                     4
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-200 block group-hover:text-emerald-400 transition-colors">
+                    <span className="text-xs font-medium text-zinc-200 block group-hover:text-white transition-colors">
                       MetaTrader 4 EA
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">ApexJournalSync.mq4</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">ApexJournalSync.mq4</span>
                   </div>
                 </div>
-                <Download className="w-4 h-4 text-slate-400 group-hover:text-emerald-400" />
+                <Download className="w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition-colors" strokeWidth={1.5} />
               </a>
             </div>
           </div>
 
           {/* Step-by-Step Instructions */}
           <div className="space-y-2">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-              3-Minute Terminal Setup Guide
+            <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider block font-heading">
+              Terminal Setup Guide
             </span>
-            <div className="text-xs text-slate-300 space-y-2 bg-[#0a0d14]/50 border border-[#1b2336] rounded-xl p-3.5 leading-relaxed font-sans">
+            <div className="text-xs text-zinc-300 space-y-2 bg-[#0D0D0F]/60 border border-white/[0.06] rounded-md p-3.5 leading-relaxed font-sans">
               <p className="flex items-start gap-2">
-                <strong className="text-emerald-400 font-mono">1.</strong>
+                <strong className="text-zinc-400 font-mono">1.</strong>
                 <span>Open MT4/MT5 $\rightarrow$ <strong>File</strong> $\rightarrow$ <strong>Open Data Folder</strong> $\rightarrow$ drop the EA inside <code>MQL5/Experts</code> (or <code>MQL4/Experts</code>).</span>
               </p>
               <p className="flex items-start gap-2">
-                <strong className="text-emerald-400 font-mono">2.</strong>
-                <span>In MT4/MT5: Go to <strong>Tools $\rightarrow$ Options $\rightarrow$ Expert Advisors</strong>. Check <strong>"Allow WebRequest for listed URL"</strong> and add: <code className="text-emerald-400 bg-[#131929] px-1 py-0.5 rounded">{webhookUrl}</code></span>
+                <strong className="text-zinc-400 font-mono">2.</strong>
+                <span>In MT4/MT5: Go to <strong>Tools $\rightarrow$ Options $\rightarrow$ Expert Advisors</strong>. Check <strong>"Allow WebRequest for listed URL"</strong> and add: <code className="text-zinc-300 bg-white/[0.05] px-1.5 py-0.5 rounded font-mono">{webhookUrl}</code></span>
               </p>
               <p className="flex items-start gap-2">
-                <strong className="text-emerald-400 font-mono">3.</strong>
+                <strong className="text-zinc-400 font-mono">3.</strong>
                 <span>Drag the EA onto any chart, paste your <strong>API Key</strong> in the Inputs tab, and click OK. Any closed trade will stream live into your journal!</span>
               </p>
             </div>
           </div>
 
           {/* Test Simulator Section */}
-          <div className="pt-2 border-t border-[#1b2336] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="pt-2 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-bold text-slate-200 block">Want to test right now?</span>
-              <span className="text-[11px] text-slate-400">Simulate a live deal execution from MetaTrader</span>
+              <span className="text-xs font-semibold text-zinc-200 block">Want to test right now?</span>
+              <span className="text-[11px] text-zinc-400">Simulate a live deal execution from MetaTrader</span>
             </div>
 
             <button
               onClick={handleSimulateTrade}
               disabled={isSimulating}
-              className="flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-3.5 py-2 rounded-md text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isSimulating ? 'Sending Deal...' : '⚡ Simulate MT5 Trade'}</span>
+              <Play className="w-3.5 h-3.5 fill-current" strokeWidth={1.5} />
+              <span>{isSimulating ? 'Sending Deal...' : 'Simulate MT5 Trade'}</span>
             </button>
           </div>
 
           {simulatedMessage && (
-            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono text-center">
+            <div className="p-2.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-zinc-300 text-xs font-mono text-center">
               {simulatedMessage}
             </div>
           )}

@@ -76,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'PSYCHOLOGY' as DashboardTab,
       label: 'Edge & Psychology',
       icon: Brain,
-      badge: 'AI',
+      badge: null,
     },
   ];
 
@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'PROFILE' as DashboardTab,
       label: 'Trader Profile',
       icon: User,
-      badge: 'PRO',
+      badge: null,
     },
     {
       id: 'SETTINGS' as DashboardTab,
@@ -104,29 +104,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between select-none">
-      {/* Top section: Logo, Expand/Collapse Toggle & Nav Items */}
+      {/* Top section: Wordmark Logo, Expand/Collapse Toggle & Nav Items */}
       <div className="space-y-4">
-        {/* Brand Header with Expand / Collapse Button */}
+        {/* Brand Header with Typographic Wordmark */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-4 py-4`}>
           <Link
             href="/"
-            className="flex items-center gap-2.5 group cursor-pointer"
+            className="group cursor-pointer block"
             title="ApexJournal Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-xs tracking-tighter group-hover:scale-105 transition-transform shrink-0">
-              AJ
-            </div>
-            {!isCollapsed && (
-              <div className="overflow-hidden">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-100 text-sm tracking-tight font-sans">
-                    Apex<span className="text-emerald-400">Journal</span>
-                  </span>
-                  <span className="text-[9px] uppercase font-bold tracking-widest bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1 py-0.2 rounded">
-                    PRO
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 font-medium truncate">Institutional Terminal</p>
+            {isCollapsed ? (
+              <span className="font-heading font-bold text-slate-100 text-base tracking-tight">
+                AJ
+              </span>
+            ) : (
+              <div>
+                <span className="font-heading font-bold text-slate-100 text-base tracking-tight">
+                  Apex<span className="text-slate-400 font-normal">Journal</span>
+                </span>
+                <p className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
+                  Institutional Terminal
+                </p>
               </div>
             )}
           </Link>
@@ -134,36 +132,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Desktop Expand / Collapse Button directly in top row */}
           <button
             onClick={onToggleCollapse}
-            className="hidden md:flex p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="hidden md:flex p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            <PanelLeft className="w-4 h-4" />
+            <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
           </button>
 
           {/* Close button on mobile */}
           <button
             onClick={onCloseMobile}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+            className="md:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer"
             aria-label="Close sidebar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* Quick Action Button: New Trade (No shadow) */}
+        {/* Quick Action Button: New Trade */}
         <div className="px-3">
           <button
             onClick={() => {
               onOpenNewTrade();
               if (isMobileOpen) onCloseMobile();
             }}
-            className={`w-full flex items-center justify-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-xs py-2.5 rounded-xl transition-all cursor-pointer ${
+            className={`w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs py-2 rounded-md transition-colors cursor-pointer ${
               isCollapsed ? 'px-0' : 'px-3'
             }`}
             title="Log New Trade"
           >
-            <Plus className="w-4 h-4 stroke-[2.8] shrink-0" />
+            <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
             {!isCollapsed && <span className="truncate">Log Trade</span>}
           </button>
         </div>
@@ -171,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Group 1: Workspace */}
         <div className="px-3 space-y-1">
           {!isCollapsed && (
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">
               Workspace
             </p>
           )}
@@ -183,24 +181,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
                 title={item.label}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   isActive
-                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} strokeWidth={1.5} />
                 {!isCollapsed && (
                   <span className="flex-1 text-left truncate">{item.label}</span>
                 )}
                 {!isCollapsed && item.badge && (
-                  <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                      isActive
-                        ? 'bg-emerald-500/25 text-emerald-300'
-                        : 'bg-white/10 text-slate-400'
-                    }`}
-                  >
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/[0.06] text-slate-400">
                     {item.badge}
                   </span>
                 )}
@@ -212,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Group 2: Management */}
         <div className="px-3 space-y-1 pt-2">
           {!isCollapsed && (
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">
               Account & Settings
             </p>
           )}
@@ -224,27 +216,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
                 title={item.label}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   isActive
-                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} strokeWidth={1.5} />
                 {!isCollapsed && (
                   <span className="flex-1 text-left truncate">{item.label}</span>
-                )}
-                {!isCollapsed && item.badge && (
-                  <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded">
-                    {item.badge}
-                  </span>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Webhook Quick Status */}
+        {/* Webhook Status: Small text with dot indicator */}
         <div className="px-3 pt-2">
           <button
             onClick={() => {
@@ -252,18 +239,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               if (isMobileOpen) onCloseMobile();
             }}
             title="MT4/MT5 Webhook Sync"
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs bg-[#080c14] border border-white/10 hover:border-emerald-500/30 transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs bg-[#131317] border border-white/[0.06] hover:border-white/[0.12] transition-colors cursor-pointer ${
               isCollapsed ? 'justify-center px-0' : ''
             }`}
           >
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
             {!isCollapsed && (
-              <div className="flex-1 text-left">
-                <p className="text-[11px] font-semibold text-slate-300">MT5 Webhook</p>
-                <p className="text-[9px] text-emerald-400 font-mono">Live Sync Active</p>
+              <div className="flex-1 text-left flex items-center justify-between">
+                <span className="text-[11px] font-medium text-slate-300">MT5 Sync</span>
+                <span className="text-[10px] text-slate-500 font-mono">Connected</span>
               </div>
             )}
           </button>
@@ -274,12 +258,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3">
         <button
           onClick={onToggleCollapse}
-          className={`hidden md:flex w-full items-center gap-2 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 text-xs transition-colors cursor-pointer ${
-            isCollapsed ? 'justify-center px-0' : 'px-3'
+          className={`hidden md:flex w-full items-center gap-2 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] text-xs transition-colors cursor-pointer ${
+            isCollapsed ? 'justify-center px-0' : 'px-2.5'
           }`}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <PanelLeft className="w-4 h-4 shrink-0" />
+          <PanelLeft className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           {!isCollapsed && <span className="text-[11px] font-medium">Collapse Menu</span>}
         </button>
       </div>
@@ -291,14 +275,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 md:hidden transition-opacity"
           onClick={onCloseMobile}
         />
       )}
 
       {/* Mobile Drawer */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#080b11] border-r border-white/10 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0D0D0F] border-r border-white/[0.06] z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -307,8 +291,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Desktop Sticky Sidebar */}
       <aside
-        className={`hidden md:block sticky top-0 h-screen bg-[#080b11] border-r border-white/10 transition-all duration-200 shrink-0 z-30 ${
-          isCollapsed ? 'w-20' : 'w-60'
+        className={`hidden md:block sticky top-0 h-screen bg-[#0D0D0F] border-r border-white/[0.06] transition-all duration-200 shrink-0 z-30 ${
+          isCollapsed ? 'w-16' : 'w-56'
         }`}
       >
         {sidebarContent}
