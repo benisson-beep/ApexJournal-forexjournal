@@ -111,34 +111,42 @@ export const PsychologyAnalytics: React.FC<PsychologyAnalyticsProps> = ({ trades
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {setups.map((setup) => (
-                <tr key={setup.name} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-2.5 px-4 font-medium text-slate-200">
-                    {setup.name}
-                  </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-slate-300">
-                    {setup.tradeCount}
-                  </td>
-                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-slate-200">
-                    {setup.winRate}%
-                  </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-slate-300">
-                    {setup.profitFactor >= 99 ? '∞' : setup.profitFactor}
-                  </td>
-                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-emerald-400 font-medium">
-                    +{setup.avgRMultiple}R
-                  </td>
-                  <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold">
-                    <span
-                      className={
-                        setup.netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                      }
-                    >
-                      {setup.netPnl >= 0 ? '+' : ''}${setup.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </span>
+              {setups.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-xs text-slate-500">
+                    No setup models recorded yet. Tag your trades with setups (e.g. FVG, Liquidity Sweep) to track your edge.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                setups.map((setup) => (
+                  <tr key={setup.name} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-2.5 px-4 font-medium text-slate-200">
+                      {setup.name}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-300">
+                      {setup.tradeCount}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono tabular-nums text-slate-200">
+                      {setup.winRate}%
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-300">
+                      {setup.profitFactor >= 99 ? '∞' : setup.profitFactor}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono tabular-nums text-emerald-400 font-medium">
+                      +{setup.avgRMultiple}R
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-mono tabular-nums font-bold">
+                      <span
+                        className={
+                          setup.netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                        }
+                      >
+                        {setup.netPnl >= 0 ? '+' : ''}${setup.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

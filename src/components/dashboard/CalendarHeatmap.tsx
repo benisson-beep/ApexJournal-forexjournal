@@ -21,9 +21,18 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   onSelectDay,
   selectedDateStr,
 }) => {
-  // Default to September 2026 (current sample data month)
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(8); // 0-indexed: 8 = September
+  // Dynamically default to the most recent trade's month, or current month if empty
+  const defaultDate = React.useMemo(() => {
+    if (trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime());
+      const d = new Date(sorted[0].closeTime);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  }, [trades]);
+
+  const [currentYear, setCurrentYear] = useState(() => defaultDate.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(() => defaultDate.getMonth());
 
   const weeks = buildMonthCalendar(trades, currentYear, currentMonth);
 

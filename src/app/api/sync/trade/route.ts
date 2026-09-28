@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Required fields from MT4/MT5 EA
     const {
       ticket,
-      account_id = 'acc-ftmo-1',
+      account_id = 'acc-main',
       symbol,
       type, // 'BUY' | 'SELL' or 0 | 1
       lots,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
  * Returns recently received trades for the client polling or dashboard sync
  */
 export async function GET(request: NextRequest) {
-  const accountId = request.nextUrl.searchParams.get('account_id') || 'acc-ftmo-1';
+  const accountId = request.nextUrl.searchParams.get('account_id') || 'acc-main';
   const trades = (global.__APEX_SYNCED_TRADES__ || []).filter(
     (t) => t.accountId === accountId
   );

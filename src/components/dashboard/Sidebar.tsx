@@ -13,10 +13,11 @@ import {
   X,
   Wallet,
   PanelLeft,
+  Newspaper,
 } from 'lucide-react';
 import { TradingAccount } from '../../types/trade';
 
-export type DashboardTab = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'PSYCHOLOGY' | 'ACCOUNTS' | 'PROFILE' | 'SETTINGS';
+export type DashboardTab = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'NEWS' | 'PSYCHOLOGY' | 'ACCOUNTS' | 'PROFILE' | 'SETTINGS';
 
 interface SidebarProps {
   activeTab: DashboardTab;
@@ -70,6 +71,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'CALENDAR' as DashboardTab,
       label: 'P&L Calendar',
       icon: CalendarDays,
+      badge: null,
+    },
+    {
+      id: 'NEWS' as DashboardTab,
+      label: 'News Calendar',
+      icon: Newspaper,
       badge: null,
     },
     {

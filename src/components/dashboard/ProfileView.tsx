@@ -22,9 +22,9 @@ interface ProfileViewProps {
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats }) => {
-  const [traderName, setTraderName] = useState('Alex Vance');
+  const [traderName, setTraderName] = useState('Trader');
   const [traderBio, setTraderBio] = useState(
-    'Discretionary FX & Commodities trader focused on liquidity sweeps, session open volume, and strict 1:2+ R:R execution.'
+    'Discretionary trader focused on liquidity sweeps, session momentum, and strict risk execution.'
   );
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -38,10 +38,37 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
     { id: 5, text: 'Take full profit or scale out at predetermined liquidity target', checked: false },
   ]);
 
+  // Sync profile & rules with localStorage
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const savedName = localStorage.getItem('apex_profile_name');
+    if (savedName) setTraderName(savedName);
+    const savedBio = localStorage.getItem('apex_profile_bio');
+    if (savedBio) setTraderBio(savedBio);
+    const savedRules = localStorage.getItem('apex_profile_rules');
+    if (savedRules) {
+      try {
+        setRules(JSON.parse(savedRules));
+      } catch (e) {}
+    }
+  }, []);
+
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('apex_profile_name', traderName);
+      localStorage.setItem('apex_profile_bio', traderBio);
+    }
+  };
+
   const toggleRule = (id: number) => {
-    setRules((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, checked: !r.checked } : r))
-    );
+    setRules((prev) => {
+      const updated = prev.map((r) => (r.id === id ? { ...r, checked: !r.checked } : r));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('apex_profile_rules', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const handleShare = () => {
@@ -54,6 +81,89 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
   const losingTrades = trades.filter((t) => t.netPnl < 0);
   const bestTrade = trades.reduce((max, t) => (t.netPnl > max ? t.netPnl : max), 0);
 
+  // Dynamic Avatar Initials
+  const initials =
+    traderName
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'TR';
+
+  // Dynamic Strategy Matrix
+  const symbolMap: Record<string, { count: number; wins: number }> = {};
+  const setupMap: Record<string, number> = {};
+  const sessionMap: Record<string, number> = {};
+
+  trades.forEach((t) => {
+    const sym = t.symbol.toUpperCase();
+    if (!symbolMap[sym]) symbolMap[sym] = { count: 0, wins: 0 };
+    symbolMap[sym].count += 1;
+    if (t.netPnl > 0) symbolMap[sym].wins += 1;
+
+    t.tags?.forEach((tag) => {
+      if (tag.type === 'SETUP') {
+        setupMap[tag.name] = (setupMap[tag.name] || 0) + 1;
+      }
+    });
+
+    if (t.session) {
+      sessionMap[t.session] = (sessionMap[t.session] || 0) + 1;
+    }
+  });
+
+  let topSymbol = '—';
+  let topSymbolWinRate = '0%';
+  let topSymbolMax = 0;
+  Object.entries(symbolMap).forEach(([sym, data]) => {
+    if (data.count > topSymbolMax) {
+      topSymbol = sym;
+      topSymbolMax = data.count;
+      topSymbolWinRate = `${((data.wins / data.count) * 100).toFixed(0)}%`;
+    }
+  });
+
+  let topSetup = '—';
+  let topSetupMax = 0;
+  Object.entries(setupMap).forEach(([name, count]) => {
+    if (count > topSetupMax) {
+      topSetup = name;
+      topSetupMax = count;
+    }
+  });
+
+  let topSession = '—';
+  let topSessionMax = 0;
+  Object.entries(sessionMap).forEach(([sess, count]) => {
+    if (count > topSessionMax) {
+      topSession = sess;
+      topSessionMax = count;
+    }
+  });
+
+  // Dynamic Prop Firm / Risk Calculations
+  const targetProfit = (account.initialBalance || 10000) * 0.1;
+  const currentProfit = stats.netPnl;
+  const targetProgressPct = (currentProfit / targetProfit) * 100;
+  const clampedProgressPct = Math.max(0, Math.min(100, targetProgressPct));
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayTrades = trades.filter((t) => (t.closeTime || t.openTime).startsWith(todayStr));
+  const todayLoss = Math.abs(
+    todayTrades.reduce((sum, t) => (t.netPnl < 0 ? sum + t.netPnl : sum), 0)
+  );
+  const dailyLimit = (account.initialBalance || 10000) * 0.05;
+  const dailyLossPct = (account.initialBalance || 10000) > 0 ? (todayLoss / account.initialBalance) * 100 : 0;
+  const remainingDailyCushion = Math.max(0, dailyLimit - todayLoss);
+  const dailyDrawdownProgress = Math.min(100, (dailyLossPct / 5) * 100);
+
+  const maxOverallLimit = (account.initialBalance || 10000) * 0.1;
+  const currentDDAmount = (stats.maxDrawdown / 100) * (account.initialBalance || 10000);
+  const remainingOverallCushion = Math.max(0, maxOverallLimit - currentDDAmount);
+  const overallDrawdownProgress = Math.min(100, (stats.maxDrawdown / 10) * 100);
+
   return (
     <div className="space-y-6">
       {/* Trader Identity Card */}
@@ -62,7 +172,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           {/* Avatar and Details */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-lg bg-[#18181E] border border-white/[0.08] flex items-center justify-center text-slate-100 font-heading font-bold text-xl shrink-0">
-              AV
+              {initials}
             </div>
 
             <div>
@@ -77,15 +187,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
                 ) : (
                   <h2 className="text-lg font-heading font-bold text-white tracking-tight">{traderName}</h2>
                 )}
-                {/* Status Badges relocated to profile */}
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  PRO Member
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  AI Engine
-                </span>
               </div>
 
               {isEditing ? (
@@ -103,13 +204,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
 
               <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[11px] text-slate-400 font-mono">
                 <span className="text-slate-300">
-                  Apex Tier 3 Trader
+                  {account.broker} · {account.currency}
                 </span>
                 <span>·</span>
-                <span>London / NY Session</span>
+                <span>{topSession !== '—' ? `${topSession} Session` : 'All Sessions'}</span>
                 <span>·</span>
                 <span className="text-slate-400 font-mono">
-                  Member since Jan 2024
+                  {trades.length} Documented {trades.length === 1 ? 'Trade' : 'Trades'}
                 </span>
               </div>
             </div>
@@ -118,7 +219,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           {/* Action Buttons */}
           <div className="flex items-center gap-2 self-stretch md:self-auto justify-end">
             <button
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (isEditing) {
+                  handleSaveProfile();
+                } else {
+                  setIsEditing(true);
+                }
+              }}
               className="flex items-center gap-1.5 bg-[#18181E] hover:bg-[#202027] border border-white/[0.06] hover:border-white/[0.12] text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-md transition-colors cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
@@ -205,7 +312,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
               </p>
             </div>
             <span className="text-xs font-mono font-medium text-slate-300 bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-md">
-              Stage 2 Complete
+              {currentProfit >= targetProfit ? 'Target Achieved' : 'In Progress'}
             </span>
           </div>
 
@@ -213,10 +320,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-mono">
               <span className="text-slate-400">Profit Target Progress (10% Target)</span>
-              <span className="text-emerald-400 font-medium">8.4% / 10.0% ($16,800 / $20,000)</span>
+              <span className="text-emerald-400 font-medium">
+                {((currentProfit / (account.initialBalance || 1)) * 100).toFixed(1)}% / 10.0% ({currentProfit >= 0 ? '+' : ''}${currentProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })} / ${targetProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })})
+              </span>
             </div>
             <div className="w-full h-1.5 bg-[#18181E] rounded-full overflow-hidden border border-white/[0.06]">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '84%' }} />
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${clampedProgressPct}%` }} />
             </div>
           </div>
 
@@ -224,24 +333,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-mono">
               <span className="text-slate-400">Daily Drawdown Buffer (5.0% Limit)</span>
-              <span className="text-slate-300 font-medium">0.45% Lost Today (Safe)</span>
+              <span className="text-slate-300 font-medium">
+                {dailyLossPct.toFixed(2)}% Lost Today ({dailyLossPct > 4 ? 'Warning' : 'Safe'})
+              </span>
             </div>
             <div className="w-full h-1.5 bg-[#18181E] rounded-full overflow-hidden border border-white/[0.06]">
-              <div className="h-full bg-blue-500 rounded-full" style={{ width: '9%' }} />
+              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${dailyDrawdownProgress}%` }} />
             </div>
-            <p className="text-[10px] text-slate-500 font-mono">Remaining daily cushion: $9,100</p>
+            <p className="text-[10px] text-slate-500 font-mono">
+              Remaining daily cushion: ${remainingDailyCushion.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+            </p>
           </div>
 
           {/* Metric 3: Max Overall Drawdown Buffer */}
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-mono">
               <span className="text-slate-400">Maximum Trailing Drawdown (10.0% Limit)</span>
-              <span className="text-slate-300 font-medium">1.82% Max Trailing Drawdown</span>
+              <span className="text-slate-300 font-medium">
+                {stats.maxDrawdown}% Max Drawdown
+              </span>
             </div>
             <div className="w-full h-1.5 bg-[#18181E] rounded-full overflow-hidden border border-white/[0.06]">
-              <div className="h-full bg-blue-500 rounded-full" style={{ width: '18%' }} />
+              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${overallDrawdownProgress}%` }} />
             </div>
-            <p className="text-[10px] text-slate-500 font-mono">Drawdown cushion to liquidation: $16,360</p>
+            <p className="text-[10px] text-slate-500 font-mono">
+              Drawdown cushion to liquidation: ${remainingOverallCushion.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+            </p>
           </div>
         </div>
 
@@ -255,23 +372,39 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
           <div className="grid grid-cols-2 gap-2.5">
             <div className="p-3 bg-[#18181E] border border-white/[0.04] rounded-md">
               <span className="text-[10px] text-slate-400 uppercase font-medium">Primary Asset</span>
-              <p className="text-sm font-medium text-white mt-0.5">EUR/USD & XAU/USD</p>
-              <p className="text-[10px] text-emerald-400 font-mono mt-1">72% win rate on Gold</p>
+              <p className="text-sm font-medium text-white mt-0.5">
+                {topSymbol !== '—' ? topSymbol : 'No trades yet'}
+              </p>
+              <p className="text-[10px] text-emerald-400 font-mono mt-1">
+                {topSymbol !== '—' ? `${topSymbolWinRate} win rate (${topSymbolMax} deals)` : 'Awaiting executions'}
+              </p>
             </div>
             <div className="p-3 bg-[#18181E] border border-white/[0.04] rounded-md">
               <span className="text-[10px] text-slate-400 uppercase font-medium">Execution Setup</span>
-              <p className="text-sm font-medium text-white mt-0.5">FVG Liquidity Sweep</p>
-              <p className="text-[10px] text-slate-500 font-mono mt-1">15m order blocks on 1m</p>
+              <p className="text-sm font-medium text-white mt-0.5">
+                {topSetup !== '—' ? topSetup : 'No setups tagged'}
+              </p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {topSetup !== '—' ? `${topSetupMax} trades logged` : 'Tag trades to track edge'}
+              </p>
             </div>
             <div className="p-3 bg-[#18181E] border border-white/[0.04] rounded-md">
               <span className="text-[10px] text-slate-400 uppercase font-medium">Session Window</span>
-              <p className="text-sm font-medium text-white mt-0.5">London / NY Overlap</p>
-              <p className="text-[10px] text-slate-500 font-mono mt-1">12:00 — 16:00 UTC</p>
+              <p className="text-sm font-medium text-white mt-0.5">
+                {topSession !== '—' ? `${topSession} Session` : 'All Sessions'}
+              </p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {topSession !== '—' ? `${topSessionMax} trades logged` : 'Global trading hours'}
+              </p>
             </div>
             <div className="p-3 bg-[#18181E] border border-white/[0.04] rounded-md">
               <span className="text-[10px] text-slate-400 uppercase font-medium">Risk Engine</span>
-              <p className="text-sm font-medium text-white mt-0.5">Fixed 1.0% Model</p>
-              <p className="text-[10px] text-slate-500 font-mono mt-1">Compounding threshold</p>
+              <p className="text-sm font-medium text-white mt-0.5">
+                {stats.avgLoss > 0 ? `Avg Loss -$${stats.avgLoss.toFixed(0)}` : '1.0% Risk Model'}
+              </p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {stats.avgRMultiple > 0 ? `Realized R:R +${stats.avgRMultiple}R` : 'Benchmark: 1:2 R:R'}
+              </p>
             </div>
           </div>
         </div>

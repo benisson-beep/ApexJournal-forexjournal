@@ -159,7 +159,21 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade })
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">
-            {filteredTrades.length === 0 ? (
+            {trades.length === 0 ? (
+              <tr>
+                <td colSpan={11} className="py-14 text-center text-slate-400">
+                  <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                    <div className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-slate-400 mb-1">
+                      <Tag className="w-4 h-4" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-xs font-semibold text-slate-200">No trades recorded yet</p>
+                    <p className="text-[11px] text-slate-500">
+                      Use &ldquo;+ Log Trade&rdquo; from the header or import an MT4/MT5 CSV statement to begin your journal.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredTrades.length === 0 ? (
               <tr>
                 <td colSpan={11} className="py-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-2">

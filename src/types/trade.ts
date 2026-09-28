@@ -65,3 +65,26 @@ export interface AccountStats {
   avgLoss: number;
   maxDrawdown: number;
 }
+
+export type ForexNewsImpact = 'High' | 'Medium' | 'Low' | 'Holiday';
+
+export interface ForexNewsEvent {
+  id?: string;
+  title: string;
+  country: string;
+  date: string; // ISO 8601 string, e.g. "2026-09-30T08:30:00-04:00"
+  impact: ForexNewsImpact | string;
+  forecast?: string;
+  previous?: string;
+  actual?: string;
+}
+
+export interface NewsCalendarResponse {
+  success: boolean;
+  source: string;
+  lastUpdated: string;
+  cached: boolean;
+  events: ForexNewsEvent[];
+  error?: string;
+}
+

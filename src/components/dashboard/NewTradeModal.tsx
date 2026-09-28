@@ -10,6 +10,7 @@ interface NewTradeModalProps {
   accountId: string;
   onClose: () => void;
   onSaveTrade: (trade: Trade) => void;
+  initialNotes?: string;
 }
 
 const COMMON_TAGS: { name: string; type: 'SETUP' | 'MISTAKE' | 'CUSTOM' }[] = [
@@ -28,6 +29,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   accountId,
   onClose,
   onSaveTrade,
+  initialNotes,
 }) => {
   const [symbol, setSymbol] = useState('');
   const [direction, setDirection] = useState<Direction>('BUY');
@@ -43,6 +45,13 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const [newTagInput, setNewTagInput] = useState('');
   const [newTagType, setNewTagType] = useState<'SETUP' | 'MISTAKE' | 'CUSTOM'>('SETUP');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (isOpen && initialNotes) {
+      setNotes(initialNotes);
+    }
+  }, [isOpen, initialNotes]);
+
 
   const numLotSize = parseFloat(lotSize) || 0;
   const numOpenPrice = parseFloat(openPrice) || 0;

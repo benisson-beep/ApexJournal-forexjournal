@@ -8,12 +8,14 @@ interface SyncModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTradeSynced: (trade: Trade) => void;
+  accountId?: string;
 }
 
 export const SyncModal: React.FC<SyncModalProps> = ({
   isOpen,
   onClose,
   onTradeSynced,
+  accountId = 'acc-main',
 }) => {
   const [apiKey] = useState('aj_live_9a87d620bf41e');
   const [copiedKey, setCopiedKey] = useState(false);
@@ -59,7 +61,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
         },
         body: JSON.stringify({
           ticket: randomTicket,
-          account_id: 'acc-ftmo-1',
+          account_id: accountId,
           symbol: pick.symbol,
           type: pick.type,
           lots: pick.lots,

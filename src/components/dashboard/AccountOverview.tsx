@@ -277,29 +277,37 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
             </span>
           </div>
 
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Eliminating emotional mistakes would elevate clean P&L to{' '}
-            <strong className="text-emerald-400 font-mono">
-              +${cleanPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </strong>.
-          </p>
+          {mistakes.length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-500 bg-[#18181E]/50 border border-white/[0.04] rounded-md">
+              No emotional mistakes logged. Maintain disciplined risk rules!
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Eliminating emotional mistakes would elevate clean P&L to{' '}
+                <strong className="text-emerald-400 font-mono">
+                  +${cleanPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </strong>.
+              </p>
 
-          <div className="space-y-1.5 pt-1">
-            {mistakes.slice(0, 3).map((m) => (
-              <div
-                key={m.name}
-                className="bg-[#18181E] border border-white/[0.04] p-2.5 rounded-md flex items-center justify-between text-xs"
-              >
-                <span className="font-medium text-rose-300">#{m.name}</span>
-                <div className="flex items-center gap-3 font-mono">
-                  <span className="text-[11px] text-slate-500">{m.tradeCount} trades</span>
-                  <span className="font-medium text-rose-400">
-                    -${m.totalLost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
+              <div className="space-y-1.5 pt-1">
+                {mistakes.slice(0, 3).map((m) => (
+                  <div
+                    key={m.name}
+                    className="bg-[#18181E] border border-white/[0.04] p-2.5 rounded-md flex items-center justify-between text-xs"
+                  >
+                    <span className="font-medium text-rose-300">#{m.name}</span>
+                    <div className="flex items-center gap-3 font-mono">
+                      <span className="text-[11px] text-slate-500">{m.tradeCount} trades</span>
+                      <span className="font-medium text-rose-400">
+                        -${m.totalLost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Right: Setup Playbook Top Edges */}
@@ -313,28 +321,36 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
             </span>
           </div>
 
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Realized performance by technical entry model.
-          </p>
+          {setups.length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-500 bg-[#18181E]/50 border border-white/[0.04] rounded-md">
+              No setup entry models logged yet. Tag your trades to measure edge.
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Realized performance by technical entry model.
+              </p>
 
-          <div className="space-y-1.5 pt-1">
-            {setups.slice(0, 3).map((s) => (
-              <div
-                key={s.name}
-                className="bg-[#18181E] border border-white/[0.04] p-2.5 rounded-md flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-medium text-slate-200 block">{s.name}</span>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    {s.winRate}% WR · +{s.avgRMultiple}R avg
-                  </span>
-                </div>
-                <span className="text-emerald-400 font-mono font-medium">
-                  +${s.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
+              <div className="space-y-1.5 pt-1">
+                {setups.slice(0, 3).map((s) => (
+                  <div
+                    key={s.name}
+                    className="bg-[#18181E] border border-white/[0.04] p-2.5 rounded-md flex items-center justify-between text-xs"
+                  >
+                    <div>
+                      <span className="font-medium text-slate-200 block">{s.name}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">
+                        {s.winRate}% WR · +{s.avgRMultiple}R avg
+                      </span>
+                    </div>
+                    <span className="text-emerald-400 font-mono font-medium">
+                      +${s.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </div>
 

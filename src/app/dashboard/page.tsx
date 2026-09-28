@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from '../../components/dashboard/Header';
 import { Sidebar, DashboardTab } from '../../components/dashboard/Sidebar';
 import { ProfileView } from '../../components/dashboard/ProfileView';
@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
   const [activeTab, setActiveTab] = useState<DashboardTab>('OVERVIEW');
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState<boolean>(false);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
@@ -31,6 +32,50 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+
+  // Restore accounts and trades from localStorage on mount
+  useEffect(() => {
+    setHasMounted(true);
+    try {
+      const savedAccounts = localStorage.getItem('apex_accounts');
+      if (savedAccounts) {
+        const parsed = JSON.parse(savedAccounts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAccounts(parsed);
+          setSelectedAccountId(parsed[0].id);
+        }
+      }
+      const savedTrades = localStorage.getItem('apex_trades');
+      if (savedTrades) {
+        const parsed = JSON.parse(savedTrades);
+        if (Array.isArray(parsed)) {
+          setTrades(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to restore journal state from localStorage', err);
+    }
+  }, []);
+
+  // Sync accounts to localStorage
+  useEffect(() => {
+    if (!hasMounted) return;
+    try {
+      localStorage.setItem('apex_accounts', JSON.stringify(accounts));
+    } catch (err) {
+      console.error('Failed to sync accounts to localStorage', err);
+    }
+  }, [accounts, hasMounted]);
+
+  // Sync trades to localStorage
+  useEffect(() => {
+    if (!hasMounted) return;
+    try {
+      localStorage.setItem('apex_trades', JSON.stringify(trades));
+    } catch (err) {
+      console.error('Failed to sync trades to localStorage', err);
+    }
+  }, [trades, hasMounted]);
 
   // Filter trades for the selected account
   const accountTrades = useMemo(() => {
@@ -44,7 +89,7 @@ export default function DashboardPage() {
   }, [accountTrades, selectedDateStr]);
 
   const selectedAccount = useMemo(() => {
-    return accounts.find((a) => a.id === selectedAccountId) || accounts[0];
+    return accounts.find((a) => a.id === selectedAccountId) || accounts[0] || INITIAL_ACCOUNTS[0];
   }, [accounts, selectedAccountId]);
 
   // Dynamic portfolio stats calculation
@@ -105,6 +150,27 @@ export default function DashboardPage() {
         return acc;
       })
     );
+  };
+
+  const handleAddAccount = (newAccount: TradingAccount) => {
+    setAccounts((prev) => [...prev, newAccount]);
+    setSelectedAccountId(newAccount.id);
+  };
+
+  const handleUpdateAccount = (updatedAccount: TradingAccount) => {
+    setAccounts((prev) =>
+      prev.map((acc) => (acc.id === updatedAccount.id ? updatedAccount : acc))
+    );
+  };
+
+  const handleDeleteAccount = (accountIdToDelete: string) => {
+    if (accounts.length <= 1) return;
+    setAccounts((prev) => prev.filter((acc) => acc.id !== accountIdToDelete));
+    setTrades((prev) => prev.filter((t) => t.accountId !== accountIdToDelete));
+    if (selectedAccountId === accountIdToDelete) {
+      const remaining = accounts.filter((acc) => acc.id !== accountIdToDelete);
+      if (remaining.length > 0) setSelectedAccountId(remaining[0].id);
+    }
   };
 
   return (
@@ -227,7 +293,7 @@ export default function DashboardPage() {
 
                   <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
                     <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
-                    <span>September 2026</span>
+                    <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                   </div>
                 </div>
               </div>
@@ -256,6 +322,9 @@ export default function DashboardPage() {
               accounts={accounts}
               selectedAccountId={selectedAccountId}
               onSelectAccount={setSelectedAccountId}
+              onAddAccount={handleAddAccount}
+              onUpdateAccount={handleUpdateAccount}
+              onDeleteAccount={handleDeleteAccount}
               trades={trades}
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onOpenImportModal={() => setIsImportModalOpen(true)}
@@ -306,8 +375,19 @@ export default function DashboardPage() {
               onResetSampleData={() => {
                 setTrades(INITIAL_TRADES);
                 setAccounts(INITIAL_ACCOUNTS);
+                setSelectedAccountId(INITIAL_ACCOUNTS[0].id);
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('apex_trades', JSON.stringify(INITIAL_TRADES));
+                  localStorage.setItem('apex_accounts', JSON.stringify(INITIAL_ACCOUNTS));
+                }
               }}
-              onClearAllTrades={() => setTrades([])}
+              onClearAllTrades={() => {
+                setTrades([]);
+                setAccounts((prev) => prev.map((a) => ({ ...a, currentBalance: a.initialBalance })));
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('apex_trades', JSON.stringify([]));
+                }
+              }}
             />
           )}
         </main>
@@ -324,6 +404,7 @@ export default function DashboardPage() {
       {/* MetaTrader Real-Time Sync Modal */}
       <SyncModal
         isOpen={isSyncModalOpen}
+        accountId={selectedAccountId}
         onClose={() => setIsSyncModalOpen(false)}
         onTradeSynced={handleSaveTrade}
       />
