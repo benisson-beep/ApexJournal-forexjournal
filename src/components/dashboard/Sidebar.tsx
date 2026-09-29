@@ -26,7 +26,7 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
-  onOpenNewTrade: () => void;
+  onOpenNewTrade?: () => void;
   onOpenSyncModal: () => void;
   tradeCount?: number;
   accounts?: TradingAccount[];
@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'NEWS' as DashboardTab,
-      label: 'News Calendar',
+      label: 'Economic Calendar',
       icon: Newspaper,
       badge: null,
     },
@@ -160,7 +160,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="px-3">
           <button
             onClick={() => {
-              onOpenNewTrade();
+              onOpenNewTrade?.();
               if (isMobileOpen) onCloseMobile();
             }}
             className={`w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs py-2 rounded-md transition-colors cursor-pointer ${

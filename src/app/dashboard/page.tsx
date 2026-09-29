@@ -278,7 +278,7 @@ export default function DashboardPage() {
                     }`}
                   >
                     <Newspaper className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>News Calendar</span>
+                    <span>Economic Calendar</span>
                   </button>
 
                   <button

@@ -8,9 +8,7 @@ import {
   RefreshCw,
   Search,
   Filter,
-  ExternalLink,
   ShieldAlert,
-  ArrowUpRight,
   Plus,
   Sparkles,
   Info,
@@ -108,8 +106,8 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error('Failed to load news calendar:', message);
-      setErrorMsg(message || 'Failed to load news calendar.');
+      console.error('Failed to load economic calendar:', message);
+      setErrorMsg(message || 'Failed to load economic calendar.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -298,59 +296,6 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & KPI Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#131317] border border-white/[0.06] p-5 rounded-xl">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <span>Forex Factory Economic Calendar</span>
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Live Feed
-              </span>
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400">
-            Real-time macroeconomic news, central bank speeches, and market-moving indicators from{' '}
-            <a
-              href="https://www.forexfactory.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-0.5"
-            >
-              forexfactory.com <ArrowUpRight className="w-3 h-3" />
-            </a>
-            .
-          </p>
-        </div>
-
-        {/* Action & Info strip */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.06]">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>{userTimezone}</span>
-          </div>
-
-          <button
-            onClick={() => fetchNews(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-1.5 bg-[#18181E] hover:bg-[#202028] disabled:opacity-50 border border-white/[0.08] hover:border-white/[0.15] text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer"
-            title="Refresh news from Forex Factory"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-400' : 'text-slate-400'}`} />
-            <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
-          </button>
-
-          {lastUpdated && (
-            <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-              Updated: {new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-        </div>
-      </div>
 
       {/* KPI Cards: Weekly Releases Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -485,6 +430,21 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
               className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-colors cursor-pointer"
             >
               Reset Filters
+            </button>
+
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.06]">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span>{userTimezone}</span>
+            </div>
+
+            <button
+              onClick={() => fetchNews(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 bg-[#18181E] hover:bg-[#202028] disabled:opacity-50 border border-white/[0.08] hover:border-white/[0.15] text-slate-200 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              title="Refresh news from Forex Factory"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-400' : 'text-slate-400'}`} />
+              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
             </button>
           </div>
         </div>
