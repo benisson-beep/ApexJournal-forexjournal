@@ -41,16 +41,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
   // Sync profile & rules with localStorage
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    const savedName = localStorage.getItem('apex_profile_name');
-    if (savedName) setTraderName(savedName);
-    const savedBio = localStorage.getItem('apex_profile_bio');
-    if (savedBio) setTraderBio(savedBio);
-    const savedRules = localStorage.getItem('apex_profile_rules');
-    if (savedRules) {
-      try {
-        setRules(JSON.parse(savedRules));
-      } catch (e) {}
-    }
+    const loadProfile = () => {
+      const savedName = localStorage.getItem('apex_profile_name');
+      if (savedName) setTraderName(savedName);
+      const savedBio = localStorage.getItem('apex_profile_bio');
+      if (savedBio) setTraderBio(savedBio);
+      const savedRules = localStorage.getItem('apex_profile_rules');
+      if (savedRules) {
+        try {
+          setRules(JSON.parse(savedRules));
+        } catch (e) {}
+      }
+    };
+    loadProfile();
+    window.addEventListener('apex_profile_updated', loadProfile);
+    return () => window.removeEventListener('apex_profile_updated', loadProfile);
   }, []);
 
   const handleSaveProfile = () => {

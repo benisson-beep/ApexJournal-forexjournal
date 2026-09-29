@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'SETTINGS' as DashboardTab,
-      label: 'Settings & Risk',
+      label: 'Settings',
       icon: Settings,
       badge: null,
     },
