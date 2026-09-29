@@ -17,7 +17,6 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
-import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Newspaper, Upload, Wallet } from 'lucide-react';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
@@ -211,124 +210,22 @@ export default function DashboardPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Minimal Navigation Header with ONLY Log Trade button */}
+        {/* Unified Navigation Header */}
         <Header
-          onOpenNewTrade={() => setIsModalOpen(true)}
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          accountsCount={accounts.length}
+          selectedDateStr={selectedDateStr}
+          onClearDateFilter={() => setSelectedDateStr(null)}
+          onOpenImportModal={() => setIsImportModalOpen(true)}
         />
 
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
-          {/* Workspace Tabs (shown when browsing primary analytical views) */}
-          {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'NEWS' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
-            <>
-              {/* View Mode Navigation Tabs & Quick Actions */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-                <div className="flex flex-wrap items-center gap-1 bg-[#131317] border border-white/[0.06] p-1 rounded-md">
-                  <button
-                    onClick={() => setActiveTab('OVERVIEW')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'OVERVIEW'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Overview</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('ACCOUNTS')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'ACCOUNTS'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Wallet className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Accounts ({accounts.length})</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('LOG')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'LOG'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <ListFilter className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Trade Journal</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('CALENDAR')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'CALENDAR'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <CalendarDays className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>P&L Calendar</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('NEWS')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'NEWS'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Newspaper className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Economic Calendar</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('PSYCHOLOGY')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      activeTab === 'PSYCHOLOGY'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Brain className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Edge & Psychology</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {selectedDateStr && (
-                    <div className="text-xs text-slate-400 font-mono flex items-center gap-2 mr-2">
-                      <span>Date Filter: <strong className="text-emerald-400">{selectedDateStr}</strong></span>
-                      <button
-                        onClick={() => setSelectedDateStr(null)}
-                        className="text-[11px] underline text-slate-400 hover:text-slate-200 cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setIsImportModalOpen(true)}
-                    className="flex items-center gap-1.5 bg-[#131317] hover:bg-[#18181E] border border-white/[0.06] hover:border-white/[0.12] text-slate-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
-                    <span>Import CSV</span>
-                  </button>
-
-                  <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
-                    <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+          {/* View 1: Performance & Accounts Overview */}
 
           {/* View 1: Performance & Accounts Overview */}
           {activeTab === 'OVERVIEW' && (
