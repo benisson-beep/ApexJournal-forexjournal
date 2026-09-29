@@ -36,6 +36,9 @@ export interface Trade {
   chartUrl?: string;
 }
 
+export type AccountCategory = 'PROP_CHALLENGE' | 'PROP_FUNDED' | 'LIVE_BROKER' | 'DEMO';
+export type AccountStatus = 'ACTIVE' | 'PASSED' | 'BREACHED' | 'ARCHIVED';
+
 export interface TradingAccount {
   id: string;
   name: string;
@@ -48,6 +51,9 @@ export interface TradingAccount {
   isLive: boolean;
   syncEnabled: boolean;
   lastSyncedAt?: string;
+  accountType?: AccountCategory;
+  phase?: string;
+  status?: AccountStatus;
 }
 
 export interface AccountStats {

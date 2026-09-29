@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 
 interface AccountOverviewProps {
-  account: TradingAccount;
+  account?: TradingAccount | null;
   accounts: TradingAccount[];
   onSelectAccount: (id: string) => void;
   stats: AccountStats;
@@ -38,6 +38,7 @@ interface AccountOverviewProps {
   onOpenSyncModal: () => void;
   onSelectDate: (dateStr: string | null) => void;
   selectedDateStr: string | null;
+  onNavigateToAccounts?: () => void;
 }
 
 export const AccountOverview: React.FC<AccountOverviewProps> = ({
@@ -51,6 +52,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
   onOpenSyncModal,
   onSelectDate,
   selectedDateStr,
+  onNavigateToAccounts,
 }) => {
   const { mistakes, totalMistakeLoss, cleanPnl } = calculateMistakeAnalytics(trades);
   const setups = calculateSetupAnalytics(trades);
@@ -61,6 +63,44 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
     .slice(0, 4);
 
   const isNetPositive = stats.netPnl >= 0;
+
+  if (!account) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-[#131317] border border-white/[0.08] rounded-xl p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <Wallet className="w-7 h-7" strokeWidth={1.5} />
+          </div>
+          <div>
+            <h2 className="text-xl font-heading font-bold text-white tracking-tight">
+              No Trading Account Connected
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+              Connect your MT4/MT5 broker, prop firm evaluation (e.g. FundingPips, FTMO), or live portfolio to begin journaling executions and tracking cognitive edge.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            {onNavigateToAccounts && (
+              <button
+                onClick={onNavigateToAccounts}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" strokeWidth={2} />
+                <span>Configure Trading Account</span>
+              </button>
+            )}
+            <button
+              onClick={onOpenSyncModal}
+              className="flex items-center gap-2 bg-[#18181E] hover:bg-[#22222a] border border-white/[0.08] text-slate-200 font-medium text-xs px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <Zap className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+              <span>Connect EA Webhook</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

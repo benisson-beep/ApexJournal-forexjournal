@@ -106,9 +106,10 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
       } else {
         throw new Error('Invalid data payload from calendar feed');
       }
-    } catch (err: any) {
-      console.error('Failed to load news calendar:', err);
-      setErrorMsg(err?.message || 'Failed to load news calendar.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Failed to load news calendar:', message);
+      setErrorMsg(message || 'Failed to load news calendar.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

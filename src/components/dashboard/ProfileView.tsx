@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 interface ProfileViewProps {
-  account: TradingAccount;
+  account?: TradingAccount | null;
   trades: Trade[];
   stats: AccountStats;
 }
@@ -144,9 +144,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
   });
 
   // Dynamic Prop Firm / Risk Calculations
-  const targetProfit = (account.initialBalance || 10000) * 0.1;
+  const initBal = account?.initialBalance || 10000;
+  const targetProfit = initBal * 0.1;
   const currentProfit = stats.netPnl;
-  const targetProgressPct = (currentProfit / targetProfit) * 100;
+  const targetProgressPct = targetProfit > 0 ? (currentProfit / targetProfit) * 100 : 0;
   const clampedProgressPct = Math.max(0, Math.min(100, targetProgressPct));
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -154,13 +155,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
   const todayLoss = Math.abs(
     todayTrades.reduce((sum, t) => (t.netPnl < 0 ? sum + t.netPnl : sum), 0)
   );
-  const dailyLimit = (account.initialBalance || 10000) * 0.05;
-  const dailyLossPct = (account.initialBalance || 10000) > 0 ? (todayLoss / account.initialBalance) * 100 : 0;
+  const dailyLimit = initBal * 0.05;
+  const dailyLossPct = initBal > 0 ? (todayLoss / initBal) * 100 : 0;
   const remainingDailyCushion = Math.max(0, dailyLimit - todayLoss);
   const dailyDrawdownProgress = Math.min(100, (dailyLossPct / 5) * 100);
 
-  const maxOverallLimit = (account.initialBalance || 10000) * 0.1;
-  const currentDDAmount = (stats.maxDrawdown / 100) * (account.initialBalance || 10000);
+  const maxOverallLimit = initBal * 0.1;
+  const currentDDAmount = (stats.maxDrawdown / 100) * initBal;
   const remainingOverallCushion = Math.max(0, maxOverallLimit - currentDDAmount);
   const overallDrawdownProgress = Math.min(100, (stats.maxDrawdown / 10) * 100);
 
@@ -204,7 +205,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
 
               <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[11px] text-slate-400 font-mono">
                 <span className="text-slate-300">
-                  {account.broker} · {account.currency}
+                  {account ? `${account.broker} · ${account.currency}` : 'Active Portfolio'}
                 </span>
                 <span>·</span>
                 <span>{topSession !== '—' ? `${topSession} Session` : 'All Sessions'}</span>
@@ -308,7 +309,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Monitoring rules for {account.broker} · #{account.accountNumber}
+                Monitoring rules for {account ? `${account.broker} · #${account.accountNumber}` : 'Active Portfolio'}
               </p>
             </div>
             <span className="text-xs font-mono font-medium text-slate-300 bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-md">
@@ -321,7 +322,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ account, trades, stats
             <div className="flex justify-between text-xs font-mono">
               <span className="text-slate-400">Profit Target Progress (10% Target)</span>
               <span className="text-emerald-400 font-medium">
-                {((currentProfit / (account.initialBalance || 1)) * 100).toFixed(1)}% / 10.0% ({currentProfit >= 0 ? '+' : ''}${currentProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })} / ${targetProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })})
+                {((currentProfit / (initBal || 1)) * 100).toFixed(1)}% / 10.0% ({currentProfit >= 0 ? '+' : ''}${currentProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })} / ${targetProfit.toLocaleString('en-US', { minimumFractionDigits: 0 })})
               </span>
             </div>
             <div className="w-full h-1.5 bg-[#18181E] rounded-full overflow-hidden border border-white/[0.06]">

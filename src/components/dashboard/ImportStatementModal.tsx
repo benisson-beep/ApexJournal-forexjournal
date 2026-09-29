@@ -81,6 +81,14 @@ export const ImportStatementModal: React.FC<ImportStatementModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-4">
+          {!accountId && (
+            <div className="bg-amber-500/10 border border-amber-500/25 rounded-md p-3 flex items-start gap-2.5 text-xs text-amber-300">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+              <span>
+                No active trading account selected. Please configure or select an account in the Accounts tab before importing statements.
+              </span>
+            </div>
+          )}
           <p className="text-xs text-zinc-400 leading-relaxed">
             In MT4/MT5, right-click on <strong>Account History</strong> $\rightarrow$ select <strong>Report</strong> or <strong>Save as Detailed Report</strong>, then upload the file below or paste its content.
           </p>
@@ -149,7 +157,7 @@ export const ImportStatementModal: React.FC<ImportStatementModalProps> = ({
             <button
               type="button"
               onClick={handleConfirmImport}
-              disabled={previewTrades.length === 0}
+              disabled={previewTrades.length === 0 || !accountId}
               className="px-5 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               Import {previewTrades.length > 0 ? `${previewTrades.length} Trades` : ''}

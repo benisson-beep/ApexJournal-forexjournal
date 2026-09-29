@@ -12,7 +12,7 @@ function determineSession(date: Date): SessionType {
 /**
  * Parses raw text from MT4/MT5 CSV or tab-delimited statement report
  */
-export function parseMetaTraderCsv(csvContent: string, accountId: string = 'acc-main'): Trade[] {
+export function parseMetaTraderCsv(csvContent: string, accountId: string = ''): Trade[] {
   const lines = csvContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
   const parsedTrades: Trade[] = [];
 

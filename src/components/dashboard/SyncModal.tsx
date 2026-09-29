@@ -15,7 +15,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   isOpen,
   onClose,
   onTradeSynced,
-  accountId = 'acc-main',
+  accountId = '',
 }) => {
   const [apiKey] = useState('aj_live_9a87d620bf41e');
   const [copiedKey, setCopiedKey] = useState(false);

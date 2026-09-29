@@ -74,6 +74,16 @@ const FALLBACK_CALENDAR: ForexNewsEvent[] = [
   },
 ];
 
+interface RawForexFactoryItem {
+  title?: string;
+  country?: string;
+  date?: string;
+  impact?: string;
+  forecast?: string;
+  previous?: string;
+  actual?: string;
+}
+
 /**
  * GET /api/news
  * Returns weekly economic calendar events fetched from forexfactory.com
@@ -126,10 +136,10 @@ export async function GET(request: NextRequest) {
         throw new Error(`ForexFactory feed returned status ${res.status}: ${res.statusText}`);
       }
 
-      const rawItems = await res.json();
+      const rawItems: unknown = await res.json();
 
       if (Array.isArray(rawItems)) {
-        fetchedData = rawItems.map((item: any, idx: number) => ({
+        fetchedData = (rawItems as RawForexFactoryItem[]).map((item, idx) => ({
           id: `ff-${item.country || 'fx'}-${(item.date || '').replace(/[^0-9]/g, '')}-${idx}`,
           title: String(item.title || 'Market Event').trim(),
           country: String(item.country || 'USD').trim().toUpperCase(),
@@ -140,9 +150,10 @@ export async function GET(request: NextRequest) {
           actual: item.actual ? String(item.actual).trim() : '',
         }));
       }
-    } catch (err: any) {
-      console.error('Forex Factory fetch error:', err?.message || err);
-      fetchError = err?.message || 'Failed to fetch from Forex Factory';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Forex Factory fetch error:', message);
+      fetchError = message;
     }
 
     // If fetch succeeded, update cache

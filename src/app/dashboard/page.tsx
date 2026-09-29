@@ -9,6 +9,7 @@ import { AccountsView } from '../../components/dashboard/AccountsView';
 import { AccountOverview } from '../../components/dashboard/AccountOverview';
 import { TradeTable } from '../../components/dashboard/TradeTable';
 import { CalendarHeatmap } from '../../components/dashboard/CalendarHeatmap';
+import { NewsCalendarView } from '../../components/dashboard/NewsCalendarView';
 import { PsychologyAnalytics } from '../../components/dashboard/PsychologyAnalytics';
 import { NewTradeModal } from '../../components/dashboard/NewTradeModal';
 import { SyncModal } from '../../components/dashboard/SyncModal';
@@ -16,11 +17,11 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
-import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Upload, Wallet } from 'lucide-react';
+import { Brain, Calendar, CalendarDays, LayoutDashboard, ListFilter, Newspaper, Upload, Wallet } from 'lucide-react';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>(INITIAL_ACCOUNTS[0].id);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
   const [activeTab, setActiveTab] = useState<DashboardTab>('OVERVIEW');
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [initialTradeNotes, setInitialTradeNotes] = useState<string>('');
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
@@ -40,16 +42,25 @@ export default function DashboardPage() {
       const savedAccounts = localStorage.getItem('apex_accounts');
       if (savedAccounts) {
         const parsed = JSON.parse(savedAccounts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setAccounts(parsed);
-          setSelectedAccountId(parsed[0].id);
+        if (Array.isArray(parsed)) {
+          // Explicitly filter out legacy dummy account
+          const validAccounts = parsed.filter(
+            (a) => a && a.id !== 'acc-main' && a.name !== 'Primary Account' && a.name !== 'Primary Trading Account'
+          );
+          setAccounts(validAccounts);
+          if (validAccounts.length > 0) {
+            setSelectedAccountId(validAccounts[0].id);
+          } else {
+            setSelectedAccountId('');
+          }
         }
       }
       const savedTrades = localStorage.getItem('apex_trades');
       if (savedTrades) {
         const parsed = JSON.parse(savedTrades);
         if (Array.isArray(parsed)) {
-          setTrades(parsed);
+          const validTrades = parsed.filter((t) => t && t.accountId !== 'acc-main');
+          setTrades(validTrades);
         }
       }
     } catch (err) {
@@ -89,12 +100,12 @@ export default function DashboardPage() {
   }, [accountTrades, selectedDateStr]);
 
   const selectedAccount = useMemo(() => {
-    return accounts.find((a) => a.id === selectedAccountId) || accounts[0] || INITIAL_ACCOUNTS[0];
+    return accounts.find((a) => a.id === selectedAccountId) || accounts[0] || null;
   }, [accounts, selectedAccountId]);
 
   // Dynamic portfolio stats calculation
   const stats = useMemo(() => {
-    return calculateAccountStats(accountTrades, selectedAccount.initialBalance);
+    return calculateAccountStats(accountTrades, selectedAccount?.initialBalance || 0);
   }, [accountTrades, selectedAccount]);
 
   const handleSaveTrade = (newTrade: Trade) => {
@@ -164,13 +175,14 @@ export default function DashboardPage() {
   };
 
   const handleDeleteAccount = (accountIdToDelete: string) => {
-    if (accounts.length <= 1) return;
-    setAccounts((prev) => prev.filter((acc) => acc.id !== accountIdToDelete));
+    setAccounts((prev) => {
+      const remaining = prev.filter((acc) => acc.id !== accountIdToDelete);
+      if (selectedAccountId === accountIdToDelete) {
+        setSelectedAccountId(remaining.length > 0 ? remaining[0].id : '');
+      }
+      return remaining;
+    });
     setTrades((prev) => prev.filter((t) => t.accountId !== accountIdToDelete));
-    if (selectedAccountId === accountIdToDelete) {
-      const remaining = accounts.filter((acc) => acc.id !== accountIdToDelete);
-      if (remaining.length > 0) setSelectedAccountId(remaining[0].id);
-    }
   };
 
   return (
@@ -204,7 +216,7 @@ export default function DashboardPage() {
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
           {/* Workspace Tabs (shown when browsing primary analytical views) */}
-          {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
+          {(activeTab === 'OVERVIEW' || activeTab === 'LOG' || activeTab === 'CALENDAR' || activeTab === 'NEWS' || activeTab === 'PSYCHOLOGY' || activeTab === 'ACCOUNTS') && (
             <>
               {/* View Mode Navigation Tabs & Quick Actions */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
@@ -255,6 +267,18 @@ export default function DashboardPage() {
                   >
                     <CalendarDays className="w-3.5 h-3.5" strokeWidth={1.5} />
                     <span>P&L Calendar</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('NEWS')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                      activeTab === 'NEWS'
+                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <Newspaper className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>News Calendar</span>
                   </button>
 
                   <button
@@ -313,6 +337,7 @@ export default function DashboardPage() {
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onSelectDate={setSelectedDateStr}
               selectedDateStr={selectedDateStr}
+              onNavigateToAccounts={() => setActiveTab('ACCOUNTS')}
             />
           )}
 
@@ -354,6 +379,16 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* View: Forex Factory Economic News Calendar */}
+          {activeTab === 'NEWS' && (
+            <NewsCalendarView
+              onOpenNewTradeWithContext={(contextNotes) => {
+                setInitialTradeNotes(contextNotes);
+                setIsModalOpen(true);
+              }}
+            />
+          )}
+
           {/* View 4: Psychology & Edge Analytics */}
           {activeTab === 'PSYCHOLOGY' && (
             <PsychologyAnalytics trades={accountTrades} />
@@ -373,12 +408,12 @@ export default function DashboardPage() {
             <SettingsView
               trades={trades}
               onResetSampleData={() => {
-                setTrades(INITIAL_TRADES);
-                setAccounts(INITIAL_ACCOUNTS);
-                setSelectedAccountId(INITIAL_ACCOUNTS[0].id);
+                setTrades([]);
+                setAccounts([]);
+                setSelectedAccountId('');
                 if (typeof window !== 'undefined') {
-                  localStorage.setItem('apex_trades', JSON.stringify(INITIAL_TRADES));
-                  localStorage.setItem('apex_accounts', JSON.stringify(INITIAL_ACCOUNTS));
+                  localStorage.removeItem('apex_trades');
+                  localStorage.removeItem('apex_accounts');
                 }
               }}
               onClearAllTrades={() => {
@@ -397,8 +432,12 @@ export default function DashboardPage() {
       <NewTradeModal
         isOpen={isModalOpen}
         accountId={selectedAccountId}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setInitialTradeNotes('');
+        }}
         onSaveTrade={handleSaveTrade}
+        initialNotes={initialTradeNotes}
       />
 
       {/* MetaTrader Real-Time Sync Modal */}
