@@ -148,11 +148,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     setIsAccountModalOpen(false);
   };
 
-  const totalBalance = accounts.reduce((sum, a) => sum + a.currentBalance, 0);
-  const totalInitial = accounts.reduce((sum, a) => sum + a.initialBalance, 0);
-  const totalPnl = totalBalance - totalInitial;
-  const totalReturnPct = totalInitial > 0 ? (totalPnl / totalInitial) * 100 : 0;
-  const activeCount = accounts.filter((a) => a.status === 'ACTIVE' || !a.status).length;
+
 
   const renderSparkline = (acc: TradingAccount, accountTrades: Trade[]) => {
     let points: number[] = [];
@@ -301,7 +297,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         {/* Ambient warm radial glow */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-amber-600/[0.04] rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">
               Hey, {traderName}
@@ -311,44 +307,10 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             </p>
           </div>
 
-          {/* Three Summary Metrics */}
-          <div className="flex flex-wrap items-baseline gap-6 sm:gap-10 pt-1">
-            <div>
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
-                Trader Rank
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-[#281b11] text-amber-300 border border-amber-600/30">
-                Bronze Tier
-              </span>
-            </div>
-
-            <div>
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
-                Connected Accounts
-              </span>
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {accounts.length}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
-                Total Net P&L
-              </span>
-              <span
-                className={`text-xl font-bold font-mono tabular-nums ${
-                  totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                }`}
-              >
-                {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-
-          {/* Bold Primary Action Button */}
+          {/* Primary Action Button */}
           <button
             onClick={openAddModal}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shadow-blue-900/20"
+            className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shadow-blue-900/20 shrink-0"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Add Trading Account</span>
