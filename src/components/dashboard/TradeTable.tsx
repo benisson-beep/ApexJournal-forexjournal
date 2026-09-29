@@ -2,14 +2,15 @@
 
 import React, { useState } from 'react';
 import { Trade, Direction, SessionType } from '../../types/trade';
-import { ArrowDownLeft, ArrowUpRight, Clock, Filter, Search, Tag, Trash2, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Clock, Filter, Plus, Search, Tag, Trash2, X } from 'lucide-react';
 
 interface TradeTableProps {
   trades: Trade[];
   onDeleteTrade: (id: string) => void;
+  onOpenNewTrade?: () => void;
 }
 
-export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade }) => {
+export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, onOpenNewTrade }) => {
   const [search, setSearch] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState<string>('ALL');
   const [selectedSession, setSelectedSession] = useState<string>('ALL');
@@ -68,8 +69,18 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade })
           </span>
         </div>
 
-        {/* Filters */}
+        {/* Controls & Filters */}
         <div className="flex flex-wrap items-center gap-2">
+          {onOpenNewTrade && (
+            <button
+              onClick={onOpenNewTrade}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-3.5 py-1.5 rounded-md transition-colors cursor-pointer mr-1"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+              <span>Log Trade</span>
+            </button>
+          )}
+
           {/* Search Input */}
           <div className="relative min-w-[170px]">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" strokeWidth={1.5} />

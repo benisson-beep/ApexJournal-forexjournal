@@ -21,7 +21,7 @@ export const LandingNavbar: React.FC = () => {
         </Link>
 
         {/* Center Links */}
-        <nav className="hidden md:flex items-center gap-9 text-sm font-bold text-slate-200">
+        <nav className="hidden md:flex items-center gap-7 lg:gap-8 text-sm font-bold text-slate-200">
           <a href="#features" className="hover:text-white transition-colors">
             Features
           </a>
@@ -33,6 +33,9 @@ export const LandingNavbar: React.FC = () => {
           </a>
           <a href="#faq" className="hover:text-white transition-colors">
             FAQ
+          </a>
+          <a href="#support" className="hover:text-white transition-colors">
+            Learning Center
           </a>
           <a href="#contact" className="hover:text-white transition-colors">
             Contact

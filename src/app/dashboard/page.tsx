@@ -43,9 +43,15 @@ export default function DashboardPage() {
       if (savedAccounts) {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed)) {
-          // Explicitly filter out legacy dummy account
+          // Explicitly filter out legacy dummy or sample accounts
           const validAccounts = parsed.filter(
-            (a) => a && a.id !== 'acc-main' && a.name !== 'Primary Account' && a.name !== 'Primary Trading Account'
+            (a) =>
+              a &&
+              a.id !== 'acc-main' &&
+              a.name !== 'Primary Account' &&
+              a.name !== 'Primary Trading Account' &&
+              !a.name?.toLowerCase().includes('fundingpips') &&
+              !a.broker?.toLowerCase().includes('fundingpips')
           );
           setAccounts(validAccounts);
           if (validAccounts.length > 0) {
@@ -358,7 +364,11 @@ export default function DashboardPage() {
 
           {/* View 2: Execution Log Table */}
           {activeTab === 'LOG' && (
-            <TradeTable trades={displayedTrades} onDeleteTrade={handleDeleteTrade} />
+            <TradeTable
+              trades={displayedTrades}
+              onDeleteTrade={handleDeleteTrade}
+              onOpenNewTrade={() => setIsModalOpen(true)}
+            />
           )}
 
           {/* View 3: P&L Calendar Heatmap + Filtered Table below */}
@@ -374,7 +384,11 @@ export default function DashboardPage() {
                 <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                   {selectedDateStr ? `Trades for ${selectedDateStr}` : 'All Account Trades'}
                 </h3>
-                <TradeTable trades={displayedTrades} onDeleteTrade={handleDeleteTrade} />
+                <TradeTable
+                  trades={displayedTrades}
+                  onDeleteTrade={handleDeleteTrade}
+                  onOpenNewTrade={() => setIsModalOpen(true)}
+                />
               </div>
             </div>
           )}

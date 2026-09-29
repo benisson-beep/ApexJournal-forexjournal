@@ -84,7 +84,7 @@ export function calculateAccountStats(trades: Trade[], initialBalance: number = 
     if (currentBalance > peakBalance) {
       peakBalance = currentBalance;
     } else {
-      const dd = ((peakBalance - currentBalance) / peakBalance) * 100;
+      const dd = peakBalance > 0 ? ((peakBalance - currentBalance) / peakBalance) * 100 : 0;
       if (dd > maxDrawdown) {
         maxDrawdown = dd;
       }

@@ -702,7 +702,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Primary Account, FTMO 100k Challenge"
+                  placeholder="e.g. Main Trading Account"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
@@ -717,7 +717,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. FundingPips, FTMO, IC Markets"
+                    placeholder="e.g. Broker or Firm"
                     value={formBroker}
                     onChange={(e) => setFormBroker(e.target.value)}
                     className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
@@ -730,7 +730,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 11383696"
+                    placeholder="e.g. Account Number"
                     value={formAccountNumber}
                     onChange={(e) => setFormAccountNumber(e.target.value)}
                     className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 font-mono"

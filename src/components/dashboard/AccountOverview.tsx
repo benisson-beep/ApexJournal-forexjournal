@@ -3,26 +3,16 @@
 import React from 'react';
 import { Trade, TradingAccount, AccountStats } from '../../types/trade';
 import { CalendarHeatmap } from './CalendarHeatmap';
+import { KpiMetrics } from './KpiMetrics';
+import { EquityCurve } from './EquityCurve';
+import { calculateAccountStats } from '../../lib/forex-math';
 import {
   calculateMistakeAnalytics,
   calculateSetupAnalytics,
 } from '../../lib/analytics-math';
 import {
   ArrowRight,
-  ArrowUpRight,
-  Award,
-  BarChart3,
-  Brain,
-  CheckCircle2,
-  Clock,
-  DollarSign,
   Plus,
-  RefreshCw,
-  Shield,
-  Sparkles,
-  Target,
-  TrendingDown,
-  TrendingUp,
   Wallet,
   Zap,
 } from 'lucide-react';
@@ -62,7 +52,14 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
     .sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime())
     .slice(0, 4);
 
-  const isNetPositive = stats.netPnl >= 0;
+  // Calculate KPI stats respecting selectedDateStr filter if one exists
+  const kpiStats = React.useMemo(() => {
+    if (!selectedDateStr) {
+      return stats;
+    }
+    const filteredTrades = trades.filter((t) => t.closeTime.startsWith(selectedDateStr));
+    return calculateAccountStats(filteredTrades, account?.initialBalance || 0);
+  }, [trades, selectedDateStr, stats, account?.initialBalance]);
 
   if (!account) {
     return (
@@ -76,7 +73,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
               No Trading Account Connected
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-              Connect your MT4/MT5 broker, prop firm evaluation (e.g. FundingPips, FTMO), or live portfolio to begin journaling executions and tracking cognitive edge.
+              Connect your MT4/MT5 broker, evaluation account, or live portfolio to begin journaling executions and tracking performance.
             </p>
           </div>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
@@ -104,185 +101,15 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Account Portfolio Hub Card */}
-      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5 sm:p-6 relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Left: Account Identity & Primary Numbers */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <h2 className="text-lg sm:text-xl font-heading font-bold text-white tracking-tight">
-                {account.name}
-              </h2>
-              <span className="text-[10px] font-mono font-medium text-slate-400 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded">
-                #{account.accountNumber}
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded">
-                {account.broker}
-              </span>
-            </div>
+      {/* 1. Redesigned 5-Card Institutional KPI Metrics */}
+      <KpiMetrics stats={kpiStats} initialBalance={account.initialBalance} />
 
-            {/* Balances Strip */}
-            <div className="flex flex-wrap items-baseline gap-6 pt-1">
-              <div>
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-0.5">
-                  Current Balance
-                </span>
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-white tabular-nums">
-                  ${account.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-0.5">
-                  Net Realized P&L
-                </span>
-                <span
-                  className={`text-2xl sm:text-3xl font-bold font-mono tabular-nums ${
-                    isNetPositive ? 'text-emerald-400' : 'text-rose-400'
-                  }`}
-                >
-                  {isNetPositive ? '+' : ''}${stats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-                  <span className="text-xs font-mono font-medium">
-                    ({isNetPositive ? '+' : ''}{stats.pnlPercentage}%)
-                  </span>
-                </span>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-0.5">
-                  Initial Capital
-                </span>
-                <span className="text-base sm:text-lg font-bold font-mono text-slate-300 tabular-nums">
-                  ${account.initialBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Quick Action Controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={onOpenNewTrade}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-3.5 py-1.5 rounded-md transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Log Manual Trade</span>
-            </button>
-
-            <button
-              onClick={onOpenSyncModal}
-              className="flex items-center gap-1.5 bg-[#18181E] hover:bg-[#202027] border border-white/[0.06] hover:border-white/[0.12] text-slate-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
-              <span>EA Webhook Sync</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Multi-Account Switcher Bar */}
-        {accounts.length > 1 && (
-          <div className="mt-5 pt-3.5 border-t border-white/[0.06] flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mr-1">
-              Switch Account:
-            </span>
-            {accounts.map((acc) => {
-              const isCurrent = acc.id === account.id;
-              return (
-                <button
-                  key={acc.id}
-                  onClick={() => onSelectAccount(acc.id)}
-                  className={`text-xs px-2.5 py-1 rounded-md transition-colors flex items-center gap-2 cursor-pointer ${
-                    isCurrent
-                      ? 'bg-blue-600/10 border border-blue-500/25 text-white font-medium'
-                      : 'bg-[#18181E] border border-white/[0.06] text-slate-400 hover:text-slate-200 hover:border-white/[0.12]'
-                  }`}
-                >
-                  <span>{acc.name}</span>
-                  <span className="font-mono text-[10px] text-slate-500">
-                    ${acc.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 2. Deep Institutional Quantitative Statistics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Win Rate
-          </span>
-          <span className="text-xl font-bold font-mono text-white tabular-nums">
-            {stats.winRate}%
-          </span>
-          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">
-            {stats.winningTrades}W · {stats.losingTrades}L · {stats.breakevenTrades}BE
-          </span>
-        </div>
-
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Profit Factor
-          </span>
-          <span
-            className={`text-xl font-bold font-mono tabular-nums ${
-              stats.profitFactor >= 1 ? 'text-emerald-400' : 'text-rose-400'
-            }`}
-          >
-            {stats.profitFactor >= 99 ? '∞' : stats.profitFactor}
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono block mt-0.5 uppercase tracking-wide">
-            {stats.profitFactor >= 2 ? 'Strong Edge' : stats.profitFactor >= 1 ? 'Profitable' : 'Unprofitable'}
-          </span>
-        </div>
-
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Avg Realized R:R
-          </span>
-          <span className="text-xl font-bold font-mono text-emerald-400 tabular-nums">
-            +{stats.avgRMultiple}R
-          </span>
-          <span className="text-[10px] text-slate-500 block mt-0.5">per winning trade</span>
-        </div>
-
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Max Drawdown
-          </span>
-          <span className="text-xl font-bold font-mono text-rose-400 tabular-nums">
-            {stats.maxDrawdown}%
-          </span>
-          <span className="text-[10px] text-slate-500 block mt-0.5">Prop limit: 5%–10%</span>
-        </div>
-
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Avg Winning Trade
-          </span>
-          <span className="text-xl font-bold font-mono text-emerald-400 tabular-nums">
-            +${stats.avgWin.toLocaleString('en-US', { minimumFractionDigits: 0 })}
-          </span>
-          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">
-            Loss avg: -${stats.avgLoss.toLocaleString('en-US', { minimumFractionDigits: 0 })}
-          </span>
-        </div>
-
-        <div className="bg-[#131317] border border-white/[0.06] p-3 rounded-md">
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block mb-1">
-            Total Traded Lots
-          </span>
-          <span className="text-xl font-bold font-mono text-white tabular-nums">
-            {stats.totalLots.toFixed(2)}
-          </span>
-          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">
-            {stats.totalTrades} deals closed
-          </span>
-        </div>
-      </div>
+      {/* 2. Large Equity Curve Section directly underneath KPI Cards */}
+      <EquityCurve
+        account={account}
+        trades={trades}
+        selectedDateStr={selectedDateStr}
+      />
 
       {/* 3. Monthly P&L Calendar Consistency Heatmap */}
       <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5">

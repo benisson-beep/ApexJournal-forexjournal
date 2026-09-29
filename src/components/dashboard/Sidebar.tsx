@@ -232,11 +232,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isCollapsed ? 'justify-center px-0' : ''
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <span
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                accounts.find((a) => a.id === selectedAccountId)?.syncEnabled ? 'bg-emerald-400' : 'bg-slate-500'
+              }`}
+            />
             {!isCollapsed && (
               <div className="flex-1 text-left flex items-center justify-between">
-                <span className="text-[11px] font-medium text-slate-300">MT5 Sync</span>
-                <span className="text-[10px] text-slate-500 font-mono">Connected</span>
+                <span className="text-[11px] font-medium text-slate-300">EA Webhook</span>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  {accounts.find((a) => a.id === selectedAccountId)?.syncEnabled ? 'Active' : 'Offline'}
+                </span>
               </div>
             )}
           </button>

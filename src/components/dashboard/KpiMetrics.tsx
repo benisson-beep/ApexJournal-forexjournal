@@ -2,135 +2,132 @@
 
 import React from 'react';
 import { AccountStats } from '../../types/trade';
-import { ArrowDownRight, ArrowUpRight, Award, BarChart2, DollarSign, Percent, Target } from 'lucide-react';
 
 interface KpiMetricsProps {
   stats: AccountStats;
+  initialBalance?: number;
 }
 
-export const KpiMetrics: React.FC<KpiMetricsProps> = ({ stats }) => {
-  const isPnlPositive = stats.netPnl >= 0;
+export const KpiMetrics: React.FC<KpiMetricsProps> = ({ stats, initialBalance = 0 }) => {
+  const isPnlPositive = stats.netPnl > 0;
+  const isPnlNegative = stats.netPnl < 0;
+
+  // Format Net P&L
+  const formatNetPnl = () => {
+    if (isPnlPositive) {
+      return `+$${stats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (isPnlNegative) {
+      return `-$${Math.abs(stats.netPnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `$0.00`;
+  };
+
+  // Format Profit Factor cleanly without NaN/Infinity
+  const renderProfitFactor = () => {
+    if (stats.totalTrades === 0) {
+      return { value: '0.00', color: 'text-slate-300', note: 'No trades yet' };
+    }
+    if (stats.losingTrades === 0 && stats.winningTrades > 0) {
+      return { value: '∞', color: 'text-emerald-400', note: 'Undefeated · 0 losses' };
+    }
+    if (stats.winningTrades === 0 && stats.losingTrades > 0) {
+      return { value: '0.00', color: 'text-rose-400', note: 'No winning trades' };
+    }
+    const color = stats.profitFactor >= 1.0 ? 'text-emerald-400' : 'text-rose-400';
+    const note = stats.profitFactor >= 2 ? 'Strong Edge' : stats.profitFactor >= 1 ? 'Profitable' : 'Unprofitable';
+    return { value: stats.profitFactor.toFixed(2), color, note };
+  };
+
+  const pfData = renderProfitFactor();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-      {/* Metric 1: Net P&L */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between text-slate-400 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Net Realized P&L</span>
-          <div className={`p-1 rounded-md ${isPnlPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-            <DollarSign className="w-3.5 h-3.5" />
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      {/* 1. Net P&L */}
+      <div className="bg-[#131317] border border-white/[0.06] p-3.5 rounded-md flex flex-col justify-between">
+        <div>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Net P&L
+          </span>
           <span
-            className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${
-              isPnlPositive ? 'text-emerald-400' : 'text-rose-400'
+            className={`text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight ${
+              isPnlPositive ? 'text-emerald-400' : isPnlNegative ? 'text-rose-400' : 'text-slate-100'
             }`}
           >
-            {isPnlPositive ? '+' : ''}${stats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            {formatNetPnl()}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 mt-2 text-[11px]">
+        <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+          {initialBalance > 0
+            ? `${isPnlPositive ? '+' : ''}${stats.pnlPercentage.toFixed(2)}% on capital`
+            : stats.totalTrades === 0
+            ? 'No executions'
+            : 'Net realized P&L'}
+        </span>
+      </div>
+
+      {/* 2. Win Rate */}
+      <div className="bg-[#131317] border border-white/[0.06] p-3.5 rounded-md flex flex-col justify-between">
+        <div>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Win Rate
+          </span>
+          <span className="text-xl sm:text-2xl font-bold font-mono text-slate-100 tabular-nums tracking-tight">
+            {stats.totalTrades > 0 ? stats.winRate.toFixed(1) : '0.0'}%
+          </span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+          {stats.winningTrades}W · {stats.losingTrades}L
+        </span>
+      </div>
+
+      {/* 3. Profit Factor */}
+      <div className="bg-[#131317] border border-white/[0.06] p-3.5 rounded-md flex flex-col justify-between">
+        <div>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Profit Factor
+          </span>
+          <span className={`text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight ${pfData.color}`}>
+            {pfData.value}
+          </span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+          {pfData.note}
+        </span>
+      </div>
+
+      {/* 4. Max Drawdown */}
+      <div className="bg-[#131317] border border-white/[0.06] p-3.5 rounded-md flex flex-col justify-between">
+        <div>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Max Drawdown
+          </span>
           <span
-            className={`font-mono font-medium flex items-center ${
-              isPnlPositive ? 'text-emerald-400' : 'text-rose-400'
+            className={`text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight ${
+              stats.maxDrawdown > 0 ? 'text-rose-400' : 'text-slate-100'
             }`}
           >
-            {isPnlPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {isPnlPositive ? '+' : ''}{stats.pnlPercentage}%
+            {stats.maxDrawdown.toFixed(2)}%
           </span>
-          <span className="text-slate-400">return on account</span>
         </div>
+        <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+          Peak-to-trough decline
+        </span>
       </div>
 
-      {/* Metric 2: Win Rate */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between text-slate-400 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Win Rate</span>
-          <div className="p-1 rounded-md bg-blue-500/10 text-blue-400">
-            <Percent className="w-3.5 h-3.5" />
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono tabular-nums text-slate-100 tracking-tight">
-            {stats.winRate}%
+      {/* 5. Total Trades */}
+      <div className="bg-[#131317] border border-white/[0.06] p-3.5 rounded-md flex flex-col justify-between">
+        <div>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Total Trades
           </span>
-          <span className="text-xs text-slate-400 font-mono">
-            ({stats.winningTrades}W / {stats.losingTrades}L)
-          </span>
-        </div>
-        {/* Win/Loss Progress Bar */}
-        <div className="mt-3 w-full bg-[#1b2336] h-1.5 rounded-full overflow-hidden flex">
-          <div
-            className="bg-emerald-500 h-full transition-all duration-500"
-            style={{ width: `${stats.winRate}%` }}
-          />
-          <div
-            className="bg-rose-500 h-full transition-all duration-500"
-            style={{ width: `${100 - stats.winRate}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Metric 3: Profit Factor */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between text-slate-400 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Profit Factor</span>
-          <div className="p-1 rounded-md bg-amber-500/10 text-amber-400">
-            <BarChart2 className="w-3.5 h-3.5" />
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono tabular-nums text-slate-100 tracking-tight">
-            {stats.profitFactor >= 99.99 ? '∞' : stats.profitFactor}
-          </span>
-          <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-            {stats.profitFactor >= 2 ? 'EXCELLENT' : stats.profitFactor >= 1.5 ? 'GOOD' : 'NORMAL'}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
-          <span>Avg Win: <strong className="text-emerald-400 font-mono">${stats.avgWin}</strong></span>
-          <span>·</span>
-          <span>Avg Loss: <strong className="text-rose-400 font-mono">${stats.avgLoss}</strong></span>
-        </div>
-      </div>
-
-      {/* Metric 4: Realized R-Multiple */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between text-slate-400 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Avg Realized R:R</span>
-          <div className="p-1 rounded-md bg-purple-500/10 text-purple-400">
-            <Target className="w-3.5 h-3.5" />
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono tabular-nums text-slate-100 tracking-tight">
-            {stats.avgRMultiple > 0 ? `+${stats.avgRMultiple}R` : `${stats.avgRMultiple}R`}
-          </span>
-          <span className="text-xs text-slate-400">per trade</span>
-        </div>
-        <div className="mt-2 text-[11px] text-slate-400">
-          Max Drawdown: <span className="font-mono text-slate-300 font-medium">{stats.maxDrawdown}%</span>
-        </div>
-      </div>
-
-      {/* Metric 5: Total Volume */}
-      <div className="bg-[#0e131f] border border-[#1b2336] rounded-xl p-4 relative overflow-hidden">
-        <div className="flex items-center justify-between text-slate-400 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Total Volume</span>
-          <div className="p-1 rounded-md bg-slate-500/10 text-slate-400">
-            <Award className="w-3.5 h-3.5" />
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono tabular-nums text-slate-100 tracking-tight">
+          <span className="text-xl sm:text-2xl font-bold font-mono text-slate-100 tabular-nums tracking-tight">
             {stats.totalTrades}
           </span>
-          <span className="text-xs text-slate-400 font-medium">closed trades</span>
         </div>
-        <div className="mt-2 text-[11px] text-slate-400 font-mono">
-          <span>{stats.totalLots} total lots executed</span>
-        </div>
+        <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+          {stats.totalTrades === 1 ? '1 closed trade' : `${stats.totalTrades} closed trades`}
+        </span>
       </div>
     </div>
   );

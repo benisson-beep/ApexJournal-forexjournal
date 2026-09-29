@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 
 interface Partner {
   name: string;
@@ -20,7 +19,7 @@ const PARTNERS: Partner[] = [
     badge: 'PROP FIRM',
     glowColor: 'group-hover:border-cyan-500/40',
     logoSrc: '/logos/ftmo.png',
-    imgClassName: 'w-7 h-7 object-contain',
+    imgClassName: 'w-8 h-8 object-contain',
   },
 
   // 2. MetaTrader 5 Official Logo
@@ -30,7 +29,7 @@ const PARTNERS: Partner[] = [
     badge: 'MT5 ENGINE',
     glowColor: 'group-hover:border-blue-500/40',
     logoSrc: '/logos/mt5.png',
-    imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
+    imgClassName: 'h-7 w-auto object-contain max-w-[125px]',
   },
 
   // 3. IC Markets Official Logo
@@ -40,7 +39,7 @@ const PARTNERS: Partner[] = [
     badge: 'GLOBAL BROKER',
     glowColor: 'group-hover:border-emerald-500/40',
     logoSrc: '/logos/icmarkets.png',
-    imgClassName: 'h-6 w-auto object-contain max-w-[120px]',
+    imgClassName: 'h-7 w-auto object-contain max-w-[135px]',
   },
 
   // 4. FundedNext Official Logo
@@ -50,7 +49,7 @@ const PARTNERS: Partner[] = [
     badge: 'PROP FIRM',
     glowColor: 'group-hover:border-fuchsia-500/40',
     logoSrc: '/logos/fundednext.png',
-    imgClassName: 'w-7 h-7 object-contain rounded-md',
+    imgClassName: 'w-8 h-8 object-contain rounded-md',
   },
 
   // 5. Pepperstone Official Logo
@@ -60,7 +59,7 @@ const PARTNERS: Partner[] = [
     badge: 'ECN BROKER',
     glowColor: 'group-hover:border-rose-500/40',
     logoSrc: '/logos/pepperstone.png',
-    imgClassName: 'w-7 h-7 object-contain',
+    imgClassName: 'w-8 h-8 object-contain',
   },
 
   // 6. Apex Trader Funding Official Logo
@@ -70,7 +69,7 @@ const PARTNERS: Partner[] = [
     badge: 'FUTURES',
     glowColor: 'group-hover:border-emerald-500/40',
     logoSrc: '/logos/apex.png',
-    imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
+    imgClassName: 'h-7 w-auto object-contain max-w-[125px]',
   },
 
   // 7. Topstep Official Logo
@@ -80,7 +79,7 @@ const PARTNERS: Partner[] = [
     badge: 'PROP FIRM',
     glowColor: 'group-hover:border-amber-500/40',
     logoSrc: '/logos/topstep.webp',
-    imgClassName: 'h-5 w-auto object-contain max-w-[100px]',
+    imgClassName: 'h-6 w-auto object-contain max-w-[115px]',
   },
 
   // 8. MetaTrader 4 Official Logo
@@ -90,7 +89,7 @@ const PARTNERS: Partner[] = [
     badge: 'MT4 ENGINE',
     glowColor: 'group-hover:border-amber-500/40',
     logoSrc: '/logos/mt4.png',
-    imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
+    imgClassName: 'h-7 w-auto object-contain max-w-[125px]',
   },
 
   // 9. cTrader Official Logo
@@ -100,51 +99,51 @@ const PARTNERS: Partner[] = [
     badge: 'API BRIDGE',
     glowColor: 'group-hover:border-cyan-400/40',
     logoSrc: '/logos/ctrader.png',
-    imgClassName: 'h-6 w-auto object-contain max-w-[110px]',
+    imgClassName: 'h-7 w-auto object-contain max-w-[125px]',
   },
 ];
 
 export const PropFirmStrip: React.FC = () => {
   return (
-    <div className="border-y border-white/10 bg-black py-9 overflow-hidden relative select-none">
+    <div className="border-y border-white/10 bg-black py-16 sm:py-20 overflow-hidden relative select-none">
       {/* Label Header */}
-      <div className="max-w-[1280px] mx-auto text-center px-6 mb-7">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+      <div className="max-w-[1280px] mx-auto text-center px-6 mb-9 sm:mb-11">
+        <p className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
           <span>SEAMLESSLY COMPATIBLE WITH ALL MAJOR PROP FIRMS & REGULATED BROKERS</span>
         </p>
       </div>
 
       {/* Left & Right Gradient Fade Masks */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-black via-black/80 to-transparent z-20 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-black via-black/80 to-transparent z-20 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-56 bg-gradient-to-r from-black via-black/80 to-transparent z-20 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-56 bg-gradient-to-l from-black via-black/80 to-transparent z-20 pointer-events-none" />
 
       {/* Infinite Moving Marquee Track (Right to Left) */}
       <div className="flex w-full overflow-hidden">
-        <div className="animate-marquee flex items-center gap-6 sm:gap-7 shrink-0">
+        <div className="animate-marquee flex items-center gap-6 sm:gap-8 shrink-0">
           {/* Loop Set 1 */}
           {PARTNERS.map((partner, index) => (
             <div
               key={`p1-${index}`}
-              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
+              className={`flex items-center gap-4 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-6 py-4 sm:py-5 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
             >
-              <div className="p-1.5 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[38px] h-9">
+              <div className="p-2 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[44px] h-12">
                 <img
                   src={partner.logoSrc}
                   alt={partner.name}
-                  className={partner.imgClassName || 'w-7 h-7 object-contain'}
+                  className={partner.imgClassName || 'w-8 h-8 object-contain'}
                   loading="lazy"
                 />
               </div>
               <div className="text-left">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-slate-100 text-sm tracking-tight group-hover:text-white transition-colors">
+                  <span className="font-extrabold text-slate-100 text-sm sm:text-base tracking-tight group-hover:text-white transition-colors">
                     {partner.name}
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
                     {partner.badge}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-sans block mt-0.5">
+                <span className="text-xs text-slate-400 font-sans block mt-1">
                   {partner.category}
                 </span>
               </div>
@@ -155,26 +154,26 @@ export const PropFirmStrip: React.FC = () => {
           {PARTNERS.map((partner, index) => (
             <div
               key={`p2-${index}`}
-              className={`flex items-center gap-3.5 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-5 py-3 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
+              className={`flex items-center gap-4 bg-black border border-white/10 ${partner.glowColor} transition-all duration-200 px-6 py-4 sm:py-5 rounded-2xl cursor-default shrink-0 group hover:border-white/25`}
             >
-              <div className="p-1.5 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[38px] h-9">
+              <div className="p-2 rounded-xl bg-[#080c14] border border-white/10 group-hover:scale-105 transition-transform flex items-center justify-center min-w-[44px] h-12">
                 <img
                   src={partner.logoSrc}
                   alt={partner.name}
-                  className={partner.imgClassName || 'w-7 h-7 object-contain'}
+                  className={partner.imgClassName || 'w-8 h-8 object-contain'}
                   loading="lazy"
                 />
               </div>
               <div className="text-left">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-slate-100 text-sm tracking-tight group-hover:text-white transition-colors">
+                  <span className="font-extrabold text-slate-100 text-sm sm:text-base tracking-tight group-hover:text-white transition-colors">
                     {partner.name}
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
                     {partner.badge}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-sans block mt-0.5">
+                <span className="text-xs text-slate-400 font-sans block mt-1">
                   {partner.category}
                 </span>
               </div>
