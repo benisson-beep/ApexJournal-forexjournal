@@ -121,12 +121,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {isCollapsed ? (
               <span className="font-heading font-bold text-slate-100 text-base tracking-tight">
-                AJ
+                A<span className="text-red-500">J</span>
               </span>
             ) : (
               <div>
                 <span className="font-heading font-bold text-slate-100 text-base tracking-tight">
-                  Apex<span className="text-slate-400 font-normal">Journal</span>
+                  Apex<span className="text-red-500 font-semibold">Journal</span>
                 </span>
                 <p className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
                   Institutional Terminal

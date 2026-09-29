@@ -9,11 +9,11 @@ export const LandingFooter: React.FC = () => {
       <div className="max-w-[1280px] mx-auto space-y-12">
         {/* Brand Header */}
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs tracking-tighter">
+          <div className="w-7 h-7 rounded bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 font-bold text-xs tracking-tighter">
             AJ
           </div>
           <span className="font-extrabold text-slate-100 text-lg tracking-widest font-sans uppercase">
-            Apex<span className="text-emerald-400">Journal</span>
+            Apex<span className="text-red-500">Journal</span>
           </span>
         </div>
 

@@ -85,7 +85,7 @@ export default function LoginPage() {
                   isDarkMode ? 'text-white' : 'text-slate-900'
                 }`}
               >
-                Apex<span className="text-emerald-400">Journal</span>
+                Apex<span className="text-red-500">Journal</span>
               </span>
               <span
                 className={`text-[11px] font-mono font-bold ${

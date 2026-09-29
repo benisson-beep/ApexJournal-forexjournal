@@ -10,15 +10,12 @@ export const LandingNavbar: React.FC = () => {
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-sm tracking-tighter group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-md bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 font-black text-sm tracking-tighter group-hover:scale-105 transition-transform">
             AJ
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-slate-100 text-base tracking-tight font-sans">
-              Apex<span className="text-emerald-400">Journal</span>
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded">
-              PRO
+              Apex<span className="text-red-500">Journal</span>
             </span>
           </div>
         </Link>
