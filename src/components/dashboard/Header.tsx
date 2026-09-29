@@ -1,19 +1,19 @@
 'use client';
 
 import React from 'react';
-import { DashboardTab } from './Sidebar';
 import {
-  Brain,
-  Calendar,
-  CalendarDays,
-  LayoutDashboard,
-  ListFilter,
   Menu,
-  Newspaper,
   PanelLeftOpen,
-  Upload,
+  LayoutDashboard,
   Wallet,
+  ListFilter,
+  CalendarDays,
+  Newspaper,
+  Brain,
+  Upload,
+  Calendar,
 } from 'lucide-react';
+import { DashboardTab } from './Sidebar';
 
 interface HeaderProps {
   onOpenMobileMenu?: () => void;
@@ -39,14 +39,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenImportModal,
 }) => {
   return (
-    <header className="bg-[#0D0D0F]/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 border-b border-white/[0.06]">
-      <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3">
-        {/* Left Side: Mobile Menu Button, Desktop Sidebar Expand Button, & Workspace Navigation Tabs */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+    <header className="bg-[#0D0D0F]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2 border-b border-white/[0.06]">
+      <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3 min-w-0">
+        {/* Left Side: Mobile Menu Button & Desktop Expand Button when collapsed */}
+        <div className="flex items-center gap-2 shrink-0">
           {onOpenMobileMenu && (
             <button
               onClick={onOpenMobileMenu}
-              className="md:hidden p-1.5 -ml-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-colors shrink-0"
+              className="md:hidden p-1.5 -ml-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-colors"
               aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" strokeWidth={1.5} />
@@ -56,16 +56,18 @@ export const Header: React.FC<HeaderProps> = ({
           {isSidebarCollapsed && onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
-              className="hidden md:flex items-center gap-1.5 p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer shrink-0"
+              className="hidden md:flex items-center gap-1.5 p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
               title="Expand sidebar"
               aria-label="Expand sidebar"
             >
               <PanelLeftOpen className="w-4 h-4" strokeWidth={1.5} />
             </button>
           )}
+        </div>
 
-          {/* Workspace Tabs */}
-          <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] p-1 rounded-md overflow-x-auto max-w-full">
+        {/* Center / Left Navigation Tabs (Horizontally scrollable on small screens) */}
+        <div className="flex-1 min-w-0 flex items-center overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-0.5">
+          <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] p-1 rounded-md shrink-0">
             <button
               onClick={() => onSelectTab('OVERVIEW')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
@@ -140,11 +142,13 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right Side: Date Filter, Import CSV, Date Display */}
+        {/* Right Side: Date Filter, Import CSV & Month Selector */}
         <div className="flex items-center gap-2 shrink-0">
           {selectedDateStr && (
             <div className="text-xs text-slate-400 font-mono flex items-center gap-2 mr-1">
-              <span>Date: <strong className="text-emerald-400">{selectedDateStr}</strong></span>
+              <span>
+                Date Filter: <strong className="text-emerald-400">{selectedDateStr}</strong>
+              </span>
               <button
                 onClick={onClearDateFilter}
                 className="text-[11px] underline text-slate-400 hover:text-slate-200 cursor-pointer"
@@ -162,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Import CSV</span>
           </button>
 
-          <div className="hidden sm:flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
+          <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
             <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
             <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           </div>

@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Unified Navigation Header */}
+        {/* Navigation Header with Integrated Tabs & Controls */}
         <Header
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
           isSidebarCollapsed={isSidebarCollapsed}
@@ -225,7 +225,6 @@ export default function DashboardPage() {
 
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
-          {/* View 1: Performance & Accounts Overview */}
 
           {/* View 1: Performance & Accounts Overview */}
           {activeTab === 'OVERVIEW' && (
