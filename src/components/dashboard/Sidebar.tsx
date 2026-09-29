@@ -9,7 +9,6 @@ import {
   Brain,
   User,
   Settings,
-  Plus,
   X,
   Wallet,
   PanelLeft,
@@ -153,23 +152,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        {/* Quick Action Button: New Trade */}
-        <div className="px-3">
-          <button
-            onClick={() => {
-              onOpenNewTrade?.();
-              if (isMobileOpen) onCloseMobile();
-            }}
-            className={`w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs py-2 rounded-md transition-colors cursor-pointer ${
-              isCollapsed ? 'px-0' : 'px-3'
-            }`}
-            title="Log New Trade"
-          >
-            <Plus className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-            {!isCollapsed && <span className="truncate">Log Trade</span>}
           </button>
         </div>
 
