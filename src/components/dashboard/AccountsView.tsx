@@ -1,7 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TradingAccount, Trade, AccountCategory, AccountStatus } from '../../types/trade';
+import { EquityCurve } from './EquityCurve';
+import { CalendarHeatmap } from './CalendarHeatmap';
+import { TradeTable } from './TradeTable';
+import { calculateAccountStats } from '../../lib/forex-math';
 import {
   Zap,
   Upload,
@@ -22,6 +26,9 @@ import {
   ChevronDown,
   CheckCircle2,
   BarChart3,
+  LineChart,
+  Calendar as CalendarIcon,
+  ListOrdered,
 } from 'lucide-react';
 
 interface AccountsViewProps {
@@ -35,6 +42,7 @@ interface AccountsViewProps {
   onAddAccount?: (account: TradingAccount) => void;
   onUpdateAccount?: (account: TradingAccount) => void;
   onDeleteAccount?: (id: string) => void;
+  onDeleteTrade?: (id: string) => void;
 }
 
 export const AccountsView: React.FC<AccountsViewProps> = ({
@@ -48,6 +56,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onAddAccount,
   onUpdateAccount,
   onDeleteAccount,
+  onDeleteTrade,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
@@ -167,9 +176,38 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     setIsAccountModalOpen(false);
   };
 
+  // Inspection Modal State (Specific Account Analytics, Equity Curve, Calendar, Trades)
+  const [inspectingAccount, setInspectingAccount] = useState<TradingAccount | null>(null);
+  const [inspectTab, setInspectTab] = useState<'EQUITY' | 'CALENDAR' | 'TRADES'>('EQUITY');
+  const [inspectDateStr, setInspectDateStr] = useState<string | null>(null);
+
+  const inspectingTrades = useMemo(() => {
+    if (!inspectingAccount) return [];
+    return trades.filter((t) => t.accountId === inspectingAccount.id);
+  }, [trades, inspectingAccount]);
+
+  const inspectingStats = useMemo(() => {
+    if (!inspectingAccount) return null;
+    return calculateAccountStats(inspectingTrades, inspectingAccount.initialBalance || 0);
+  }, [inspectingTrades, inspectingAccount]);
+
+  const displayedInspectTrades = useMemo(() => {
+    if (!inspectDateStr) return inspectingTrades;
+    return inspectingTrades.filter((t) => t.closeTime.startsWith(inspectDateStr));
+  }, [inspectingTrades, inspectDateStr]);
+
+  const handleInspectAccount = (acc: TradingAccount) => {
+    setInspectingAccount(acc);
+    setInspectTab('EQUITY');
+    setInspectDateStr(null);
+    setActiveMenuId(null);
+  };
+
   const handleAccountClick = (id: string) => {
-    onSelectAccount(id);
-    onNavigateToOverview?.(id);
+    const acc = accounts.find((a) => a.id === id);
+    if (acc) {
+      handleInspectAccount(acc);
+    }
   };
 
 
@@ -711,6 +749,210 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Account Inspection Modal (Equity Curve, Calendar & Trades for Specific Account) */}
+      {inspectingAccount && inspectingStats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-[#131317] border border-white/[0.08] rounded-2xl w-full max-w-5xl my-auto overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#18181E] flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-3">
+                {getAccountIcon(inspectingAccount)}
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-bold text-white font-heading tracking-tight">
+                      {inspectingAccount.name}
+                    </h3>
+                    <span className="text-xs text-slate-400 font-mono">
+                      #{inspectingAccount.accountNumber}
+                    </span>
+                    <span className="text-[10px] text-slate-300 bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 rounded font-mono">
+                      {inspectingAccount.broker}
+                    </span>
+                    <span className="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded font-medium">
+                      {inspectingAccount.phase || inspectingAccount.accountType}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                    {inspectingAccount.platform} · {inspectingAccount.currency} · {inspectingTrades.length} Trades Executed
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {inspectingAccount.id === selectedAccountId ? (
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Active Account</span>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onSelectAccount(inspectingAccount.id);
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 border border-blue-500/25 px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Set as Active</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setInspectingAccount(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                  title="Close Inspection Modal"
+                >
+                  <X className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {/* Account Quick Metrics Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
+                    Current Balance
+                  </span>
+                  <span className="text-sm sm:text-base font-bold font-mono text-white mt-0.5 block">
+                    ${inspectingAccount.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
+                    Net Realized P&L
+                  </span>
+                  <span
+                    className={`text-sm sm:text-base font-bold font-mono mt-0.5 block ${
+                      inspectingStats.netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
+                  >
+                    {inspectingStats.netPnl >= 0 ? '+' : ''}${inspectingStats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
+                    Win Rate
+                  </span>
+                  <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-0.5 block">
+                    {inspectingStats.winRate.toFixed(1)}%
+                  </span>
+                </div>
+
+                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
+                    Profit Factor
+                  </span>
+                  <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-0.5 block">
+                    {inspectingStats.profitFactor.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3 col-span-2 sm:col-span-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
+                    Initial Size
+                  </span>
+                  <span className="text-sm sm:text-base font-bold font-mono text-slate-300 mt-0.5 block">
+                    ${inspectingAccount.initialBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sub-Tabs: Equity Curve vs P&L Calendar vs Trade History */}
+              <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3">
+                <button
+                  onClick={() => setInspectTab('EQUITY')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    inspectTab === 'EQUITY'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <LineChart className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>Equity Curve</span>
+                </button>
+
+                <button
+                  onClick={() => setInspectTab('CALENDAR')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    inspectTab === 'CALENDAR'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <CalendarIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>P&L Calendar</span>
+                </button>
+
+                <button
+                  onClick={() => setInspectTab('TRADES')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    inspectTab === 'TRADES'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <ListOrdered className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>Executions ({inspectingTrades.length})</span>
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              {inspectTab === 'EQUITY' && (
+                <div className="space-y-4">
+                  <EquityCurve
+                    account={inspectingAccount}
+                    trades={inspectingTrades}
+                    selectedDateStr={inspectDateStr}
+                  />
+                </div>
+              )}
+
+              {inspectTab === 'CALENDAR' && (
+                <div className="space-y-4">
+                  <CalendarHeatmap
+                    trades={inspectingTrades}
+                    onSelectDay={setInspectDateStr}
+                    selectedDateStr={inspectDateStr}
+                  />
+
+                  {inspectDateStr && (
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-slate-300">
+                          Trades on {inspectDateStr} ({displayedInspectTrades.length})
+                        </span>
+                        <button
+                          onClick={() => setInspectDateStr(null)}
+                          className="text-xs text-blue-400 hover:underline cursor-pointer"
+                        >
+                          Clear Date Filter
+                        </button>
+                      </div>
+                      <TradeTable
+                        trades={displayedInspectTrades}
+                        onDeleteTrade={onDeleteTrade || (() => {})}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {inspectTab === 'TRADES' && (
+                <div className="space-y-4">
+                  <TradeTable
+                    trades={inspectingTrades}
+                    onDeleteTrade={onDeleteTrade || (() => {})}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

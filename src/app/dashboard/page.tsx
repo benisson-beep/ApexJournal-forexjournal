@@ -17,6 +17,7 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
+import { Wallet } from 'lucide-react';
 import {
   fetchAccountsFromSupabase,
   fetchTradesFromSupabase,
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
   const [activeTab, setActiveTab] = useState<DashboardTab>('OVERVIEW');
+  const [calendarAccountId, setCalendarAccountId] = useState<string>('ALL');
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState<boolean>(false);
 
@@ -178,10 +180,30 @@ export default function DashboardPage() {
     return accounts.find((a) => a.id === selectedAccountId) || accounts[0] || null;
   }, [accounts, selectedAccountId]);
 
-  // Dynamic portfolio stats calculation
+  // Specific account stats
   const stats = useMemo(() => {
     return calculateAccountStats(accountTrades, selectedAccount?.initialBalance || 0);
   }, [accountTrades, selectedAccount]);
+
+  // Aggregate Portfolio Stats (Summation across ALL accounts in the journal)
+  const portfolioInitialBalance = useMemo(() => {
+    return accounts.reduce((acc, curr) => acc + (curr.initialBalance || 0), 0);
+  }, [accounts]);
+
+  const portfolioStats = useMemo(() => {
+    return calculateAccountStats(trades, portfolioInitialBalance);
+  }, [trades, portfolioInitialBalance]);
+
+  // Trades for P&L Calendar tab (allows filtering by specific account or all accounts)
+  const calendarTrades = useMemo(() => {
+    if (!calendarAccountId || calendarAccountId === 'ALL') return trades;
+    return trades.filter((t) => t.accountId === calendarAccountId);
+  }, [trades, calendarAccountId]);
+
+  const displayedCalendarTrades = useMemo(() => {
+    if (!selectedDateStr) return calendarTrades;
+    return calendarTrades.filter((t) => t.closeTime.startsWith(selectedDateStr));
+  }, [calendarTrades, selectedDateStr]);
 
   const handleSaveTrade = async (newTrade: Trade) => {
     setTrades((prev) => [newTrade, ...prev]);
@@ -357,14 +379,14 @@ export default function DashboardPage() {
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
 
-          {/* View 1: Performance & Accounts Overview */}
+          {/* View 1: Performance & Accounts Overview (Portfolio Summation across all accounts) */}
           {activeTab === 'OVERVIEW' && (
             <AccountOverview
               account={selectedAccount}
               accounts={accounts}
               onSelectAccount={setSelectedAccountId}
-              stats={stats}
-              trades={accountTrades}
+              stats={portfolioStats}
+              trades={trades}
               onViewAllTrades={() => setActiveTab('LOG')}
               onOpenNewTrade={() => setIsModalOpen(true)}
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
@@ -381,7 +403,6 @@ export default function DashboardPage() {
               selectedAccountId={selectedAccountId}
               onSelectAccount={(id) => {
                 setSelectedAccountId(id);
-                setActiveTab('OVERVIEW');
               }}
               onNavigateToOverview={(id) => {
                 if (id) setSelectedAccountId(id);
@@ -393,6 +414,7 @@ export default function DashboardPage() {
               trades={trades}
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onOpenImportModal={() => setIsImportModalOpen(true)}
+              onDeleteTrade={handleDeleteTrade}
             />
           )}
 
@@ -408,18 +430,51 @@ export default function DashboardPage() {
           {/* View 3: P&L Calendar Heatmap + Filtered Table below */}
           {activeTab === 'CALENDAR' && (
             <div className="space-y-6">
+              {/* Account Selector for P&L Calendar */}
+              <div className="bg-[#131317] border border-white/[0.07] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <Wallet className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-200 block font-heading">
+                      Account P&L Calendar
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Inspect performance for a specific trading account or view consolidated across all accounts
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400 font-medium">Account:</span>
+                  <select
+                    value={calendarAccountId}
+                    onChange={(e) => setCalendarAccountId(e.target.value)}
+                    className="bg-[#18181E] border border-white/[0.08] hover:border-white/[0.15] text-xs font-medium text-slate-200 rounded-lg px-3 py-1.5 outline-none cursor-pointer transition-colors"
+                  >
+                    <option value="ALL">All Accounts (Consolidated)</option>
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.broker} - #{acc.accountNumber})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <CalendarHeatmap
-                trades={accountTrades}
+                trades={calendarTrades}
                 onSelectDay={setSelectedDateStr}
                 selectedDateStr={selectedDateStr}
               />
 
               <div>
                 <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  {selectedDateStr ? `Trades for ${selectedDateStr}` : 'All Account Trades'}
+                  {selectedDateStr ? `Trades for ${selectedDateStr}` : 'Account Executions'}
                 </h3>
                 <TradeTable
-                  trades={displayedTrades}
+                  trades={displayedCalendarTrades}
                   onDeleteTrade={handleDeleteTrade}
                   onOpenNewTrade={() => setIsModalOpen(true)}
                 />

@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { Trade, TradingAccount, AccountStats } from '../../types/trade';
-import { CalendarHeatmap } from './CalendarHeatmap';
 import { KpiMetrics } from './KpiMetrics';
-import { EquityCurve } from './EquityCurve';
+import { ExecutionStats } from './ExecutionStats';
 import { calculateAccountStats } from '../../lib/forex-math';
 import {
   calculateMistakeAnalytics,
@@ -47,6 +46,14 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
   const { mistakes, totalMistakeLoss, cleanPnl } = calculateMistakeAnalytics(trades);
   const setups = calculateSetupAnalytics(trades);
 
+  // Total Initial Balance across all accounts in the portfolio
+  const totalInitialBalance = React.useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.reduce((sum, a) => sum + (a.initialBalance || 0), 0);
+    }
+    return account?.initialBalance || 0;
+  }, [accounts, account]);
+
   // Recent 4 executed trades
   const recentTrades = [...trades]
     .sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime())
@@ -58,10 +65,10 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
       return stats;
     }
     const filteredTrades = trades.filter((t) => t.closeTime.startsWith(selectedDateStr));
-    return calculateAccountStats(filteredTrades, account?.initialBalance || 0);
-  }, [trades, selectedDateStr, stats, account?.initialBalance]);
+    return calculateAccountStats(filteredTrades, totalInitialBalance);
+  }, [trades, selectedDateStr, stats, totalInitialBalance]);
 
-  if (!account) {
+  if (!account && accounts.length === 0) {
     return (
       <div className="space-y-6">
         <div className="bg-[#131317] border border-white/[0.08] rounded-xl p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-4">
@@ -101,35 +108,11 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Redesigned 5-Card Institutional KPI Metrics */}
-      <KpiMetrics stats={kpiStats} initialBalance={account.initialBalance} />
+      {/* 1. Redesigned 5-Card Institutional KPI Metrics (Summation across all accounts) */}
+      <KpiMetrics stats={kpiStats} initialBalance={totalInitialBalance} />
 
-      {/* 2. Large Equity Curve Section directly underneath KPI Cards */}
-      <EquityCurve
-        account={account}
-        trades={trades}
-        selectedDateStr={selectedDateStr}
-      />
-
-      {/* 3. Monthly P&L Calendar Consistency Heatmap */}
-      <div className="bg-[#131317] border border-white/[0.07] rounded-lg p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-heading font-semibold text-slate-100 uppercase tracking-wider">
-              Monthly P&L Calendar Consistency
-            </h3>
-          </div>
-          <span className="text-xs text-slate-500 font-mono">
-            Click day to inspect trades
-          </span>
-        </div>
-
-        <CalendarHeatmap
-          trades={trades}
-          onSelectDay={onSelectDate}
-          selectedDateStr={selectedDateStr}
-        />
-      </div>
+      {/* 2. Institutional Execution Stats (Trading Week, Session Win Rates, Profitability, Most Traded Instruments) */}
+      <ExecutionStats trades={trades} />
 
       {/* 4. Discipline & Behavioral Edge / Setup Playbook Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
