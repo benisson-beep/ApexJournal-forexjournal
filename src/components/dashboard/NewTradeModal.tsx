@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Direction, SessionType, Trade, TradeTag } from '../../types/trade';
-import { calculatePips, calculateRMultiple } from '../../lib/forex-math';
-import { AlertCircle, Check, Plus, Tag, X } from 'lucide-react';
+import { calculatePips, calculateRMultiple, calculateEstimatedPnl } from '../../lib/forex-math';
+import { AlertCircle, Check, Plus, Tag, X, Sparkles } from 'lucide-react';
 
 interface NewTradeModalProps {
   isOpen: boolean;
@@ -31,6 +31,19 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   onSaveTrade,
   initialNotes,
 }) => {
+  const getInitialDate = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const getInitialTime = () => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
+
   const [symbol, setSymbol] = useState('');
   const [direction, setDirection] = useState<Direction>('BUY');
   const [lotSize, setLotSize] = useState<string>('');
@@ -39,6 +52,8 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const [stopLoss, setStopLoss] = useState<string>('');
   const [takeProfit, setTakeProfit] = useState<string>('');
   const [netPnl, setNetPnl] = useState<string>('');
+  const [executionDate, setExecutionDate] = useState<string>(getInitialDate);
+  const [executionTime, setExecutionTime] = useState<string>(getInitialTime);
   const [session, setSession] = useState<SessionType>('London');
   const [selectedTags, setSelectedTags] = useState<TradeTag[]>([]);
   const [customTags, setCustomTags] = useState<{ name: string; type: 'SETUP' | 'MISTAKE' | 'CUSTOM' }[]>([]);
@@ -46,12 +61,36 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const [newTagType, setNewTagType] = useState<'SETUP' | 'MISTAKE' | 'CUSTOM'>('SETUP');
   const [notes, setNotes] = useState('');
 
+  const resetForm = () => {
+    setSymbol('');
+    setDirection('BUY');
+    setLotSize('');
+    setOpenPrice('');
+    setClosePrice('');
+    setStopLoss('');
+    setTakeProfit('');
+    setNetPnl('');
+    setExecutionDate(getInitialDate());
+    setExecutionTime(getInitialTime());
+    setSession('London');
+    setSelectedTags([]);
+    setNotes('');
+  };
+
+  // Reset form whenever modal opens or closes so previous trade data is not retained
   useEffect(() => {
-    if (isOpen && initialNotes) {
-      setNotes(initialNotes);
+    if (isOpen) {
+      resetForm();
+      if (initialNotes) {
+        setNotes(initialNotes);
+      }
     }
   }, [isOpen, initialNotes]);
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const numLotSize = parseFloat(lotSize) || 0;
   const numOpenPrice = parseFloat(openPrice) || 0;
@@ -59,6 +98,18 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const numStopLoss = stopLoss ? parseFloat(stopLoss) : undefined;
   const numTakeProfit = takeProfit ? parseFloat(takeProfit) : undefined;
   const numNetPnl = parseFloat(netPnl) || 0;
+
+  // Auto-calculate Net P&L whenever open, close, volume, symbol or direction changes
+  useEffect(() => {
+    const numLots = parseFloat(lotSize);
+    const numOpen = parseFloat(openPrice);
+    const numClose = parseFloat(closePrice);
+
+    if (symbol && numLots > 0 && numOpen > 0 && numClose > 0) {
+      const estimated = calculateEstimatedPnl(symbol, direction, numOpen, numClose, numLots);
+      setNetPnl(String(estimated));
+    }
+  }, [symbol, direction, lotSize, openPrice, closePrice]);
 
   // Auto-recalculate pips and R-multiple live if prices exist
   const pips =
@@ -103,6 +154,11 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const [year, month, day] = (executionDate || getInitialDate()).split('-').map(Number);
+    const [hours, minutes] = (executionTime || '12:00').split(':').map(Number);
+    const closeDate = new Date(year, (month || 1) - 1, day || 1, hours || 12, minutes || 0, 0);
+    const openDate = new Date(closeDate.getTime() - 3600000 * 2);
+
     const newTrade: Trade = {
       id: `tr-${Date.now()}`,
       ticket: String(Math.floor(10000000 + Math.random() * 90000000)),
@@ -121,14 +177,15 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
       netPnl: numNetPnl,
       rMultiple,
       status: numNetPnl > 0 ? 'WIN' : numNetPnl < 0 ? 'LOSS' : 'BE',
-      openTime: new Date(Date.now() - 3600000 * 2).toISOString(),
-      closeTime: new Date().toISOString(),
+      openTime: openDate.toISOString(),
+      closeTime: closeDate.toISOString(),
       session,
       tags: selectedTags,
       notes,
     };
 
     onSaveTrade(newTrade);
+    resetForm();
     onClose();
   };
 
@@ -144,7 +201,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             <p className="text-[11px] text-zinc-400">Add an executed trade to your journal</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-zinc-400 hover:text-zinc-200 p-1 rounded-md hover:bg-white/5 cursor-pointer"
           >
             <X className="w-4 h-4" strokeWidth={1.5} />
@@ -208,8 +265,8 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </div>
           </div>
 
-          {/* Lots & Session */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Lots, Date, Time & Session */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Volume (Lots)
@@ -228,17 +285,43 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
             <div>
               <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                Date
+              </label>
+              <input
+                type="date"
+                required
+                value={executionDate}
+                onChange={(e) => setExecutionDate(e.target.value)}
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs font-mono text-zinc-200 outline-none focus:border-blue-500/50 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                Time
+              </label>
+              <input
+                type="time"
+                required
+                value={executionTime}
+                onChange={(e) => setExecutionTime(e.target.value)}
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs font-mono text-zinc-200 outline-none focus:border-blue-500/50 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
                 Session
               </label>
               <select
                 value={session}
                 onChange={(e) => setSession(e.target.value as SessionType)}
-                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-zinc-200 outline-none focus:border-blue-500/50 cursor-pointer"
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs text-zinc-200 outline-none focus:border-blue-500/50 cursor-pointer"
               >
-                <option value="London">London Session</option>
-                <option value="New York">New York Session</option>
-                <option value="Asian">Asian Session</option>
-                <option value="Overlap">London / NY Overlap</option>
+                <option value="London">London</option>
+                <option value="New York">New York</option>
+                <option value="Asian">Asian</option>
+                <option value="Overlap">Overlap</option>
               </select>
             </div>
           </div>
@@ -321,14 +404,22 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </div>
             <div className="h-6 w-px bg-white/[0.08]" />
             <div>
-              <span className="text-[10px] text-zinc-400 block font-sans uppercase">Net P&L ($)</span>
+              <div className="flex items-center gap-1.5 mb-0.5 justify-end">
+                <span className="text-[10px] text-zinc-400 block font-sans uppercase">Net P&L ($)</span>
+                {netPnl !== '' && (
+                  <span className="text-[9px] font-sans text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1 py-0.2 rounded font-medium">
+                    Auto-calc
+                  </span>
+                )}
+              </div>
               <input
                 type="number"
                 step="any"
                 value={netPnl}
                 onChange={(e) => setNetPnl(e.target.value)}
                 placeholder="0.00"
-                className={`w-24 bg-transparent font-semibold text-xs border-b border-white/20 outline-none text-right tabular-nums ${
+                required
+                className={`w-28 bg-transparent font-semibold text-xs border-b border-white/20 outline-none text-right tabular-nums focus:border-blue-400 ${
                   numNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               />
@@ -424,7 +515,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
           <div className="pt-3 flex items-center justify-end gap-3 border-t border-white/[0.06]">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] rounded-md transition-colors cursor-pointer"
             >
               Cancel

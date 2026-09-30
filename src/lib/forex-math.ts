@@ -133,3 +133,60 @@ export function calculateAccountStats(trades: Trade[], initialBalance: number = 
     maxDrawdown: Number(maxDrawdown.toFixed(2)),
   };
 }
+
+/**
+ * Automatically calculates/estimates net P&L ($) based on entry, exit, symbol, direction, and lots.
+ */
+export function calculateEstimatedPnl(
+  symbol: string,
+  direction: Direction,
+  openPrice: number,
+  closePrice: number,
+  lotSize: number
+): number {
+  if (!symbol || !openPrice || !closePrice || !lotSize) return 0;
+  const sym = symbol.toUpperCase().replace(/[\/\-_]/g, '');
+  const diff = direction === 'BUY' ? closePrice - openPrice : openPrice - closePrice;
+
+  // Gold / Metals / Commodities
+  if (sym.includes('XAU') || sym.includes('GOLD')) {
+    // 1 standard lot = 100 oz. $1 price change = $100
+    return Number((diff * 100 * lotSize).toFixed(2));
+  }
+  if (sym.includes('XAG') || sym.includes('SILVER')) {
+    // 1 standard lot = 5,000 oz
+    return Number((diff * 5000 * lotSize).toFixed(2));
+  }
+  if (sym.includes('OIL') || sym.includes('WTI') || sym.includes('BRENT')) {
+    // 1 standard lot = 1,000 barrels
+    return Number((diff * 1000 * lotSize).toFixed(2));
+  }
+
+  // Indices & Crypto
+  if (sym.includes('US30') || sym.includes('DJ30') || sym.includes('DOW')) {
+    return Number((diff * 1 * lotSize).toFixed(2));
+  }
+  if (sym.includes('NAS') || sym.includes('USTEC') || sym.includes('NDX')) {
+    return Number((diff * 1 * lotSize).toFixed(2));
+  }
+  if (sym.includes('SPX') || sym.includes('US500')) {
+    return Number((diff * 10 * lotSize).toFixed(2));
+  }
+  if (sym.includes('GER40') || sym.includes('DAX')) {
+    return Number((diff * 1 * lotSize).toFixed(2));
+  }
+  if (sym.includes('BTC') || sym.includes('ETH')) {
+    return Number((diff * lotSize).toFixed(2));
+  }
+
+  // JPY Pairs
+  if (sym.includes('JPY')) {
+    const pipDiff = diff * 100;
+    const pipValueInUsd = closePrice > 0 ? 1000 / closePrice : 6.8;
+    return Number((pipDiff * pipValueInUsd * lotSize).toFixed(2));
+  }
+
+  // Standard Forex (EURUSD, GBPUSD, AUDUSD, NZDUSD, USDCAD, USDCHF, etc.)
+  // 1 standard lot = 100,000 units base. 1 pip (0.0001) = $10 / lot
+  return Number((diff * 100000 * lotSize).toFixed(2));
+}

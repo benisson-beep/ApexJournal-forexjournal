@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Trade } from '../../types/trade';
 import { buildMonthCalendar, DayPerformance } from '../../lib/analytics-math';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Calendar, Filter } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
 interface CalendarHeatmapProps {
   trades: Trade[];
@@ -34,6 +34,18 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   const [currentYear, setCurrentYear] = useState(() => defaultDate.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => defaultDate.getMonth());
 
+  // Automatically keep current month in view when trades are added
+  React.useEffect(() => {
+    if (trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime());
+      const d = new Date(sorted[0].closeTime);
+      if (!isNaN(d.getTime())) {
+        setCurrentYear(d.getFullYear());
+        setCurrentMonth(d.getMonth());
+      }
+    }
+  }, [trades]);
+
   const weeks = buildMonthCalendar(trades, currentYear, currentMonth);
 
   const handlePrevMonth = () => {
@@ -54,212 +66,231 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
     }
   };
 
+  const handleGoToday = () => {
+    const now = new Date();
+    setCurrentYear(now.getFullYear());
+    setCurrentMonth(now.getMonth());
+  };
+
   // Month-wide totals
-  const allDays = weeks.flatMap((w) => w.days.filter((d): d is DayPerformance => d !== null && d.tradeCount > 0));
-  const monthNetPnl = allDays.reduce((sum, d) => sum + d.netPnl, 0);
-  const greenDaysCount = allDays.filter((d) => d.netPnl > 0).length;
-  const redDaysCount = allDays.filter((d) => d.netPnl < 0).length;
-  const totalMonthTrades = allDays.reduce((sum, d) => sum + d.tradeCount, 0);
+  const allTradingDays = weeks.flatMap((w) => w.days.filter((d): d is DayPerformance => d !== null && d.tradeCount > 0));
+  const monthNetPnl = allTradingDays.reduce((sum, d) => sum + d.netPnl, 0);
+  const tradingDaysCountThisMonth = allTradingDays.length;
 
   return (
-    <div className="bg-[#131317] border border-white/[0.07] rounded-lg overflow-hidden">
-      {/* Calendar Header / Month Switcher */}
-      <div className="p-3.5 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#18181E]">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-md bg-[#131317] border border-white/[0.06] hover:border-white/[0.12] text-slate-300 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-            <h2 className="text-sm font-heading font-semibold text-slate-100 tracking-tight px-2 min-w-[140px] text-center">
-              {MONTH_NAMES[currentMonth]} {currentYear}
-            </h2>
-            <button
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-md bg-[#131317] border border-white/[0.06] hover:border-white/[0.12] text-slate-300 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-          </div>
+    <div className="space-y-4">
+      {/* 1. Top Navigation Bar & Month Summary Badge */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Left: Navigation Controls (< Month Year > [Today]) */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrevMonth}
+            className="w-9 h-9 rounded-lg bg-[#141417] hover:bg-[#1a1a20] border border-white/[0.08] hover:border-white/[0.16] text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+            title="Previous Month"
+            aria-label="Previous Month"
+          >
+            <ChevronLeft className="w-4 h-4" strokeWidth={1.75} />
+          </button>
+
+          <h2 className="text-base sm:text-lg font-bold text-white px-2 font-sans tracking-tight select-none">
+            {MONTH_NAMES[currentMonth]} {currentYear}
+          </h2>
+
+          <button
+            onClick={handleNextMonth}
+            className="w-9 h-9 rounded-lg bg-[#141417] hover:bg-[#1a1a20] border border-white/[0.08] hover:border-white/[0.16] text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+            title="Next Month"
+            aria-label="Next Month"
+          >
+            <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
+          </button>
+
+          <button
+            onClick={handleGoToday}
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg bg-[#141417] hover:bg-[#1a1a20] border border-white/[0.08] hover:border-white/[0.16] text-xs font-semibold text-slate-200 hover:text-white transition-colors cursor-pointer ml-1 shadow-sm"
+            title="Jump to Current Month"
+          >
+            <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.75} />
+            <span>Today</span>
+          </button>
 
           {selectedDateStr && (
             <button
               onClick={() => onSelectDay(null)}
-              className="flex items-center gap-1.5 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/25 px-2.5 py-1 rounded-md hover:bg-blue-500/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/25 px-2.5 h-9 rounded-lg hover:bg-blue-500/20 transition-colors cursor-pointer ml-1"
+              title="Clear date filter"
             >
-              <Filter className="w-3 h-3" strokeWidth={1.5} />
-              <span>Filtering: {selectedDateStr} (Click to reset)</span>
+              <span>Selected: <strong>{selectedDateStr}</strong> (Click to reset)</span>
             </button>
           )}
         </div>
 
-        {/* Month Quick Summary Strip */}
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <div>
-            <span className="text-slate-400 font-sans text-[11px] block">Month Net P&L</span>
-            <span
-              className={`font-bold text-sm tabular-nums ${
-                monthNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-              }`}
-            >
-              {monthNetPnl >= 0 ? '+' : ''}${monthNetPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="h-6 w-px bg-white/[0.06]" />
-          <div>
-            <span className="text-slate-400 font-sans text-[11px] block">Daily Win/Loss</span>
-            <span className="font-semibold text-slate-200">
-              <span className="text-emerald-400">{greenDaysCount}G</span> /{' '}
-              <span className="text-rose-400">{redDaysCount}R</span>
-            </span>
-          </div>
-          <div className="h-6 w-px bg-white/[0.06]" />
-          <div>
-            <span className="text-slate-400 font-sans text-[11px] block">Volume</span>
-            <span className="text-slate-300 font-semibold">{totalMonthTrades} trades</span>
-          </div>
+        {/* Right: Month Summary Pill (PnL: $4,023.92 | Days: 3) */}
+        <div className="flex items-center gap-3 bg-[#141417] border border-white/[0.08] rounded-xl px-4 py-2 shadow-sm">
+          <span className="text-xs text-slate-400 font-sans font-medium">PnL:</span>
+          <span
+            className={`font-bold font-mono text-xs sm:text-sm tabular-nums ${
+              monthNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+            }`}
+          >
+            {monthNetPnl < 0 ? '-' : ''}${Math.abs(monthNetPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </span>
+
+          <div className="h-3.5 w-px bg-white/[0.1]" />
+
+          <span className="text-xs text-slate-400 font-sans font-medium">Days:</span>
+          <span className="font-bold font-mono text-xs sm:text-sm text-white">
+            {tradingDaysCountThisMonth}
+          </span>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[900px]">
-          {/* Day of week headers + Weekly column */}
-          <div className="grid grid-cols-8 border-b border-white/[0.06] bg-[#18181E] text-[11px] font-medium text-slate-400 uppercase tracking-wider text-center">
-            <div className="py-2">Mon</div>
-            <div className="py-2">Tue</div>
-            <div className="py-2">Wed</div>
-            <div className="py-2">Thu</div>
-            <div className="py-2">Fri</div>
-            <div className="py-2 text-slate-500">Sat</div>
-            <div className="py-2 text-slate-500">Sun</div>
-            <div className="py-2 bg-[#18181E] border-l border-white/[0.06] text-slate-200 font-medium">
-              Weekly P&L
+      {/* 2. Main Calendar Workspace (7-Day Grid on Left, Weekly Summary Column on Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Side: 7-Day Calendar Grid (Sun to Sat) */}
+        <div className="lg:col-span-9 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="min-w-[580px] space-y-2.5">
+            {/* Days of week header */}
+            <div className="grid grid-cols-7 gap-2.5 text-center text-xs font-medium text-slate-400 font-sans py-1">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
             </div>
-          </div>
 
-          {/* Week rows */}
-          <div className="divide-y divide-white/[0.04]">
-            {weeks.map((week) => (
-              <div key={week.weekIndex} className="grid grid-cols-8 min-h-[90px]">
-                {week.days.map((day, dIdx) => {
-                  if (!day) {
+            {/* Weeks rows */}
+            <div className="space-y-2.5">
+              {weeks.map((week) => (
+                <div key={week.weekIndex} className="grid grid-cols-7 gap-2.5">
+                  {week.days.map((day, dIdx) => {
+                    // Empty padding card before or after month bounds
+                    if (!day) {
+                      return (
+                        <div
+                          key={`empty-${week.weekIndex}-${dIdx}`}
+                          className="rounded-xl bg-[#141418]/40 border border-white/[0.02] min-h-[96px] sm:min-h-[110px]"
+                        />
+                      );
+                    }
+
+                    const hasTrades = day.tradeCount > 0;
+                    const isProfit = day.netPnl >= 0;
+                    const isSelected = selectedDateStr === day.dateStr;
+
                     return (
                       <div
-                        key={`empty-${week.weekIndex}-${dIdx}`}
-                        className="bg-black/20 border-r border-white/[0.04] p-2"
-                      />
-                    );
-                  }
-
-                  const hasTrades = day.tradeCount > 0;
-                  const isProfit = day.netPnl > 0;
-                  const isLoss = day.netPnl < 0;
-                  const isSelected = selectedDateStr === day.dateStr;
-
-                  return (
-                    <div
-                      key={day.dateStr}
-                      onClick={() => hasTrades && onSelectDay(isSelected ? null : day.dateStr)}
-                      className={`border-r border-white/[0.04] p-2 flex flex-col justify-between transition-colors relative ${
-                        hasTrades ? 'cursor-pointer hover:bg-white/[0.03]' : 'bg-transparent'
-                      } ${
-                        isSelected
-                          ? 'ring-1 ring-blue-500 bg-blue-500/10 z-10'
-                          : hasTrades
-                          ? isProfit
-                            ? 'bg-emerald-500/[0.04]'
-                            : isLoss
-                            ? 'bg-rose-500/[0.04]'
-                            : 'bg-white/[0.02]'
-                          : ''
-                      }`}
-                    >
-                      {/* Day Number Header */}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[11px] font-mono ${
-                            hasTrades ? 'text-slate-200 font-medium' : 'text-slate-500'
-                          }`}
-                        >
-                          {day.dayNumber}
-                        </span>
-                        {hasTrades && (
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            {day.tradeCount} {day.tradeCount === 1 ? 'trade' : 'trades'}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* P&L Display */}
-                      {hasTrades ? (
-                        <div className="my-auto text-center py-1">
+                        key={day.dateStr}
+                        onClick={() => hasTrades && onSelectDay(isSelected ? null : day.dateStr)}
+                        className={`rounded-xl border p-2.5 sm:p-3 flex flex-col justify-between min-h-[96px] sm:min-h-[110px] transition-all relative ${
+                          hasTrades
+                            ? 'cursor-pointer hover:border-white/[0.18] hover:bg-[#1a1b22]'
+                            : 'cursor-default'
+                        } ${
+                          isSelected
+                            ? 'ring-1 ring-blue-500 bg-blue-500/10 border-blue-500/40'
+                            : 'bg-[#141418] border-white/[0.05]'
+                        }`}
+                      >
+                        {/* Top-Left: Day Number */}
+                        <div>
                           <span
-                            className={`text-xs font-bold font-mono tabular-nums tracking-tight block ${
-                              isProfit ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-slate-300'
+                            className={`text-sm sm:text-base font-sans block leading-none ${
+                              hasTrades
+                                ? 'text-white font-bold'
+                                : 'text-[#52525b] font-medium'
                             }`}
                           >
-                            {isProfit ? '+' : ''}${day.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className="text-[9px] text-slate-500 font-mono">
-                            {day.winningCount}W / {day.losingCount}L
+                            {day.dayNumber}
                           </span>
                         </div>
-                      ) : (
-                        <div className="h-6" />
-                      )}
 
-                      {/* Small Bottom Status Accent */}
-                      {hasTrades && (
-                        <div
-                          className={`h-0.5 w-full rounded-full ${
-                            isProfit ? 'bg-emerald-500/50' : isLoss ? 'bg-rose-500/50' : 'bg-slate-600'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                        {/* Bottom-Right: Trade count with opposing arrows icon & P&L */}
+                        {hasTrades ? (
+                          <div className="flex flex-col items-end justify-end mt-auto text-right space-y-0.5">
+                            {/* Trade count with opposing arrows */}
+                            <div className="flex items-center gap-1 text-slate-300 font-mono text-xs sm:text-[13px] font-medium leading-none">
+                              <span>{day.tradeCount}</span>
+                              <span className="text-[12px] text-slate-400">⇆</span>
+                            </div>
 
-                {/* 8th Column: Weekly Total Summary */}
-                <div className="bg-[#18181E] border-l border-white/[0.06] p-2.5 flex flex-col justify-between">
-                  <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                    W{week.weekIndex} Total
-                  </div>
-
-                  <div className="my-auto text-center">
-                    <span
-                      className={`text-xs font-bold font-mono tabular-nums tracking-tight block ${
-                        week.totalNetPnl > 0
-                          ? 'text-emerald-400'
-                          : week.totalNetPnl < 0
-                          ? 'text-rose-400'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {week.totalNetPnl > 0 ? '+' : ''}${week.totalNetPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                      {week.totalTrades} {week.totalTrades === 1 ? 'trade' : 'trades'}
-                    </span>
-                  </div>
-
-                  <div className="text-center">
-                    <span
-                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                        week.totalNetPnl > 0
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : week.totalNetPnl < 0
-                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {week.totalNetPnl > 0 ? 'WIN' : week.totalNetPnl < 0 ? 'LOSS' : 'FLAT'}
-                    </span>
-                  </div>
+                            {/* P&L amount */}
+                            <div
+                              className={`font-mono font-bold text-xs sm:text-[13px] tracking-tight tabular-nums leading-tight ${
+                                isProfit ? 'text-emerald-400' : 'text-rose-400'
+                              }`}
+                            >
+                              {day.netPnl < 0 ? '-' : ''}${Math.abs(day.netPnl).toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Weekly Summary Column */}
+        <div className="lg:col-span-3 space-y-2.5">
+          {/* Header */}
+          <div className="text-xs sm:text-sm font-medium text-slate-400 font-sans py-1">
+            Weekly Summary
+          </div>
+
+          {/* List of Week Cards */}
+          <div className="space-y-2.5">
+            {weeks.map((week) => (
+              <div
+                key={week.weekIndex}
+                className="bg-[#141418] border border-white/[0.05] rounded-xl p-3.5 sm:p-4 min-h-[96px] sm:min-h-[110px] flex flex-col justify-between"
+              >
+                {/* Top Row: Week Name (Bold White) + Date Range (Muted) */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs sm:text-sm font-bold text-white font-sans tracking-tight">
+                    {week.weekName}
+                  </span>
+                  <span className="text-xs text-slate-400 font-sans">
+                    {week.dateRangeLabel}
+                  </span>
+                </div>
+
+                {/* Bottom Row: Content (No trades OR PnL & Days) */}
+                {week.totalTrades === 0 ? (
+                  <div className="text-xs text-slate-500 font-sans mt-3">
+                    No trades
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between mt-3 text-xs">
+                    <div className="flex items-center gap-1 font-mono">
+                      <span className="text-slate-400 font-sans font-medium text-xs">PnL:</span>
+                      <span
+                        className={`font-bold font-mono text-xs sm:text-sm tabular-nums ${
+                          week.totalNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                        }`}
+                      >
+                        {week.totalNetPnl < 0 ? '-' : ''}${Math.abs(week.totalNetPnl).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 font-mono">
+                      <span className="text-slate-400 font-sans font-medium text-xs">Days:</span>
+                      <span className="font-bold font-mono text-xs sm:text-sm text-white">
+                        {week.tradingDaysCount}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

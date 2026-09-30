@@ -12,9 +12,12 @@ export interface DayPerformance {
 
 export interface WeekPerformance {
   weekIndex: number;
+  weekName: string;
+  dateRangeLabel: string;
   days: (DayPerformance | null)[];
   totalNetPnl: number;
   totalTrades: number;
+  tradingDaysCount: number;
 }
 
 export interface MistakeStat {
@@ -42,6 +45,25 @@ export interface SessionStat {
 }
 
 /**
+ * Formats year, month (0-11), and day into 'YYYY-MM-DD'
+ */
+export function formatLocalDateStr(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Returns the local date string 'YYYY-MM-DD' for a trade's closeTime
+ */
+export function getTradeDateStr(trade: Trade): string {
+  if (!trade.closeTime) return '';
+  const d = new Date(trade.closeTime);
+  if (isNaN(d.getTime())) {
+    return trade.closeTime.slice(0, 10);
+  }
+  return formatLocalDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/**
  * Groups trades into a calendar month grid with weekly rollups
  */
 export function buildMonthCalendar(trades: Trade[], year: number, month: number): WeekPerformance[] {
@@ -49,9 +71,15 @@ export function buildMonthCalendar(trades: Trade[], year: number, month: number)
   const dayMap = new Map<string, DayPerformance>();
 
   for (const trade of trades) {
+    if (!trade.closeTime) continue;
     const d = new Date(trade.closeTime);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const dateStr = d.toISOString().split('T')[0];
+    if (isNaN(d.getTime())) continue;
+
+    const tradeYear = d.getFullYear();
+    const tradeMonth = d.getMonth();
+
+    if (tradeYear === year && tradeMonth === month) {
+      const dateStr = formatLocalDateStr(tradeYear, tradeMonth, d.getDate());
       const existing = dayMap.get(dateStr) || {
         dateStr,
         dayNumber: d.getDate(),
@@ -77,26 +105,23 @@ export function buildMonthCalendar(trades: Trade[], year: number, month: number)
   const lastDay = new Date(year, month + 1, 0);
   const totalDays = lastDay.getDate();
 
-  // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  // In trading, week usually starts Monday (index 0)
-  const getDayOfWeekIndex = (date: Date) => {
-    const day = date.getDay();
-    return day === 0 ? 6 : day - 1; // Mon = 0, Sun = 6
-  };
+  // 0 = Sunday, 1 = Monday, ..., 6 = Saturday (Calendar starts on Sunday)
+  const startDayOfWeek = firstDay.getDay();
+
+  const WEEK_NAMES = ['Week One', 'Week Two', 'Week Three', 'Week Four', 'Week Five', 'Week Six'];
+  const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const weeks: WeekPerformance[] = [];
   let currentWeekDays: (DayPerformance | null)[] = [];
   let weekIndex = 1;
 
-  // Pad beginning of first week
-  const startDayOfWeek = getDayOfWeekIndex(firstDay);
+  // Pad beginning of first week with nulls for days before the 1st
   for (let i = 0; i < startDayOfWeek; i++) {
     currentWeekDays.push(null);
   }
 
   for (let day = 1; day <= totalDays; day++) {
-    const curDate = new Date(year, month, day);
-    const dateStr = curDate.toISOString().split('T')[0];
+    const dateStr = formatLocalDateStr(year, month, day);
     const dayData = dayMap.get(dateStr) || {
       dateStr,
       dayNumber: day,
@@ -112,12 +137,23 @@ export function buildMonthCalendar(trades: Trade[], year: number, month: number)
     if (currentWeekDays.length === 7) {
       const totalNetPnl = currentWeekDays.reduce((sum, d) => sum + (d ? d.netPnl : 0), 0);
       const totalTrades = currentWeekDays.reduce((sum, d) => sum + (d ? d.tradeCount : 0), 0);
+      const tradingDaysCount = currentWeekDays.filter(
+        (d): d is DayPerformance => d !== null && d.tradeCount > 0
+      ).length;
+
+      const weekSunday = new Date(year, month, 1 - startDayOfWeek + (weekIndex - 1) * 7);
+      const weekSaturday = new Date(year, month, 1 - startDayOfWeek + (weekIndex - 1) * 7 + 6);
+      const dateRangeLabel = `${MONTH_SHORT[weekSunday.getMonth()]} ${weekSunday.getDate()} - ${MONTH_SHORT[weekSaturday.getMonth()]} ${weekSaturday.getDate()}`;
+      const weekName = WEEK_NAMES[weekIndex - 1] || `Week ${weekIndex}`;
 
       weeks.push({
         weekIndex,
+        weekName,
+        dateRangeLabel,
         days: currentWeekDays,
         totalNetPnl: Number(totalNetPnl.toFixed(2)),
         totalTrades,
+        tradingDaysCount,
       });
 
       weekIndex++;
@@ -132,12 +168,23 @@ export function buildMonthCalendar(trades: Trade[], year: number, month: number)
     }
     const totalNetPnl = currentWeekDays.reduce((sum, d) => sum + (d ? d.netPnl : 0), 0);
     const totalTrades = currentWeekDays.reduce((sum, d) => sum + (d ? d.tradeCount : 0), 0);
+    const tradingDaysCount = currentWeekDays.filter(
+      (d): d is DayPerformance => d !== null && d.tradeCount > 0
+    ).length;
+
+    const weekSunday = new Date(year, month, 1 - startDayOfWeek + (weekIndex - 1) * 7);
+    const weekSaturday = new Date(year, month, 1 - startDayOfWeek + (weekIndex - 1) * 7 + 6);
+    const dateRangeLabel = `${MONTH_SHORT[weekSunday.getMonth()]} ${weekSunday.getDate()} - ${MONTH_SHORT[weekSaturday.getMonth()]} ${weekSaturday.getDate()}`;
+    const weekName = WEEK_NAMES[weekIndex - 1] || `Week ${weekIndex}`;
 
     weeks.push({
       weekIndex,
+      weekName,
+      dateRangeLabel,
       days: currentWeekDays,
       totalNetPnl: Number(totalNetPnl.toFixed(2)),
       totalTrades,
+      tradingDaysCount,
     });
   }
 
