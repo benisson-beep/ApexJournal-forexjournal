@@ -208,14 +208,30 @@ export default function DashboardPage() {
     return calendarTrades.filter((t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr));
   }, [calendarTrades, selectedDateStr]);
 
-  const handleSaveTrade = async (newTrade: Trade) => {
-    setTrades((prev) => [newTrade, ...prev]);
+  const handleEditTrade = (trade: Trade) => {
+    setEditingTrade(trade);
+    if (trade.accountId) {
+      setSelectedAccountId(trade.accountId);
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveTrade = async (savedTrade: Trade) => {
+    const isExisting = trades.some((t) => t.id === savedTrade.id);
+    const oldTrade = isExisting ? trades.find((t) => t.id === savedTrade.id) : null;
+    const pnlDelta = isExisting && oldTrade ? savedTrade.netPnl - oldTrade.netPnl : savedTrade.netPnl;
+
+    if (isExisting) {
+      setTrades((prev) => prev.map((t) => (t.id === savedTrade.id ? savedTrade : t)));
+    } else {
+      setTrades((prev) => [savedTrade, ...prev]);
+    }
 
     let updatedBalance: number | undefined;
     setAccounts((prev) =>
       prev.map((acc) => {
-        if (acc.id === newTrade.accountId) {
-          updatedBalance = Number((acc.currentBalance + newTrade.netPnl).toFixed(2));
+        if (acc.id === savedTrade.accountId) {
+          updatedBalance = Number((acc.currentBalance + pnlDelta).toFixed(2));
           return {
             ...acc,
             currentBalance: updatedBalance,
@@ -227,14 +243,14 @@ export default function DashboardPage() {
 
     // Persist to Supabase
     try {
-      const currentAcc = accounts.find((a) => a.id === newTrade.accountId);
+      const currentAcc = accounts.find((a) => a.id === savedTrade.accountId);
       if (currentAcc) {
         await saveAccountToSupabase(currentAcc);
         if (updatedBalance !== undefined) {
-          await updateAccountBalanceInSupabase(newTrade.accountId, updatedBalance);
+          await updateAccountBalanceInSupabase(savedTrade.accountId, updatedBalance);
         }
       }
-      await saveTradeToSupabase(newTrade);
+      await saveTradeToSupabase(savedTrade);
     } catch (err) {
       console.error('Error saving trade to Supabase:', err);
     }
@@ -418,6 +434,7 @@ export default function DashboardPage() {
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onOpenImportModal={() => setIsImportModalOpen(true)}
               onDeleteTrade={handleDeleteTrade}
+              onEditTrade={handleEditTrade}
               onOpenNewTrade={(accountId) => {
                 if (accountId) setSelectedAccountId(accountId);
                 setIsModalOpen(true);
@@ -430,6 +447,7 @@ export default function DashboardPage() {
             <TradeTable
               trades={displayedTrades}
               onDeleteTrade={handleDeleteTrade}
+              onEditTrade={handleEditTrade}
               onOpenNewTrade={() => setIsModalOpen(true)}
             />
           )}
