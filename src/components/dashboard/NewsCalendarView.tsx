@@ -101,8 +101,8 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Filter states
-  // Default to 'ALL' (Full week schedule, Forex Factory style)
-  const [selectedDay, setSelectedDay] = useState<string>('ALL');
+  // Default to 'TODAY' (One day at a time, hiding past days from earlier in the week)
+  const [selectedDay, setSelectedDay] = useState<string>('TODAY');
   const [selectedImpacts, setSelectedImpacts] = useState<string[]>(['High', 'Medium', 'Low', 'Holiday']);
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -200,7 +200,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
   };
 
   // Distinct day categorization (Past vs Today vs Upcoming)
-  const { allDates, todayItem, tomorrowItem } = useMemo(() => {
+  const { allDates, pastDates, upcomingDates, todayItem, tomorrowItem, otherUpcomingDates } = useMemo(() => {
     const map = new Map<string, { dateStr: string; label: string; count: number; isPast: boolean; isToday: boolean; isTomorrow: boolean }>();
     events.forEach((ev) => {
       const key = getEventDateKey(ev.date);
@@ -227,8 +227,16 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     const upcoming = all.filter((d) => !d.isPast);
     const today = all.find((d) => d.isToday) || null;
     const tomorrow = all.find((d) => d.isTomorrow) || null;
+    const otherUpcoming = upcoming.filter((d) => !d.isToday && !d.isTomorrow);
 
-    return { allDates: all, pastDates: past, upcomingDates: upcoming, todayItem: today, tomorrowItem: tomorrow };
+    return {
+      allDates: all,
+      pastDates: past,
+      upcomingDates: upcoming,
+      todayItem: today,
+      tomorrowItem: tomorrow,
+      otherUpcomingDates: otherUpcoming,
+    };
   }, [events, todayStr, tomorrowStr]);
 
   // Active / Upcoming releases count (excluding past days)
@@ -278,12 +286,14 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
 
       const evDateKey = getEventDateKey(ev.date);
 
-      // Day filter
+      // Day filter: show one day at a time, hiding past days from earlier in the week
       if (selectedDay === 'TODAY') {
         if (evDateKey !== todayStr) return false;
       } else if (selectedDay === 'TOMORROW') {
         if (evDateKey !== tomorrowStr) return false;
-      } else if (selectedDay !== 'ALL') {
+      } else if (selectedDay === 'ALL') {
+        if (evDateKey < todayStr) return false;
+      } else {
         if (evDateKey !== selectedDay) return false;
       }
 
@@ -345,7 +355,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     return { allSortedGroups: allSorted, pastGroups: past, upcomingGroups: upcoming };
   }, [filteredEvents, todayStr]);
 
-  // Final displayed day groups
+  // Final displayed day groups (showing only one day at a time)
   const displayedGroups = useMemo(() => {
     if (selectedDay === 'TODAY') {
       return allSortedGroups.filter((g) => g.dateKey === todayStr);
@@ -353,10 +363,10 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     if (selectedDay === 'TOMORROW') {
       return allSortedGroups.filter((g) => g.dateKey === tomorrowStr);
     }
-    if (selectedDay !== 'ALL') {
-      return allSortedGroups.filter((g) => g.dateKey === selectedDay);
+    if (selectedDay === 'ALL') {
+      return allSortedGroups.filter((g) => g.dateKey >= todayStr);
     }
-    return allSortedGroups;
+    return allSortedGroups.filter((g) => g.dateKey === selectedDay);
   }, [selectedDay, allSortedGroups, todayStr, tomorrowStr]);
 
   // Helper for relative time countdown & status
@@ -541,7 +551,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
               onClick={() => {
                 setSelectedImpacts(['High', 'Medium', 'Low', 'Holiday']);
                 setSelectedCurrencies([]);
-                setSelectedDay('ALL');
+                setSelectedDay('TODAY');
                 setSearchQuery('');
               }}
               className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-colors cursor-pointer"
@@ -566,62 +576,71 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Day Selection (Forex Factory Week Navigation) */}
+        {/* Row 2: Day Selection (One Day at a Time - Past Days Hidden) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" /> View:
+            <Calendar className="w-3.5 h-3.5" /> Schedule:
           </span>
 
-          {/* All Week Button */}
-          <button
-            onClick={() => {
-              setSelectedDay('ALL');
-            }}
-            className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
-              selectedDay === 'ALL'
-                ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            This Week ({events.length})
-          </button>
-
-          {/* Today Button */}
-          {todayItem && (
+          {/* Today Button (Default) */}
+          {todayItem ? (
             <button
-              onClick={() => {
-                setSelectedDay('TODAY');
-              }}
-              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+              onClick={() => setSelectedDay('TODAY')}
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
                 selectedDay === 'TODAY'
                   ? 'bg-blue-600 text-white font-semibold shadow-sm'
                   : 'text-slate-300 hover:text-white hover:bg-white/[0.06] border border-white/[0.08]'
               }`}
             >
-              Today ({todayItem.count})
+              <span>Today</span>
+              <span
+                className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                  selectedDay === 'TODAY' ? 'bg-blue-700 text-white' : 'bg-white/[0.08] text-slate-400'
+                }`}
+              >
+                {todayItem.count}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setSelectedDay('TODAY')}
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                selectedDay === 'TODAY'
+                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+              }`}
+            >
+              Today
             </button>
           )}
 
           {/* Tomorrow Button */}
           {tomorrowItem && (
             <button
-              onClick={() => {
-                setSelectedDay('TOMORROW');
-              }}
-              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+              onClick={() => setSelectedDay('TOMORROW')}
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
                 selectedDay === 'TOMORROW'
                   ? 'bg-blue-600 text-white font-semibold shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
-              Tomorrow ({tomorrowItem.count})
+              <span>Tomorrow</span>
+              <span
+                className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                  selectedDay === 'TOMORROW' ? 'bg-blue-700 text-white' : 'bg-white/[0.08] text-slate-500'
+                }`}
+              >
+                {tomorrowItem.count}
+              </span>
             </button>
           )}
 
-          <div className="h-4 w-px bg-white/[0.08] mx-1 shrink-0" />
+          {otherUpcomingDates.length > 0 && (
+            <div className="h-4 w-px bg-white/[0.08] mx-1 shrink-0" />
+          )}
 
-          {/* All Days Buttons (Mon - Fri) */}
-          {allDates.map((item) => {
+          {/* Other Upcoming Days of the Week (One at a time) */}
+          {otherUpcomingDates.map((item) => {
             const isSelected = selectedDay === item.dateStr;
             return (
               <button
@@ -630,23 +649,14 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                 className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'bg-white/[0.12] text-white border border-white/[0.2] font-semibold'
-                    : item.isPast
-                    ? 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 }`}
-                title={item.isPast ? `${item.label} (Concluded)` : item.label}
+                title={`View ${item.label}`}
               >
                 <span>{item.label}</span>
-                <span
-                  className={`text-[10px] font-mono ${
-                    isSelected ? 'text-white' : item.isPast ? 'text-slate-600' : 'text-slate-400'
-                  }`}
-                >
+                <span className={`text-[10px] font-mono ${isSelected ? 'text-white' : 'text-slate-500'}`}>
                   ({item.count})
                 </span>
-                {item.isPast && (
-                  <span className="text-[9px] font-mono text-slate-500 uppercase">done</span>
-                )}
               </button>
             );
           })}
@@ -778,7 +788,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
             onClick={() => {
               setSelectedImpacts(['High', 'Medium', 'Low', 'Holiday']);
               setSelectedCurrencies([]);
-              setSelectedDay('ALL');
+              setSelectedDay('TODAY');
               setSearchQuery('');
             }}
             className="text-xs text-blue-400 hover:text-blue-300 underline mt-2 cursor-pointer inline-block"
