@@ -54,6 +54,9 @@ export interface TradingAccount {
   accountType?: AccountCategory;
   phase?: string;
   status?: AccountStatus;
+  platform?: string;
+  environment?: string;
+  accountSize?: number;
 }
 
 export interface AccountStats {

@@ -74,9 +74,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [formCategory, setFormCategory] = useState<AccountCategory>('PROP_CHALLENGE');
   const [formPhase, setFormPhase] = useState('Phase 1');
   const [formStatus, setFormStatus] = useState<AccountStatus>('ACTIVE');
-  const [formServer, setFormServer] = useState('Demo');
+  const [formPlatform, setFormPlatform] = useState('MT5');
+  const [formEnvironment, setFormEnvironment] = useState('Live');
   const [formCurrency, setFormCurrency] = useState('USD');
   const [formInitialBalance, setFormInitialBalance] = useState('50000');
+  const [formAccountSize, setFormAccountSize] = useState('50000');
 
   const openAddModal = () => {
     setEditingAccount(null);
@@ -86,9 +88,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     setFormCategory('PROP_CHALLENGE');
     setFormPhase('Phase 1');
     setFormStatus('ACTIVE');
-    setFormServer('Live');
+    setFormPlatform('MT5');
+    setFormEnvironment('Live');
     setFormCurrency('USD');
-    setFormInitialBalance('100000');
+    setFormInitialBalance('50000');
+    setFormAccountSize('50000');
     setIsAccountModalOpen(true);
   };
 
@@ -100,47 +104,57 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     setFormCategory(acc.accountType || 'PROP_CHALLENGE');
     setFormPhase(acc.phase || 'Phase 1');
     setFormStatus(acc.status || 'ACTIVE');
-    setFormServer(acc.server);
-    setFormCurrency(acc.currency);
+    setFormPlatform(acc.platform || 'MT5');
+    setFormEnvironment(acc.environment || acc.server || 'Live');
+    setFormCurrency(acc.currency || 'USD');
     setFormInitialBalance(acc.initialBalance.toString());
+    setFormAccountSize((acc.accountSize ?? acc.initialBalance).toString());
     setIsAccountModalOpen(true);
     setActiveMenuId(null);
   };
 
   const handleSaveAccount = (e: React.FormEvent) => {
     e.preventDefault();
-    const initBal = parseFloat(formInitialBalance) || 50000;
+    const initBal = parseFloat(String(formInitialBalance).replace(/[^0-9.]/g, '')) || 50000;
+    const accSize = parseFloat(String(formAccountSize).replace(/[^0-9.]/g, '')) || initBal;
 
     if (editingAccount) {
       const pnl = editingAccount.currentBalance - editingAccount.initialBalance;
       const updated: TradingAccount = {
         ...editingAccount,
-        name: formName.trim() || 'Trading Account',
-        broker: formBroker.trim() || 'Broker',
+        name: formName.trim() || 'Main Trading Account',
+        broker: formBroker.trim() || 'FundingPips',
         accountNumber: formAccountNumber.trim() || '—',
         accountType: formCategory,
         phase: formPhase,
         status: formStatus,
-        server: formServer.trim() || 'Live',
+        platform: formPlatform,
+        environment: formEnvironment,
+        server: formEnvironment,
         currency: formCurrency,
         initialBalance: initBal,
+        accountSize: accSize,
         currentBalance: Number((initBal + pnl).toFixed(2)),
+        isLive: formEnvironment === 'Live' || formCategory === 'LIVE_BROKER' || formCategory === 'PROP_FUNDED',
       };
       onUpdateAccount?.(updated);
     } else {
       const newAcc: TradingAccount = {
         id: `acc-${Date.now()}`,
-        name: formName.trim() || 'Trading Account',
-        broker: formBroker.trim() || 'Broker',
+        name: formName.trim() || 'Main Trading Account',
+        broker: formBroker.trim() || 'FundingPips',
         accountNumber: formAccountNumber.trim() || String(Math.floor(10000000 + Math.random() * 9000000)),
         accountType: formCategory,
         phase: formPhase,
         status: formStatus,
-        server: formServer.trim() || 'Live',
+        platform: formPlatform,
+        environment: formEnvironment,
+        server: formEnvironment,
         currency: formCurrency,
         initialBalance: initBal,
+        accountSize: accSize,
         currentBalance: initBal,
-        isLive: formCategory === 'LIVE_BROKER' || formCategory === 'PROP_FUNDED',
+        isLive: formEnvironment === 'Live' || formCategory === 'LIVE_BROKER' || formCategory === 'PROP_FUNDED',
         syncEnabled: false,
       };
       onAddAccount?.(newAcc);
@@ -681,12 +695,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       {/* Account Create / Edit Modal */}
       {isAccountModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-[#18181E] border border-white/[0.08] rounded-lg w-full max-w-md overflow-hidden">
+          <div className="bg-[#18181E] border border-white/[0.08] rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="p-4 px-5 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
               <h3 className="font-semibold text-white text-sm tracking-tight font-heading">
                 {editingAccount ? 'Edit Account Configuration' : 'Add Trading Account'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsAccountModalOpen(false)}
                 className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
               >
@@ -695,136 +710,167 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             </div>
 
             <form onSubmit={handleSaveAccount} className="p-5 space-y-4">
+              {/* ACCOUNT NAME */}
               <div>
-                <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
                   Account Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Main Trading Account"
+                  placeholder="Main Trading Account"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
                 />
               </div>
 
+              {/* BROKER / PROP FIRM & ACCOUNT ID */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
                     Broker / Prop Firm
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Broker or Firm"
+                    placeholder="FundingPips"
                     value={formBroker}
                     onChange={(e) => setFormBroker(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
-                    Account / Ticket ID
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                    Account ID
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Account Number"
+                    placeholder="12345678"
                     value={formAccountNumber}
                     onChange={(e) => setFormAccountNumber(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 font-mono"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              {/* ACCOUNT CATEGORY & PHASE / STAGE */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
-                    Account Type
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                    Account Category
                   </label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value as AccountCategory)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
                   >
-                    <option value="PROP_CHALLENGE">Prop Challenge</option>
-                    <option value="PROP_FUNDED">Funded Account</option>
+                    <option value="PROP_CHALLENGE">Prop Evaluation</option>
+                    <option value="PROP_FUNDED">Prop Funded</option>
                     <option value="LIVE_BROKER">Live Broker</option>
                     <option value="DEMO">Demo / Paper</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
                     Phase / Stage
                   </label>
                   <select
                     value={formPhase}
                     onChange={(e) => setFormPhase(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
                   >
                     <option value="Phase 1">Phase 1</option>
                     <option value="Phase 2">Phase 2</option>
+                    <option value="Phase 3">Phase 3</option>
                     <option value="Master / Funded">Master / Funded</option>
                     <option value="Live">Live</option>
                     <option value="Demo">Demo</option>
                   </select>
                 </div>
+              </div>
 
+              {/* ACCOUNT STATUS & PLATFORM */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
-                    Evaluation Status
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                    Account Status
                   </label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as AccountStatus)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="PASSED">Passed</option>
-                    <option value="BREACHED">Not Passed</option>
+                    <option value="BREACHED">Breached</option>
                     <option value="ARCHIVED">Archived</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                    Platform
+                  </label>
+                  <select
+                    value={formPlatform}
+                    onChange={(e) => setFormPlatform(e.target.value)}
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                  >
+                    <option value="MT5">MT5</option>
+                    <option value="MT4">MT4</option>
+                    <option value="cTrader">cTrader</option>
+                    <option value="TradingView">TradingView</option>
+                    <option value="DXtrade">DXtrade</option>
+                    <option value="Match-Trader">Match-Trader</option>
                   </select>
                 </div>
               </div>
 
+              {/* ENVIRONMENT & CURRENCY */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
-                    Server / Type
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                    Environment
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Live, Demo, Stage 1"
-                    value={formServer}
-                    onChange={(e) => setFormServer(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 font-mono"
-                  />
+                  <select
+                    value={formEnvironment}
+                    onChange={(e) => setFormEnvironment(e.target.value)}
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                  >
+                    <option value="Live">Live</option>
+                    <option value="Demo">Demo</option>
+                    <option value="Simulated">Simulated</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
                     Currency
                   </label>
                   <select
                     value={formCurrency}
                     onChange={(e) => setFormCurrency(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50 font-mono"
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors font-mono"
                   >
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
                     <option value="GBP">GBP (£)</option>
+                    <option value="JPY">JPY (¥)</option>
                     <option value="AUD">AUD ($)</option>
                     <option value="CAD">CAD ($)</option>
-                    <option value="JPY">JPY (¥)</option>
+                    <option value="CHF">CHF (Fr)</option>
+                    <option value="NZD">NZD ($)</option>
                   </select>
                 </div>
               </div>
 
+              {/* STARTING BALANCE */}
               <div>
-                <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Initial Capital / Starting Balance
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Starting Balance
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
@@ -832,28 +878,51 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                     type="number"
                     step="any"
                     required
-                    placeholder="10000"
+                    placeholder="50,000"
                     value={formInitialBalance}
-                    onChange={(e) => setFormInitialBalance(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] rounded-md pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 font-mono"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormInitialBalance(val);
+                      if (!formAccountSize || formAccountSize === formInitialBalance) {
+                        setFormAccountSize(val);
+                      }
+                    }}
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">
-                  All drawdown, profit percentage, and consistency metrics are computed from this baseline.
-                </p>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-end gap-2">
+              {/* ACCOUNT SIZE */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Account Size
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="50,000"
+                    value={formAccountSize}
+                    onChange={(e) => setFormAccountSize(e.target.value)}
+                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* ACTIONS FOOTER */}
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsAccountModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-md transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-sm"
                 >
                   <Check className="w-3.5 h-3.5" strokeWidth={2} />
                   <span>{editingAccount ? 'Save Changes' : 'Create Account'}</span>
