@@ -12,9 +12,6 @@ import {
   Sparkles,
   Info,
   Folder,
-  ChevronDown,
-  ChevronUp,
-  History,
 } from 'lucide-react';
 import { ForexNewsEvent, NewsCalendarResponse } from '../../types/trade';
 
@@ -24,52 +21,51 @@ interface NewsCalendarViewProps {
 
 const MAJOR_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD', 'CNY'];
 
-const CURRENCY_PAIR_HINTS: Record<string, string[]> = {
-  USD: ['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD', 'USD/CAD'],
-  EUR: ['EUR/USD', 'EUR/GBP', 'EUR/JPY', 'EUR/AUD'],
-  GBP: ['GBP/USD', 'EUR/GBP', 'GBP/JPY', 'GBP/AUD'],
-  JPY: ['USD/JPY', 'EUR/JPY', 'GBP/JPY', 'AUD/JPY'],
-  AUD: ['AUD/USD', 'AUD/JPY', 'EUR/AUD', 'AUD/CAD'],
-  CAD: ['USD/CAD', 'CAD/JPY', 'EUR/CAD'],
-  CHF: ['USD/CHF', 'EUR/CHF', 'GBP/CHF'],
-  NZD: ['NZD/USD', 'NZD/JPY', 'AUD/NZD'],
-  CNY: ['USD/CNH', 'AUD/USD'],
-};
-
 /**
  * Forex Factory Signature Impact Folder Icon
  * Red = High Impact
  * Orange = Medium Impact
  * Yellow = Low Impact
  * Gray = Non-Economic / Holiday
+ *
+ * For passed events, the folder is dimmed / desaturated (Forex Factory style)
  */
 export const ImpactFolder: React.FC<{
   impact: string;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
-}> = ({ impact, size = 'md', showLabel = false }) => {
+  isPassed?: boolean;
+}> = ({ impact, size = 'md', showLabel = false, isPassed = false }) => {
   const norm = (impact || '').toLowerCase();
 
-  let folderColor = 'fill-slate-500 text-slate-400';
+  let folderColor = isPassed ? 'fill-slate-700/60 text-slate-500/60' : 'fill-slate-500 text-slate-400';
   let labelText = 'Holiday';
-  let labelColor = 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+  let labelColor = isPassed
+    ? 'text-slate-500 bg-slate-500/5 border-slate-500/10'
+    : 'text-slate-400 bg-slate-500/10 border-slate-500/20';
   let title = 'Non-Economic / Holiday';
 
   if (norm.includes('high') || norm === 'red') {
-    folderColor = 'fill-red-600 text-red-500';
+    folderColor = isPassed ? 'fill-red-950/70 text-red-500/50' : 'fill-red-600 text-red-500';
     labelText = 'High';
-    labelColor = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-    title = 'High Impact (Red Folder)';
+    labelColor = isPassed
+      ? 'text-rose-500/50 bg-rose-500/5 border-rose-500/10'
+      : 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+    title = `High Impact (Red Folder)${isPassed ? ' · Concluded' : ''}`;
   } else if (norm.includes('medium') || norm.includes('med') || norm === 'orange') {
-    folderColor = 'fill-orange-500 text-orange-400';
+    folderColor = isPassed ? 'fill-orange-950/70 text-orange-500/50' : 'fill-orange-500 text-orange-400';
     labelText = 'Medium';
-    labelColor = 'text-orange-400 bg-orange-500/10 border-orange-500/20';
-    title = 'Medium Impact (Orange Folder)';
+    labelColor = isPassed
+      ? 'text-orange-500/50 bg-orange-500/5 border-orange-500/10'
+      : 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+    title = `Medium Impact (Orange Folder)${isPassed ? ' · Concluded' : ''}`;
   } else if (norm.includes('low') || norm === 'yellow') {
-    folderColor = 'fill-amber-400 text-amber-300';
+    folderColor = isPassed ? 'fill-amber-950/70 text-amber-500/50' : 'fill-amber-400 text-amber-300';
     labelText = 'Low';
-    labelColor = 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-    title = 'Low Impact (Yellow Folder)';
+    labelColor = isPassed
+      ? 'text-yellow-500/50 bg-yellow-500/5 border-yellow-500/10'
+      : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+    title = `Low Impact (Yellow Folder)${isPassed ? ' · Concluded' : ''}`;
   }
 
   const iconSizes = {
@@ -79,7 +75,10 @@ export const ImpactFolder: React.FC<{
   };
 
   return (
-    <div className="inline-flex items-center gap-1.5 shrink-0" title={title}>
+    <div
+      className={`inline-flex items-center gap-1.5 shrink-0 ${isPassed ? 'opacity-50' : 'opacity-100'}`}
+      title={title}
+    >
       <Folder className={`${iconSizes[size]} ${folderColor} drop-shadow-sm`} strokeWidth={1.5} />
       {showLabel && (
         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${labelColor}`}>
@@ -102,10 +101,8 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Filter states
-  // Default to 'ACTIVE' (Today + upcoming days). Passed days are hidden!
-  const [selectedDay, setSelectedDay] = useState<string>('ACTIVE');
-  const [showPastDays, setShowPastDays] = useState<boolean>(false);
-  const [showMoreDays, setShowMoreDays] = useState<boolean>(false);
+  // Default to 'ALL' (Full week schedule, Forex Factory style)
+  const [selectedDay, setSelectedDay] = useState<string>('ALL');
   const [selectedImpacts, setSelectedImpacts] = useState<string[]>(['High', 'Medium', 'Low', 'Holiday']);
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -203,7 +200,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
   };
 
   // Distinct day categorization (Past vs Today vs Upcoming)
-  const { pastDates, upcomingDates, todayItem, tomorrowItem } = useMemo(() => {
+  const { allDates, todayItem, tomorrowItem } = useMemo(() => {
     const map = new Map<string, { dateStr: string; label: string; count: number; isPast: boolean; isToday: boolean; isTomorrow: boolean }>();
     events.forEach((ev) => {
       const key = getEventDateKey(ev.date);
@@ -286,7 +283,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
         if (evDateKey !== todayStr) return false;
       } else if (selectedDay === 'TOMORROW') {
         if (evDateKey !== tomorrowStr) return false;
-      } else if (selectedDay !== 'ACTIVE' && selectedDay !== 'ALL') {
+      } else if (selectedDay !== 'ALL') {
         if (evDateKey !== selectedDay) return false;
       }
 
@@ -302,8 +299,8 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     });
   }, [events, selectedImpacts, selectedCurrencies, selectedDay, searchQuery, todayStr, tomorrowStr]);
 
-  // Group filtered events by Day
-  const { pastGroups, upcomingGroups } = useMemo(() => {
+  // Group filtered events by Day and sort them chronologically
+  const { allSortedGroups, pastGroups, upcomingGroups } = useMemo(() => {
     const groups: Record<string, { label: string; dateKey: string; date: Date; items: ForexNewsEvent[] }> = {};
 
     filteredEvents.forEach((ev) => {
@@ -330,58 +327,70 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     });
 
     const allSorted = Object.values(groups).sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+    // Sort items within each day chronologically by time
+    allSorted.forEach((g) => {
+      g.items.sort((a, b) => {
+        const tA = new Date(a.date).getTime();
+        const tB = new Date(b.date).getTime();
+        if (isNaN(tA) && isNaN(tB)) return 0;
+        if (isNaN(tA)) return 1;
+        if (isNaN(tB)) return -1;
+        return tA - tB;
+      });
+    });
+
     const past = allSorted.filter((g) => g.dateKey < todayStr);
     const upcoming = allSorted.filter((g) => g.dateKey >= todayStr);
 
-    return { pastGroups: past, upcomingGroups: upcoming };
+    return { allSortedGroups: allSorted, pastGroups: past, upcomingGroups: upcoming };
   }, [filteredEvents, todayStr]);
 
-  // Final displayed day groups with Forex Factory "Show More" logic
+  // Final displayed day groups
   const displayedGroups = useMemo(() => {
     if (selectedDay === 'TODAY') {
-      return upcomingGroups.filter((g) => g.dateKey === todayStr);
+      return allSortedGroups.filter((g) => g.dateKey === todayStr);
     }
     if (selectedDay === 'TOMORROW') {
-      return upcomingGroups.filter((g) => g.dateKey === tomorrowStr);
+      return allSortedGroups.filter((g) => g.dateKey === tomorrowStr);
     }
-    if (selectedDay !== 'ACTIVE' && selectedDay !== 'ALL') {
-      return [...pastGroups, ...upcomingGroups].filter((g) => g.dateKey === selectedDay);
+    if (selectedDay !== 'ALL') {
+      return allSortedGroups.filter((g) => g.dateKey === selectedDay);
     }
+    return allSortedGroups;
+  }, [selectedDay, allSortedGroups, todayStr, tomorrowStr]);
 
-    // Default 'ACTIVE' or 'ALL':
-    // 1. By default, passed days are hidden unless user explicitly enabled showPastDays!
-    const baseUpcoming = showMoreDays ? upcomingGroups : upcomingGroups.slice(0, 2);
-    return showPastDays ? [...pastGroups, ...baseUpcoming] : baseUpcoming;
-  }, [selectedDay, pastGroups, upcomingGroups, todayStr, tomorrowStr, showPastDays, showMoreDays]);
-
-  // Helper for relative time countdown
+  // Helper for relative time countdown & status
   const getEventTimeStatus = (dateStr: string) => {
     const evTime = new Date(dateStr).getTime();
-    if (isNaN(evTime)) return { status: 'passed', label: '—' };
+    if (isNaN(evTime)) return { status: 'passed', label: '—', isPassed: true };
 
     const diffMs = evTime - currentTime.getTime();
     const diffSec = Math.floor(diffMs / 1000);
     const diffMin = Math.floor(diffSec / 60);
     const diffHours = Math.floor(diffMin / 60);
 
-    if (diffMs < -30 * 60 * 1000) {
-      return { status: 'passed', label: 'Completed' };
+    if (diffMs < -15 * 60 * 1000) {
+      return { status: 'passed', label: 'Completed', isPassed: true };
     }
     if (diffMs < 0) {
-      return { status: 'releasing', label: 'Released Just Now' };
+      return { status: 'releasing', label: 'Released', isPassed: true };
     }
     if (diffMin <= 15) {
-      return { status: 'imminent', label: `In ${diffMin}m` };
+      return { status: 'imminent', label: `In ${diffMin}m`, isPassed: false };
     }
     if (diffHours < 1) {
-      return { status: 'soon', label: `In ${diffMin}m` };
+      return { status: 'soon', label: `In ${diffMin}m`, isPassed: false };
     }
     if (diffHours < 24) {
       const remMin = diffMin % 60;
-      return { status: 'upcoming', label: `In ${diffHours}h ${remMin}m` };
+      return {
+        status: 'upcoming_today',
+        label: `In ${diffHours}h${remMin > 0 ? ` ${remMin}m` : ''}`,
+        isPassed: false,
+      };
     }
     const days = Math.floor(diffHours / 24);
-    return { status: 'future', label: `In ${days}d` };
+    return { status: 'future', label: `In ${days}d`, isPassed: false };
   };
 
   const toggleImpact = (impact: string) => {
@@ -483,10 +492,8 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                 {new Date(imminentRiskEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </strong>
               . Volatility expected across{' '}
-              <span className="font-mono font-semibold">
-                {(CURRENCY_PAIR_HINTS[imminentRiskEvent.country] || [imminentRiskEvent.country]).join(', ')}
-              </span>
-              . Consider tightening risk or waiting for release.
+              <span className="font-mono font-semibold">{imminentRiskEvent.country}</span> currency pairs.
+              Consider tightening risk or waiting for release.
             </p>
           </div>
         </div>
@@ -534,9 +541,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
               onClick={() => {
                 setSelectedImpacts(['High', 'Medium', 'Low', 'Holiday']);
                 setSelectedCurrencies([]);
-                setSelectedDay('ACTIVE');
-                setShowPastDays(false);
-                setShowMoreDays(false);
+                setSelectedDay('ALL');
                 setSearchQuery('');
               }}
               className="text-xs px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-colors cursor-pointer"
@@ -561,11 +566,25 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Day Selection (Forex Factory Style - Passed Days Hidden by Default) */}
+        {/* Row 2: Day Selection (Forex Factory Week Navigation) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" /> View:
           </span>
+
+          {/* All Week Button */}
+          <button
+            onClick={() => {
+              setSelectedDay('ALL');
+            }}
+            className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+              selectedDay === 'ALL'
+                ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+            }`}
+          >
+            This Week ({events.length})
+          </button>
 
           {/* Today Button */}
           {todayItem && (
@@ -579,7 +598,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-white/[0.06] border border-white/[0.08]'
               }`}
             >
-              Today ({todayItem.label})
+              Today ({todayItem.count})
             </button>
           )}
 
@@ -595,60 +614,42 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
-              Tomorrow ({tomorrowItem.label})
+              Tomorrow ({tomorrowItem.count})
             </button>
           )}
-
-          {/* Active Schedule (Today + Upcoming) */}
-          <button
-            onClick={() => {
-              setSelectedDay('ACTIVE');
-            }}
-            className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
-              selectedDay === 'ACTIVE'
-                ? 'bg-white/[0.12] text-white border border-white/[0.18]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            Active Days
-          </button>
 
           <div className="h-4 w-px bg-white/[0.08] mx-1 shrink-0" />
 
-          {/* Upcoming Days Quick Chips */}
-          {upcomingDates.map((item) => (
-            <button
-              key={item.dateStr}
-              onClick={() => setSelectedDay(item.dateStr)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                selectedDay === item.dateStr
-                  ? 'bg-white/[0.1] text-white border border-white/[0.15]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <span>{item.label}</span>
-              <span className="ml-1 text-[10px] text-slate-500 font-mono">({item.count})</span>
-            </button>
-          ))}
-
-          {/* Optional Past Days Toggle */}
-          {pastDates.length > 0 && (
-            <>
-              <div className="h-4 w-px bg-white/[0.08] mx-1 shrink-0" />
+          {/* All Days Buttons (Mon - Fri) */}
+          {allDates.map((item) => {
+            const isSelected = selectedDay === item.dateStr;
+            return (
               <button
-                onClick={() => setShowPastDays((prev) => !prev)}
+                key={item.dateStr}
+                onClick={() => setSelectedDay(item.dateStr)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  showPastDays
-                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
+                  isSelected
+                    ? 'bg-white/[0.12] text-white border border-white/[0.2] font-semibold'
+                    : item.isPast
+                    ? 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
                 }`}
-                title="Toggle earlier days that have already passed"
+                title={item.isPast ? `${item.label} (Concluded)` : item.label}
               >
-                <History className="w-3 h-3" />
-                <span>{showPastDays ? 'Hide Past Days' : `Past Days (${pastDates.length})`}</span>
+                <span>{item.label}</span>
+                <span
+                  className={`text-[10px] font-mono ${
+                    isSelected ? 'text-white' : item.isPast ? 'text-slate-600' : 'text-slate-400'
+                  }`}
+                >
+                  ({item.count})
+                </span>
+                {item.isPast && (
+                  <span className="text-[9px] font-mono text-slate-500 uppercase">done</span>
+                )}
               </button>
-            </>
-          )}
+            );
+          })}
         </div>
 
         {/* Row 3: Forex Factory Folder Impact Toggles & Currency Chips */}
@@ -751,22 +752,6 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
         </div>
       </div>
 
-      {/* Notice if Past Days are Hidden */}
-      {!showPastDays && pastGroups.length > 0 && selectedDay === 'ACTIVE' && (
-        <div className="flex items-center justify-between px-4 py-2 bg-white/[0.02] border border-white/[0.04] rounded-lg text-xs text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-slate-400" />
-            <span>Passed days from this week are hidden by default.</span>
-          </span>
-          <button
-            onClick={() => setShowPastDays(true)}
-            className="text-blue-400 hover:text-blue-300 underline font-medium cursor-pointer"
-          >
-            Show earlier days ({pastGroups.length})
-          </button>
-        </div>
-      )}
-
       {/* Main Calendar Events List */}
       {isLoading ? (
         <div className="bg-[#131317] border border-white/[0.06] rounded-xl p-12 text-center space-y-3">
@@ -793,8 +778,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
             onClick={() => {
               setSelectedImpacts(['High', 'Medium', 'Low', 'Holiday']);
               setSelectedCurrencies([]);
-              setSelectedDay('ACTIVE');
-              setShowPastDays(false);
+              setSelectedDay('ALL');
               setSearchQuery('');
             }}
             className="text-xs text-blue-400 hover:text-blue-300 underline mt-2 cursor-pointer inline-block"
@@ -809,10 +793,22 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
             const isTomorrow = group.dateKey === tomorrowStr;
             const isPast = group.dateKey < todayStr;
 
+            // Index of first upcoming event today
+            const firstUpcomingIdx = isToday
+              ? group.items.findIndex((e) => {
+                  const t = new Date(e.date).getTime();
+                  return !isNaN(t) && t >= currentTime.getTime();
+                })
+              : -1;
+
             return (
               <div key={group.dateKey} className="space-y-1">
                 {/* Date Header Strip */}
-                <div className="flex items-center justify-between px-3 py-2 bg-[#131317]/95 border-b border-white/[0.06] rounded-t-lg sticky top-[57px] z-20 backdrop-blur-md">
+                <div
+                  className={`flex items-center justify-between px-3 py-2 bg-[#131317]/95 border-b border-white/[0.06] rounded-t-lg sticky top-[57px] z-20 backdrop-blur-md ${
+                    isPast ? 'opacity-70' : 'opacity-100'
+                  }`}
+                >
                   <div className="flex items-center gap-2.5">
                     <span className="text-xs font-bold text-slate-200 tracking-wide font-heading">
                       {group.label}
@@ -828,7 +824,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                       </span>
                     )}
                     {isPast && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/[0.04] text-slate-500">
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/[0.04] text-slate-500 border border-white/[0.06]">
                         PASSED
                       </span>
                     )}
@@ -855,94 +851,152 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                   <div className="divide-y divide-white/[0.04]">
                     {group.items.map((ev, idx) => {
                       const evDate = new Date(ev.date);
-                      const timeStr = !isNaN(evDate.getTime())
+                      const evTimeMs = evDate.getTime();
+                      const timeStr = !isNaN(evTimeMs)
                         ? evDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : 'All Day';
 
+                      const isPassed = !isNaN(evTimeMs)
+                        ? evTimeMs < currentTime.getTime()
+                        : isPast;
+
                       const timeStatus = getEventTimeStatus(ev.date);
                       const isHighImpact = ev.impact === 'High';
-                      const isImminent = timeStatus.status === 'imminent' || timeStatus.status === 'releasing';
+                      const isImminent = !isPassed && (timeStatus.status === 'imminent' || timeStatus.status === 'releasing');
+                      const isSoon = !isPassed && (timeStatus.status === 'soon' || timeStatus.status === 'upcoming_today');
+
+                      // Today's timeline divider right above the first upcoming event
+                      const showTimelineDivider = isToday && idx === firstUpcomingIdx && firstUpcomingIdx > 0;
 
                       return (
-                        <div
-                          key={ev.id || `${group.dateKey}-${idx}`}
-                          className={`grid grid-cols-12 items-center p-3 sm:px-4 sm:py-2.5 gap-2 sm:gap-3 hover:bg-white/[0.02] transition-colors ${
-                            isImminent && isHighImpact
-                              ? 'bg-rose-500/[0.04] border-l-2 border-l-rose-500'
-                              : ''
-                          }`}
-                        >
-                          {/* Time */}
-                          <div className="col-span-3 sm:col-span-2 flex items-center gap-1.5 font-mono text-xs text-slate-300 font-medium">
-                            <Clock className="w-3 h-3 text-slate-500 hidden sm:inline shrink-0" />
-                            <span>{timeStr}</span>
-                          </div>
-
-                          {/* Currency */}
-                          <div className="col-span-2 sm:col-span-1">
-                            <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/[0.06] text-slate-200 border border-white/[0.08] inline-block text-center">
-                              {ev.country}
-                            </span>
-                          </div>
-
-                          {/* Impact Folder Icon (Forex Factory) */}
-                          <div className="col-span-2 sm:col-span-1 flex items-center justify-center">
-                            <ImpactFolder impact={ev.impact} size="md" />
-                          </div>
-
-                          {/* Event Title */}
-                          <div className="col-span-5 sm:col-span-4 min-w-0 pr-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-semibold text-slate-100 hover:text-white transition-colors truncate">
-                                {ev.title}
-                              </span>
-                              {isImminent && (
-                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 animate-pulse">
-                                  Imminent
+                        <React.Fragment key={ev.id || `${group.dateKey}-${idx}`}>
+                          {showTimelineDivider && (
+                            <div className="flex items-center gap-3 px-4 py-2 bg-blue-500/[0.08] border-y border-blue-500/25 my-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
                                 </span>
+                                <span className="text-[11px] font-mono font-bold text-blue-300 uppercase tracking-wider">
+                                  Current Time: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+                              <span className="text-[10px] font-mono text-blue-400/80 uppercase">
+                                Upcoming Releases Below ↓
+                              </span>
+                            </div>
+                          )}
+
+                          <div
+                            className={`grid grid-cols-12 items-center p-3 sm:px-4 sm:py-2.5 gap-2 sm:gap-3 transition-colors ${
+                              isPassed
+                                ? 'opacity-60 hover:opacity-100 hover:bg-white/[0.02] bg-white/[0.005]'
+                                : isImminent && isHighImpact
+                                ? 'bg-rose-500/[0.06] border-l-2 border-l-rose-500 opacity-100'
+                                : isImminent
+                                ? 'bg-blue-500/[0.05] border-l-2 border-l-blue-500 opacity-100'
+                                : 'hover:bg-white/[0.03] bg-white/[0.015] border-l-2 border-l-transparent opacity-100'
+                            }`}
+                          >
+                            {/* Time */}
+                            <div className="col-span-3 sm:col-span-2 flex items-center gap-1.5 font-mono text-xs">
+                              <Clock className={`w-3 h-3 hidden sm:inline shrink-0 ${isPassed ? 'text-slate-600' : 'text-slate-400'}`} />
+                              <span className={isPassed ? 'text-slate-400 font-normal' : 'text-slate-100 font-semibold'}>
+                                {timeStr}
+                              </span>
+                            </div>
+
+                            {/* Currency */}
+                            <div className="col-span-2 sm:col-span-1">
+                              <span
+                                className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-center ${
+                                  isPassed
+                                    ? 'bg-white/[0.03] text-slate-400 border-white/[0.05]'
+                                    : 'bg-white/[0.08] text-white border-white/[0.12]'
+                                }`}
+                              >
+                                {ev.country}
+                              </span>
+                            </div>
+
+                            {/* Impact Folder Icon (Forex Factory) */}
+                            <div className="col-span-2 sm:col-span-1 flex items-center justify-center">
+                              <ImpactFolder impact={ev.impact} size="md" isPassed={isPassed} />
+                            </div>
+
+                            {/* Event Title */}
+                            <div className="col-span-5 sm:col-span-4 min-w-0 pr-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`text-xs truncate transition-colors ${
+                                    isPassed
+                                      ? 'text-slate-300 font-normal hover:text-white'
+                                      : 'text-white font-semibold'
+                                  }`}
+                                >
+                                  {ev.title}
+                                </span>
+                                {isImminent && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 animate-pulse border border-rose-500/30">
+                                    {timeStatus.label}
+                                  </span>
+                                )}
+                                {!isImminent && isSoon && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-300 font-medium shrink-0 border border-blue-500/20 hidden md:inline">
+                                    {timeStatus.label}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Actual (Released or Pending) */}
+                            <div className="hidden sm:block col-span-1 text-right font-mono text-xs">
+                              {ev.actual ? (
+                                <span className="font-bold text-emerald-400">{ev.actual}</span>
+                              ) : isPassed ? (
+                                <span className="text-slate-500">—</span>
+                              ) : (
+                                <span className="text-slate-600 font-mono text-[11px]">—</span>
                               )}
                             </div>
-                            {CURRENCY_PAIR_HINTS[ev.country] && (
-                              <div className="text-[10px] text-slate-400 font-mono truncate hidden sm:block">
-                                Pairs: {CURRENCY_PAIR_HINTS[ev.country].slice(0, 3).join(', ')}
-                              </div>
-                            )}
-                          </div>
 
-                          {/* Actual (Released) */}
-                          <div className="hidden sm:block col-span-1 text-right font-mono text-xs">
-                            {ev.actual ? (
-                              <span className="font-bold text-emerald-400">{ev.actual}</span>
-                            ) : (
-                              <span className="text-slate-600">—</span>
-                            )}
-                          </div>
+                            {/* Forecast */}
+                            <div
+                              className={`hidden sm:block col-span-1 text-right font-mono text-xs ${
+                                isPassed ? 'text-slate-500' : 'text-slate-300'
+                              }`}
+                            >
+                              {ev.forecast || <span className="text-slate-600">—</span>}
+                            </div>
 
-                          {/* Forecast */}
-                          <div className="hidden sm:block col-span-1 text-right font-mono text-xs text-slate-300">
-                            {ev.forecast || <span className="text-slate-600">—</span>}
-                          </div>
+                            {/* Previous */}
+                            <div
+                              className={`hidden sm:block col-span-1 text-right font-mono text-xs ${
+                                isPassed ? 'text-slate-500' : 'text-slate-400'
+                              }`}
+                            >
+                              {ev.previous || <span className="text-slate-600">—</span>}
+                            </div>
 
-                          {/* Previous */}
-                          <div className="hidden sm:block col-span-1 text-right font-mono text-xs text-slate-400">
-                            {ev.previous || <span className="text-slate-600">—</span>}
+                            {/* Action */}
+                            <div className="hidden sm:flex col-span-1 items-center justify-end">
+                              {onOpenNewTradeWithContext && (
+                                <button
+                                  onClick={() => {
+                                    onOpenNewTradeWithContext(
+                                      `Traded around Forex Factory economic event: ${ev.title} (${ev.country})`
+                                    );
+                                  }}
+                                  className="p-1 rounded text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                                  title={`Log trade related to ${ev.title}`}
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
-
-                          {/* Action */}
-                          <div className="hidden sm:flex col-span-1 items-center justify-end">
-                            {onOpenNewTradeWithContext && (
-                              <button
-                                onClick={() => {
-                                  onOpenNewTradeWithContext(`Traded around Forex Factory news: ${ev.title} (${ev.country})`);
-                                }}
-                                className="p-1 rounded text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
-                                title={`Log trade related to ${ev.title}`}
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
+                        </React.Fragment>
                       );
                     })}
                   </div>
@@ -950,28 +1004,6 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
               </div>
             );
           })}
-
-          {/* Forex Factory "Show More" Button for remaining upcoming days */}
-          {selectedDay === 'ACTIVE' && upcomingGroups.length > 2 && (
-            <div className="flex justify-center pt-2">
-              <button
-                onClick={() => setShowMoreDays((prev) => !prev)}
-                className="flex items-center gap-2 bg-[#18181E] hover:bg-[#202028] border border-white/[0.08] hover:border-white/[0.15] text-xs font-medium text-slate-200 px-5 py-2.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-              >
-                {showMoreDays ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 text-slate-400" />
-                    <span>Show Fewer Days</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 text-blue-400" />
-                    <span>Show More Days ({upcomingGroups.length - 2} more upcoming)</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       )}
 
