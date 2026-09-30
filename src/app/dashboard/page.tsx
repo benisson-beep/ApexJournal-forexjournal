@@ -283,6 +283,7 @@ export default function DashboardPage() {
   const handleAddAccount = async (newAccount: TradingAccount) => {
     setAccounts((prev) => [...prev, newAccount]);
     setSelectedAccountId(newAccount.id);
+    setActiveTab('OVERVIEW');
 
     try {
       await saveAccountToSupabase(newAccount);
@@ -378,7 +379,14 @@ export default function DashboardPage() {
             <AccountsView
               accounts={accounts}
               selectedAccountId={selectedAccountId}
-              onSelectAccount={setSelectedAccountId}
+              onSelectAccount={(id) => {
+                setSelectedAccountId(id);
+                setActiveTab('OVERVIEW');
+              }}
+              onNavigateToOverview={(id) => {
+                if (id) setSelectedAccountId(id);
+                setActiveTab('OVERVIEW');
+              }}
               onAddAccount={handleAddAccount}
               onUpdateAccount={handleUpdateAccount}
               onDeleteAccount={handleDeleteAccount}
