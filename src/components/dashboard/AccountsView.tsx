@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { TradingAccount, Trade, AccountCategory, AccountStatus } from '../../types/trade';
 import { EquityCurve } from './EquityCurve';
 import { CalendarHeatmap } from './CalendarHeatmap';
+import { TradingPerformanceSummary } from './TradingPerformanceSummary';
 import { TradeTable } from './TradeTable';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { getTradeDateStr } from '../../lib/analytics-math';
@@ -861,6 +862,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               selectedDateStr={inspectDateStr}
             />
 
+            <TradingPerformanceSummary trades={inspectingTrades} />
+
             {inspectDateStr && (
               <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                 <span className="text-xs font-medium text-blue-300">
@@ -900,6 +903,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               onSelectDay={setInspectDateStr}
               selectedDateStr={inspectDateStr}
             />
+
+            <TradingPerformanceSummary trades={inspectingTrades} />
 
             {inspectDateStr && (
               <div className="pt-2 space-y-3">

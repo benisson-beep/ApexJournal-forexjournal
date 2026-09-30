@@ -9,6 +9,7 @@ import { AccountsView } from '../../components/dashboard/AccountsView';
 import { AccountOverview } from '../../components/dashboard/AccountOverview';
 import { TradeTable } from '../../components/dashboard/TradeTable';
 import { CalendarHeatmap } from '../../components/dashboard/CalendarHeatmap';
+import { TradingPerformanceSummary } from '../../components/dashboard/TradingPerformanceSummary';
 import { NewsCalendarView } from '../../components/dashboard/NewsCalendarView';
 import { PsychologyAnalytics } from '../../components/dashboard/PsychologyAnalytics';
 import { NewTradeModal } from '../../components/dashboard/NewTradeModal';
@@ -473,6 +474,8 @@ export default function DashboardPage() {
                 onSelectDay={setSelectedDateStr}
                 selectedDateStr={selectedDateStr}
               />
+
+              <TradingPerformanceSummary trades={calendarTrades} />
 
               <div>
                 <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
