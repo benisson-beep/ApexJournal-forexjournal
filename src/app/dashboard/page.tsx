@@ -16,6 +16,7 @@ import { SyncModal } from '../../components/dashboard/SyncModal';
 import { ImportStatementModal } from '../../components/dashboard/ImportStatementModal';
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
+import { getTradeDateStr } from '../../lib/analytics-math';
 import { Trade, TradingAccount } from '../../types/trade';
 import { Wallet } from 'lucide-react';
 import {
@@ -202,7 +203,7 @@ export default function DashboardPage() {
 
   const displayedCalendarTrades = useMemo(() => {
     if (!selectedDateStr) return calendarTrades;
-    return calendarTrades.filter((t) => t.closeTime.startsWith(selectedDateStr));
+    return calendarTrades.filter((t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr));
   }, [calendarTrades, selectedDateStr]);
 
   const handleSaveTrade = async (newTrade: Trade) => {

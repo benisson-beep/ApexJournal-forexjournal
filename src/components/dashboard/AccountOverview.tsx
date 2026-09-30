@@ -8,6 +8,7 @@ import { calculateAccountStats } from '../../lib/forex-math';
 import {
   calculateMistakeAnalytics,
   calculateSetupAnalytics,
+  getTradeDateStr,
 } from '../../lib/analytics-math';
 import {
   ArrowRight,
@@ -64,7 +65,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
     if (!selectedDateStr) {
       return stats;
     }
-    const filteredTrades = trades.filter((t) => t.closeTime.startsWith(selectedDateStr));
+    const filteredTrades = trades.filter((t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr));
     return calculateAccountStats(filteredTrades, totalInitialBalance);
   }, [trades, selectedDateStr, stats, totalInitialBalance]);
 

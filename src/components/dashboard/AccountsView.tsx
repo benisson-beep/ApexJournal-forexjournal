@@ -6,6 +6,7 @@ import { EquityCurve } from './EquityCurve';
 import { CalendarHeatmap } from './CalendarHeatmap';
 import { TradeTable } from './TradeTable';
 import { calculateAccountStats } from '../../lib/forex-math';
+import { getTradeDateStr } from '../../lib/analytics-math';
 import {
   Zap,
   Upload,
@@ -205,7 +206,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   const displayedInspectTrades = useMemo(() => {
     if (!inspectDateStr) return inspectingTrades;
-    return inspectingTrades.filter((t) => t.closeTime.startsWith(inspectDateStr));
+    return inspectingTrades.filter((t) => getTradeDateStr(t) === inspectDateStr || t.closeTime.startsWith(inspectDateStr));
   }, [inspectingTrades, inspectDateStr]);
 
   const handleInspectAccount = (acc: TradingAccount) => {
