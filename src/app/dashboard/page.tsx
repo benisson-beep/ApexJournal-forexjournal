@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [initialTradeNotes, setInitialTradeNotes] = useState<string>('');
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);

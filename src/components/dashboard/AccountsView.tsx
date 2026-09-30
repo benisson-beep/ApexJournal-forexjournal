@@ -46,6 +46,7 @@ interface AccountsViewProps {
   onUpdateAccount?: (account: TradingAccount) => void;
   onDeleteAccount?: (id: string) => void;
   onDeleteTrade?: (id: string) => void;
+  onEditTrade?: (trade: Trade) => void;
   onOpenNewTrade?: (accountId?: string) => void;
 }
 
@@ -61,6 +62,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onUpdateAccount,
   onDeleteAccount,
   onDeleteTrade,
+  onEditTrade,
   onOpenNewTrade,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -881,6 +883,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             <TradeTable
               trades={displayedInspectTrades}
               onDeleteTrade={onDeleteTrade || (() => {})}
+              onEditTrade={onEditTrade}
               onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
             />
           </div>
@@ -922,6 +925,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 <TradeTable
                   trades={displayedInspectTrades}
                   onDeleteTrade={onDeleteTrade || (() => {})}
+                  onEditTrade={onEditTrade}
                   onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
                 />
               </div>
@@ -934,6 +938,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             <TradeTable
               trades={inspectingTrades}
               onDeleteTrade={onDeleteTrade || (() => {})}
+              onEditTrade={onEditTrade}
               onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
             />
           </div>

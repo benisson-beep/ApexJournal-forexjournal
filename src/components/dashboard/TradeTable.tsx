@@ -2,15 +2,16 @@
 
 import React, { useState } from 'react';
 import { Trade, Direction, SessionType } from '../../types/trade';
-import { ArrowDownLeft, ArrowUpRight, Clock, Filter, Plus, Search, Tag, Trash2, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Clock, Edit2, Filter, Plus, Search, Tag, Trash2, X } from 'lucide-react';
 
 interface TradeTableProps {
   trades: Trade[];
   onDeleteTrade: (id: string) => void;
+  onEditTrade?: (trade: Trade) => void;
   onOpenNewTrade?: () => void;
 }
 
-export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, onOpenNewTrade }) => {
+export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, onEditTrade, onOpenNewTrade }) => {
   const [search, setSearch] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState<string>('ALL');
   const [selectedSession, setSelectedSession] = useState<string>('ALL');
@@ -314,13 +315,24 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, o
 
                     {/* Action */}
                     <td className="py-2.5 px-4 text-center whitespace-nowrap">
-                      <button
-                        onClick={() => onDeleteTrade(trade.id)}
-                        className="text-slate-400 hover:text-rose-400 p-1 rounded hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                        title="Delete trade"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {onEditTrade && (
+                          <button
+                            onClick={() => onEditTrade(trade)}
+                            className="text-slate-400 hover:text-blue-400 p-1 rounded hover:bg-blue-500/10 transition-colors cursor-pointer"
+                            title="Edit trade execution"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteTrade(trade.id)}
+                          className="text-slate-400 hover:text-rose-400 p-1 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Delete trade"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

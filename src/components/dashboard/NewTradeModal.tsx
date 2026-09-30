@@ -11,6 +11,7 @@ interface NewTradeModalProps {
   onClose: () => void;
   onSaveTrade: (trade: Trade) => void;
   initialNotes?: string;
+  editingTrade?: Trade | null;
 }
 
 const COMMON_TAGS: { name: string; type: 'SETUP' | 'MISTAKE' | 'CUSTOM' }[] = [
@@ -30,6 +31,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   onClose,
   onSaveTrade,
   initialNotes,
+  editingTrade,
 }) => {
   const getInitialDate = () => {
     const now = new Date();
@@ -60,6 +62,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const [newTagInput, setNewTagInput] = useState('');
   const [newTagType, setNewTagType] = useState<'SETUP' | 'MISTAKE' | 'CUSTOM'>('SETUP');
   const [notes, setNotes] = useState('');
+  const isInitialLoadRef = React.useRef(true);
 
   const resetForm = () => {
     setSymbol('');
@@ -77,15 +80,42 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
     setNotes('');
   };
 
-  // Reset form whenever modal opens or closes so previous trade data is not retained
+  // Populate form with editing trade or reset when modal opens
   useEffect(() => {
     if (isOpen) {
-      resetForm();
-      if (initialNotes) {
-        setNotes(initialNotes);
+      isInitialLoadRef.current = true;
+      if (editingTrade) {
+        setSymbol(editingTrade.symbol);
+        setDirection(editingTrade.direction);
+        setLotSize(editingTrade.lotSize !== undefined ? String(editingTrade.lotSize) : '');
+        setOpenPrice(editingTrade.openPrice !== undefined ? String(editingTrade.openPrice) : '');
+        setClosePrice(editingTrade.closePrice !== undefined ? String(editingTrade.closePrice) : '');
+        setStopLoss(editingTrade.stopLoss !== undefined ? String(editingTrade.stopLoss) : '');
+        setTakeProfit(editingTrade.takeProfit !== undefined ? String(editingTrade.takeProfit) : '');
+        setNetPnl(editingTrade.netPnl !== undefined ? String(editingTrade.netPnl) : '');
+        setSession(editingTrade.session || 'London');
+        setSelectedTags(editingTrade.tags || []);
+        setNotes(editingTrade.notes || '');
+
+        const timeStr = editingTrade.closeTime || editingTrade.openTime;
+        if (timeStr) {
+          const d = new Date(timeStr);
+          if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            setExecutionDate(`${y}-${m}-${day}`);
+            setExecutionTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+          }
+        }
+      } else {
+        resetForm();
+        if (initialNotes) {
+          setNotes(initialNotes);
+        }
       }
     }
-  }, [isOpen, initialNotes]);
+  }, [isOpen, editingTrade, initialNotes]);
 
   const handleClose = () => {
     resetForm();
@@ -101,6 +131,10 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
   // Auto-calculate Net P&L whenever open, close, volume, symbol or direction changes
   useEffect(() => {
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      return;
+    }
     const numLots = parseFloat(lotSize);
     const numOpen = parseFloat(openPrice);
     const numClose = parseFloat(closePrice);
@@ -159,10 +193,11 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
     const closeDate = new Date(year, (month || 1) - 1, day || 1, hours || 12, minutes || 0, 0);
     const openDate = new Date(closeDate.getTime() - 3600000 * 2);
 
-    const newTrade: Trade = {
-      id: `tr-${Date.now()}`,
-      ticket: String(Math.floor(10000000 + Math.random() * 90000000)),
-      accountId,
+    const savedTrade: Trade = {
+      ...(editingTrade || {}),
+      id: editingTrade?.id || `tr-${Date.now()}`,
+      ticket: editingTrade?.ticket || String(Math.floor(10000000 + Math.random() * 90000000)),
+      accountId: editingTrade?.accountId || accountId,
       symbol: (symbol || 'EURUSD').toUpperCase(),
       direction,
       lotSize: numLotSize || 1.0,
@@ -172,19 +207,19 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
       takeProfit: numTakeProfit,
       pips,
       grossPnl: numNetPnl,
-      commission: -7 * (numLotSize || 1.0),
-      swap: 0,
+      commission: editingTrade?.commission ?? (-7 * (numLotSize || 1.0)),
+      swap: editingTrade?.swap ?? 0,
       netPnl: numNetPnl,
       rMultiple,
       status: numNetPnl > 0 ? 'WIN' : numNetPnl < 0 ? 'LOSS' : 'BE',
-      openTime: openDate.toISOString(),
+      openTime: editingTrade?.openTime || openDate.toISOString(),
       closeTime: closeDate.toISOString(),
       session,
       tags: selectedTags,
       notes,
     };
 
-    onSaveTrade(newTrade);
+    onSaveTrade(savedTrade);
     resetForm();
     onClose();
   };
@@ -196,9 +231,11 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
         <div className="p-4 px-6 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
           <div>
             <h3 className="font-semibold text-zinc-100 text-sm tracking-tight font-heading">
-              Log Manual Trade Execution
+              {editingTrade ? `Edit Trade Execution (#${editingTrade.ticket})` : 'Log Manual Trade Execution'}
             </h3>
-            <p className="text-[11px] text-zinc-400">Add an executed trade to your journal</p>
+            <p className="text-[11px] text-zinc-400">
+              {editingTrade ? 'Modify parameters, price levels, or retrospective notes' : 'Add an executed trade to your journal'}
+            </p>
           </div>
           <button
             onClick={handleClose}
@@ -522,14 +559,14 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={!accountId}
+              disabled={!accountId && !editingTrade}
               className={`px-5 py-2 text-xs font-medium rounded-md transition-colors ${
-                !accountId
+                !accountId && !editingTrade
                   ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/[0.04]'
                   : 'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white cursor-pointer'
               }`}
             >
-              Save to Journal
+              {editingTrade ? 'Update Trade' : 'Save to Journal'}
             </button>
           </div>
         </form>
