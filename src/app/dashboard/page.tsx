@@ -17,6 +17,16 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { Trade, TradingAccount } from '../../types/trade';
+import {
+  fetchAccountsFromSupabase,
+  fetchTradesFromSupabase,
+  saveAccountToSupabase,
+  deleteAccountFromSupabase,
+  saveTradeToSupabase,
+  saveTradesBatchToSupabase,
+  deleteTradeFromSupabase,
+  updateAccountBalanceInSupabase,
+} from '../../lib/supabase';
 
 export default function DashboardPage() {
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
@@ -34,15 +44,17 @@ export default function DashboardPage() {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
-  // Restore accounts and trades from localStorage on mount
+  // Restore accounts and trades from localStorage first, then sync with Supabase
   useEffect(() => {
     setHasMounted(true);
+    let isSubscribed = true;
+
+    // 1. Initial immediate restore from localStorage
     try {
       const savedAccounts = localStorage.getItem('apex_accounts');
       if (savedAccounts) {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed)) {
-          // Explicitly filter out legacy dummy or sample accounts
           const validAccounts = parsed.filter(
             (a) =>
               a &&
@@ -71,9 +83,67 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Failed to restore journal state from localStorage', err);
     }
+
+    // 2. Fetch from Supabase and sync
+    async function syncWithSupabase() {
+      try {
+        const [dbAccounts, dbTrades] = await Promise.all([
+          fetchAccountsFromSupabase(),
+          fetchTradesFromSupabase(),
+        ]);
+
+        if (!isSubscribed) return;
+
+        if (dbAccounts.length > 0 || dbTrades.length > 0) {
+          if (dbAccounts.length > 0) {
+            setAccounts(dbAccounts);
+            setSelectedAccountId((prev) =>
+              prev && dbAccounts.some((a) => a.id === prev) ? prev : dbAccounts[0].id
+            );
+          }
+          if (dbTrades.length > 0) {
+            setTrades(dbTrades);
+          }
+        } else {
+          // If Supabase is empty, check if we have local accounts/trades to migrate to Supabase
+          const localAccsRaw = localStorage.getItem('apex_accounts');
+          const localTradesRaw = localStorage.getItem('apex_trades');
+          const localAccs: TradingAccount[] = localAccsRaw ? JSON.parse(localAccsRaw) : [];
+          const localTrades: Trade[] = localTradesRaw ? JSON.parse(localTradesRaw) : [];
+
+          const validAccs = localAccs.filter(
+            (a) =>
+              a &&
+              a.id !== 'acc-main' &&
+              a.name !== 'Primary Account' &&
+              a.name !== 'Primary Trading Account' &&
+              !a.name?.toLowerCase().includes('fundingpips') &&
+              !a.broker?.toLowerCase().includes('fundingpips')
+          );
+          const validTrades = localTrades.filter((t) => t && t.accountId !== 'acc-main');
+
+          if (validAccs.length > 0) {
+            for (const acc of validAccs) {
+              await saveAccountToSupabase(acc);
+            }
+          }
+          if (validTrades.length > 0) {
+            await saveTradesBatchToSupabase(validTrades);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to sync with Supabase:', err);
+      }
+    }
+
+    syncWithSupabase();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, []);
 
-  // Sync accounts to localStorage
+  // Sync accounts to localStorage cache
   useEffect(() => {
     if (!hasMounted) return;
     try {
@@ -83,7 +153,7 @@ export default function DashboardPage() {
     }
   }, [accounts, hasMounted]);
 
-  // Sync trades to localStorage
+  // Sync trades to localStorage cache
   useEffect(() => {
     if (!hasMounted) return;
     try {
@@ -113,73 +183,127 @@ export default function DashboardPage() {
     return calculateAccountStats(accountTrades, selectedAccount?.initialBalance || 0);
   }, [accountTrades, selectedAccount]);
 
-  const handleSaveTrade = (newTrade: Trade) => {
+  const handleSaveTrade = async (newTrade: Trade) => {
     setTrades((prev) => [newTrade, ...prev]);
 
-    // Update account balance
+    let updatedBalance: number | undefined;
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === newTrade.accountId) {
+          updatedBalance = Number((acc.currentBalance + newTrade.netPnl).toFixed(2));
           return {
             ...acc,
-            currentBalance: Number((acc.currentBalance + newTrade.netPnl).toFixed(2)),
+            currentBalance: updatedBalance,
           };
         }
         return acc;
       })
     );
+
+    // Persist to Supabase
+    try {
+      const currentAcc = accounts.find((a) => a.id === newTrade.accountId);
+      if (currentAcc) {
+        await saveAccountToSupabase(currentAcc);
+        if (updatedBalance !== undefined) {
+          await updateAccountBalanceInSupabase(newTrade.accountId, updatedBalance);
+        }
+      }
+      await saveTradeToSupabase(newTrade);
+    } catch (err) {
+      console.error('Error saving trade to Supabase:', err);
+    }
   };
 
-  const handleImportTrades = (importedTrades: Trade[]) => {
+  const handleImportTrades = async (importedTrades: Trade[]) => {
     setTrades((prev) => [...importedTrades, ...prev]);
 
     const totalImportedPnl = importedTrades.reduce((sum, t) => sum + t.netPnl, 0);
+    let updatedBalance: number | undefined;
 
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === selectedAccountId) {
+          updatedBalance = Number((acc.currentBalance + totalImportedPnl).toFixed(2));
           return {
             ...acc,
-            currentBalance: Number((acc.currentBalance + totalImportedPnl).toFixed(2)),
+            currentBalance: updatedBalance,
           };
         }
         return acc;
       })
     );
+
+    // Persist to Supabase
+    try {
+      const currentAcc = accounts.find((a) => a.id === selectedAccountId);
+      if (currentAcc) {
+        await saveAccountToSupabase(currentAcc);
+        if (updatedBalance !== undefined) {
+          await updateAccountBalanceInSupabase(selectedAccountId, updatedBalance);
+        }
+      }
+      await saveTradesBatchToSupabase(importedTrades);
+    } catch (err) {
+      console.error('Error batch importing trades to Supabase:', err);
+    }
   };
 
-  const handleDeleteTrade = (id: string) => {
+  const handleDeleteTrade = async (id: string) => {
     const tradeToDelete = trades.find((t) => t.id === id);
     if (!tradeToDelete) return;
 
     setTrades((prev) => prev.filter((t) => t.id !== id));
 
-    // Reverse the balance impact
+    let updatedBalance: number | undefined;
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === tradeToDelete.accountId) {
+          updatedBalance = Number((acc.currentBalance - tradeToDelete.netPnl).toFixed(2));
           return {
             ...acc,
-            currentBalance: Number((acc.currentBalance - tradeToDelete.netPnl).toFixed(2)),
+            currentBalance: updatedBalance,
           };
         }
         return acc;
       })
     );
+
+    // Persist deletion to Supabase
+    try {
+      await deleteTradeFromSupabase(id);
+      if (tradeToDelete.accountId && updatedBalance !== undefined) {
+        await updateAccountBalanceInSupabase(tradeToDelete.accountId, updatedBalance);
+      }
+    } catch (err) {
+      console.error('Error deleting trade from Supabase:', err);
+    }
   };
 
-  const handleAddAccount = (newAccount: TradingAccount) => {
+  const handleAddAccount = async (newAccount: TradingAccount) => {
     setAccounts((prev) => [...prev, newAccount]);
     setSelectedAccountId(newAccount.id);
+
+    try {
+      await saveAccountToSupabase(newAccount);
+    } catch (err) {
+      console.error('Error saving account to Supabase:', err);
+    }
   };
 
-  const handleUpdateAccount = (updatedAccount: TradingAccount) => {
+  const handleUpdateAccount = async (updatedAccount: TradingAccount) => {
     setAccounts((prev) =>
       prev.map((acc) => (acc.id === updatedAccount.id ? updatedAccount : acc))
     );
+
+    try {
+      await saveAccountToSupabase(updatedAccount);
+    } catch (err) {
+      console.error('Error updating account in Supabase:', err);
+    }
   };
 
-  const handleDeleteAccount = (accountIdToDelete: string) => {
+  const handleDeleteAccount = async (accountIdToDelete: string) => {
     setAccounts((prev) => {
       const remaining = prev.filter((acc) => acc.id !== accountIdToDelete);
       if (selectedAccountId === accountIdToDelete) {
@@ -188,6 +312,12 @@ export default function DashboardPage() {
       return remaining;
     });
     setTrades((prev) => prev.filter((t) => t.accountId !== accountIdToDelete));
+
+    try {
+      await deleteAccountFromSupabase(accountIdToDelete);
+    } catch (err) {
+      console.error('Error deleting account from Supabase:', err);
+    }
   };
 
   return (
