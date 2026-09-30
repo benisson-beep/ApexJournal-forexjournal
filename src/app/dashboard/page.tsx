@@ -503,6 +503,7 @@ export default function DashboardPage() {
                 <TradeTable
                   trades={displayedCalendarTrades}
                   onDeleteTrade={handleDeleteTrade}
+                  onEditTrade={handleEditTrade}
                   onOpenNewTrade={() => setIsModalOpen(true)}
                 />
               </div>
@@ -558,16 +559,18 @@ export default function DashboardPage() {
         </main>
       </div>
 
-      {/* Manual Trade Entry Modal */}
+      {/* Manual Trade Entry & Edit Modal */}
       <NewTradeModal
         isOpen={isModalOpen}
         accountId={selectedAccountId}
         onClose={() => {
           setIsModalOpen(false);
           setInitialTradeNotes('');
+          setEditingTrade(null);
         }}
         onSaveTrade={handleSaveTrade}
         initialNotes={initialTradeNotes}
+        editingTrade={editingTrade}
       />
 
       {/* MetaTrader Real-Time Sync Modal */}
