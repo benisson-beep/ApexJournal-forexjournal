@@ -415,6 +415,10 @@ export default function DashboardPage() {
               onOpenSyncModal={() => setIsSyncModalOpen(true)}
               onOpenImportModal={() => setIsImportModalOpen(true)}
               onDeleteTrade={handleDeleteTrade}
+              onOpenNewTrade={(accountId) => {
+                if (accountId) setSelectedAccountId(accountId);
+                setIsModalOpen(true);
+              }}
             />
           )}
 

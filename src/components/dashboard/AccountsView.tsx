@@ -10,6 +10,7 @@ import {
   Zap,
   Upload,
   ArrowUpRight,
+  ArrowLeft,
   Plus,
   Edit2,
   Trash2,
@@ -43,6 +44,7 @@ interface AccountsViewProps {
   onUpdateAccount?: (account: TradingAccount) => void;
   onDeleteAccount?: (id: string) => void;
   onDeleteTrade?: (id: string) => void;
+  onOpenNewTrade?: (accountId?: string) => void;
 }
 
 export const AccountsView: React.FC<AccountsViewProps> = ({
@@ -57,6 +59,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onUpdateAccount,
   onDeleteAccount,
   onDeleteTrade,
+  onOpenNewTrade,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
@@ -150,6 +153,9 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         isLive: formEnvironment === 'Live' || formCategory === 'LIVE_BROKER' || formCategory === 'PROP_FUNDED',
       };
       onUpdateAccount?.(updated);
+      if (inspectingAccount?.id === updated.id) {
+        setInspectingAccount(updated);
+      }
     } else {
       const newAcc: TradingAccount = {
         id: `acc-${Date.now()}`,
@@ -171,25 +177,31 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       };
       onAddAccount?.(newAcc);
       onSelectAccount(newAcc.id);
-      onNavigateToOverview?.(newAcc.id);
+      setInspectingAccount(newAcc);
+      setInspectTab('ALL');
     }
     setIsAccountModalOpen(false);
   };
 
-  // Inspection Modal State (Specific Account Analytics, Equity Curve, Calendar, Trades)
+  // Dedicated Full-Screen Account Details View State
   const [inspectingAccount, setInspectingAccount] = useState<TradingAccount | null>(null);
-  const [inspectTab, setInspectTab] = useState<'EQUITY' | 'CALENDAR' | 'TRADES'>('EQUITY');
+  const [inspectTab, setInspectTab] = useState<'ALL' | 'EQUITY' | 'CALENDAR' | 'TRADES'>('ALL');
   const [inspectDateStr, setInspectDateStr] = useState<string | null>(null);
 
+  const currentInspectingAccount = useMemo(() => {
+    if (!inspectingAccount) return null;
+    return accounts.find((a) => a.id === inspectingAccount.id) || inspectingAccount;
+  }, [accounts, inspectingAccount]);
+
   const inspectingTrades = useMemo(() => {
-    if (!inspectingAccount) return [];
-    return trades.filter((t) => t.accountId === inspectingAccount.id);
-  }, [trades, inspectingAccount]);
+    if (!currentInspectingAccount) return [];
+    return trades.filter((t) => t.accountId === currentInspectingAccount.id);
+  }, [trades, currentInspectingAccount]);
 
   const inspectingStats = useMemo(() => {
-    if (!inspectingAccount) return null;
-    return calculateAccountStats(inspectingTrades, inspectingAccount.initialBalance || 0);
-  }, [inspectingTrades, inspectingAccount]);
+    if (!currentInspectingAccount) return null;
+    return calculateAccountStats(inspectingTrades, currentInspectingAccount.initialBalance || 0);
+  }, [inspectingTrades, currentInspectingAccount]);
 
   const displayedInspectTrades = useMemo(() => {
     if (!inspectDateStr) return inspectingTrades;
@@ -198,7 +210,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   const handleInspectAccount = (acc: TradingAccount) => {
     setInspectingAccount(acc);
-    setInspectTab('EQUITY');
+    setInspectTab('ALL');
     setInspectDateStr(null);
     setActiveMenuId(null);
   };
@@ -206,6 +218,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const handleAccountClick = (id: string) => {
     const acc = accounts.find((a) => a.id === id);
     if (acc) {
+      onSelectAccount(id);
       handleInspectAccount(acc);
     }
   };
@@ -351,6 +364,580 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       </span>
     );
   };
+
+  const renderAccountModal = () => {
+    if (!isAccountModalOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="bg-[#18181E] border border-white/[0.08] rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+          <div className="p-4 px-5 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
+            <h3 className="font-semibold text-white text-sm tracking-tight font-heading">
+              {editingAccount ? 'Edit Account Configuration' : 'Add Trading Account'}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setIsAccountModalOpen(false)}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+            >
+              <X className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSaveAccount} className="p-5 space-y-4">
+            {/* ACCOUNT NAME */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                Account Name
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Main Trading Account"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
+              />
+            </div>
+
+            {/* BROKER / PROP FIRM & ACCOUNT ID */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Broker / Prop Firm
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="FundingPips"
+                  value={formBroker}
+                  onChange={(e) => setFormBroker(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Account ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="12345678"
+                  value={formAccountNumber}
+                  onChange={(e) => setFormAccountNumber(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
+                />
+              </div>
+            </div>
+
+            {/* ACCOUNT CATEGORY & PHASE / STAGE */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Account Category
+                </label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value as AccountCategory)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                >
+                  <option value="PROP_CHALLENGE">Prop Evaluation</option>
+                  <option value="PROP_FUNDED">Prop Funded</option>
+                  <option value="LIVE_BROKER">Live Broker</option>
+                  <option value="DEMO">Demo / Paper</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Phase / Stage
+                </label>
+                <select
+                  value={formPhase}
+                  onChange={(e) => setFormPhase(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                >
+                  <option value="Phase 1">Phase 1</option>
+                  <option value="Phase 2">Phase 2</option>
+                  <option value="Phase 3">Phase 3</option>
+                  <option value="Master / Funded">Master / Funded</option>
+                  <option value="Live">Live</option>
+                  <option value="Demo">Demo</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ACCOUNT STATUS & PLATFORM */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Account Status
+                </label>
+                <select
+                  value={formStatus}
+                  onChange={(e) => setFormStatus(e.target.value as AccountStatus)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="PASSED">Passed</option>
+                  <option value="BREACHED">Breached</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Platform
+                </label>
+                <select
+                  value={formPlatform}
+                  onChange={(e) => setFormPlatform(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                >
+                  <option value="MT5">MT5</option>
+                  <option value="MT4">MT4</option>
+                  <option value="cTrader">cTrader</option>
+                  <option value="TradingView">TradingView</option>
+                  <option value="DXtrade">DXtrade</option>
+                  <option value="Match-Trader">Match-Trader</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ENVIRONMENT & CURRENCY */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Environment
+                </label>
+                <select
+                  value={formEnvironment}
+                  onChange={(e) => setFormEnvironment(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
+                >
+                  <option value="Live">Live</option>
+                  <option value="Demo">Demo</option>
+                  <option value="Simulated">Simulated</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                  Currency
+                </label>
+                <select
+                  value={formCurrency}
+                  onChange={(e) => setFormCurrency(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors font-mono"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="JPY">JPY (¥)</option>
+                  <option value="AUD">AUD ($)</option>
+                  <option value="CAD">CAD ($)</option>
+                  <option value="CHF">CHF (Fr)</option>
+                  <option value="NZD">NZD ($)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* STARTING BALANCE */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                Starting Balance
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  placeholder="50,000"
+                  value={formInitialBalance}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormInitialBalance(val);
+                    if (!formAccountSize || formAccountSize === formInitialBalance) {
+                      setFormAccountSize(val);
+                    }
+                  }}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
+                />
+              </div>
+            </div>
+
+            {/* ACCOUNT SIZE */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
+                Account Size
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  placeholder="50,000"
+                  value={formAccountSize}
+                  onChange={(e) => setFormAccountSize(e.target.value)}
+                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
+                />
+              </div>
+            </div>
+
+            {/* ACTIONS FOOTER */}
+            <div className="pt-3 border-t border-white/[0.06] flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsAccountModalOpen(false)}
+                className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-sm"
+              >
+                <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                <span>{editingAccount ? 'Save Changes' : 'Create Account'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Full-Screen Dedicated Account Analysis View
+  if (currentInspectingAccount && inspectingStats) {
+    const accountPnl = currentInspectingAccount.currentBalance - currentInspectingAccount.initialBalance;
+    const pnlPct = currentInspectingAccount.initialBalance > 0
+      ? (accountPnl / currentInspectingAccount.initialBalance) * 100
+      : 0;
+
+    return (
+      <div className="space-y-6 animate-in fade-in duration-150">
+        {/* Top Header & Navigation Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <button
+              onClick={() => {
+                setInspectingAccount(null);
+                setInspectDateStr(null);
+              }}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-[#18181E] hover:bg-[#202028] border border-white/[0.08] hover:border-white/[0.15] px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-sm group shrink-0"
+              title="Return to All Accounts"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-slate-400 group-hover:text-white" />
+              <span>All Accounts</span>
+            </button>
+
+            <div className="hidden sm:block h-6 w-[1px] bg-white/[0.08]" />
+
+            <div className="flex items-center gap-3 min-w-0">
+              {getAccountIcon(currentInspectingAccount)}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-lg font-bold text-white font-heading tracking-tight truncate">
+                    {currentInspectingAccount.name}
+                  </h1>
+                  <span className="text-xs text-slate-400 font-mono">
+                    #{currentInspectingAccount.accountNumber}
+                  </span>
+                  <span className="text-[10px] text-slate-300 bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 rounded font-mono">
+                    {currentInspectingAccount.broker}
+                  </span>
+                  <span className="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded font-medium">
+                    {currentInspectingAccount.phase || currentInspectingAccount.accountType}
+                  </span>
+                  {getStatusBadge(currentInspectingAccount, pnlPct)}
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5 font-mono truncate">
+                  {currentInspectingAccount.platform} · {currentInspectingAccount.environment || 'Live'} · {currentInspectingAccount.currency} · {inspectingTrades.length} Trades Executed
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {onOpenNewTrade && (
+              <button
+                onClick={() => onOpenNewTrade(currentInspectingAccount.id)}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-sm shadow-blue-600/20"
+              >
+                <Plus className="w-4 h-4" strokeWidth={2} />
+                <span>Log Trade</span>
+              </button>
+            )}
+
+            {currentInspectingAccount.id === selectedAccountId ? (
+              <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Active Account</span>
+              </span>
+            ) : (
+              <button
+                onClick={() => onSelectAccount(currentInspectingAccount.id)}
+                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 border border-blue-500/25 px-3 py-2 rounded-xl font-medium transition-colors cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>Set as Active</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => openEditModal(currentInspectingAccount)}
+              className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-[#18181E] hover:bg-[#202028] border border-white/[0.08] hover:border-white/[0.15] px-3 py-2 rounded-xl font-medium transition-colors cursor-pointer"
+              title="Edit Account Configuration"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Edit</span>
+            </button>
+
+            <button
+              onClick={onOpenSyncModal}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-[#18181E] hover:bg-[#202028] border border-white/[0.08] px-3 py-2 rounded-xl transition-colors cursor-pointer"
+              title="MT5 / Webhook Synchronization"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+
+            {onDeleteAccount && (
+              <button
+                onClick={() => {
+                  if (confirm(`Delete account "${currentInspectingAccount.name}"? This removes the account and its trades.`)) {
+                    onDeleteAccount(currentInspectingAccount.id);
+                    setInspectingAccount(null);
+                  }
+                }}
+                className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 border border-white/[0.06] hover:border-rose-500/20 transition-all cursor-pointer"
+                title="Delete Account"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 5 KPI Stat Cards Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <div className="bg-[#18181E] border border-white/[0.06] rounded-xl p-4">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-heading">
+              Current Balance
+            </span>
+            <span className="text-lg sm:text-xl font-bold font-mono text-white mt-1 block">
+              ${currentInspectingAccount.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">
+              Start: ${currentInspectingAccount.initialBalance.toLocaleString('en-US')}
+            </span>
+          </div>
+
+          <div className="bg-[#18181E] border border-white/[0.06] rounded-xl p-4">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-heading">
+              Net Realized P&L
+            </span>
+            <span
+              className={`text-lg sm:text-xl font-bold font-mono mt-1 block ${
+                inspectingStats.netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+              }`}
+            >
+              {inspectingStats.netPnl >= 0 ? '+' : ''}${inspectingStats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
+            <span
+              className={`text-[11px] font-mono mt-0.5 block font-medium ${
+                inspectingStats.netPnl >= 0 ? 'text-emerald-400/80' : 'text-rose-400/80'
+              }`}
+            >
+              {currentInspectingAccount.initialBalance > 0
+                ? `${inspectingStats.netPnl >= 0 ? '+' : ''}${((inspectingStats.netPnl / currentInspectingAccount.initialBalance) * 100).toFixed(2)}%`
+                : '0.00%'}
+            </span>
+          </div>
+
+          <div className="bg-[#18181E] border border-white/[0.06] rounded-xl p-4">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-heading">
+              Win Rate
+            </span>
+            <span className="text-lg sm:text-xl font-bold font-mono text-slate-100 mt-1 block">
+              {inspectingStats.winRate.toFixed(1)}%
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">
+              {inspectingStats.winningTrades}W / {inspectingStats.losingTrades}L
+            </span>
+          </div>
+
+          <div className="bg-[#18181E] border border-white/[0.06] rounded-xl p-4">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-heading">
+              Profit Factor
+            </span>
+            <span className="text-lg sm:text-xl font-bold font-mono text-slate-100 mt-1 block">
+              {inspectingStats.profitFactor.toFixed(2)}
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">
+              Max DD: {inspectingStats.maxDrawdown.toFixed(1)}%
+            </span>
+          </div>
+
+          <div className="bg-[#18181E] border border-white/[0.06] rounded-xl p-4 col-span-2 sm:col-span-1">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-heading">
+              Total Trades
+            </span>
+            <span className="text-lg sm:text-xl font-bold font-mono text-slate-200 mt-1 block">
+              {inspectingTrades.length}
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">
+              Size: ${currentInspectingAccount.accountSize ? currentInspectingAccount.accountSize.toLocaleString('en-US') : currentInspectingAccount.initialBalance.toLocaleString('en-US')}
+            </span>
+          </div>
+        </div>
+
+        {/* View Mode Tabs Strip */}
+        <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3 overflow-x-auto">
+          <button
+            onClick={() => setInspectTab('ALL')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
+              inspectTab === 'ALL'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>Full Overview</span>
+          </button>
+
+          <button
+            onClick={() => setInspectTab('EQUITY')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
+              inspectTab === 'EQUITY'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+            }`}
+          >
+            <LineChart className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>Equity Curve</span>
+          </button>
+
+          <button
+            onClick={() => setInspectTab('CALENDAR')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
+              inspectTab === 'CALENDAR'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+            }`}
+          >
+            <CalendarIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>P&L Calendar</span>
+          </button>
+
+          <button
+            onClick={() => setInspectTab('TRADES')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 ${
+              inspectTab === 'TRADES'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+            }`}
+          >
+            <ListOrdered className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>Trades ({inspectingTrades.length})</span>
+          </button>
+        </div>
+
+        {/* View Mode Content */}
+        {inspectTab === 'ALL' && (
+          <div className="space-y-6">
+            <EquityCurve
+              account={currentInspectingAccount}
+              trades={inspectingTrades}
+              selectedDateStr={inspectDateStr}
+            />
+
+            <CalendarHeatmap
+              trades={inspectingTrades}
+              onSelectDay={setInspectDateStr}
+              selectedDateStr={inspectDateStr}
+            />
+
+            {inspectDateStr && (
+              <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                <span className="text-xs font-medium text-blue-300">
+                  Showing trades for <span className="font-mono font-bold text-white">{inspectDateStr}</span> ({displayedInspectTrades.length} trades)
+                </span>
+                <button
+                  onClick={() => setInspectDateStr(null)}
+                  className="text-xs text-blue-400 hover:text-white underline cursor-pointer"
+                >
+                  Clear Date Filter
+                </button>
+              </div>
+            )}
+
+            <TradeTable
+              trades={displayedInspectTrades}
+              onDeleteTrade={onDeleteTrade || (() => {})}
+              onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
+            />
+          </div>
+        )}
+
+        {inspectTab === 'EQUITY' && (
+          <div className="space-y-4">
+            <EquityCurve
+              account={currentInspectingAccount}
+              trades={inspectingTrades}
+              selectedDateStr={inspectDateStr}
+            />
+          </div>
+        )}
+
+        {inspectTab === 'CALENDAR' && (
+          <div className="space-y-4">
+            <CalendarHeatmap
+              trades={inspectingTrades}
+              onSelectDay={setInspectDateStr}
+              selectedDateStr={inspectDateStr}
+            />
+
+            {inspectDateStr && (
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <span className="text-xs font-medium text-blue-300">
+                    Trades on <span className="font-mono font-bold text-white">{inspectDateStr}</span> ({displayedInspectTrades.length})
+                  </span>
+                  <button
+                    onClick={() => setInspectDateStr(null)}
+                    className="text-xs text-blue-400 hover:text-white underline cursor-pointer"
+                  >
+                    Clear Date Filter
+                  </button>
+                </div>
+                <TradeTable
+                  trades={displayedInspectTrades}
+                  onDeleteTrade={onDeleteTrade || (() => {})}
+                  onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {inspectTab === 'TRADES' && (
+          <div className="space-y-4">
+            <TradeTable
+              trades={inspectingTrades}
+              onDeleteTrade={onDeleteTrade || (() => {})}
+              onOpenNewTrade={onOpenNewTrade ? () => onOpenNewTrade(currentInspectingAccount.id) : undefined}
+            />
+          </div>
+        )}
+
+        {/* Edit/Add Account Modal */}
+        {renderAccountModal()}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -752,450 +1339,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         </div>
       )}
 
-      {/* Account Inspection Modal (Equity Curve, Calendar & Trades for Specific Account) */}
-      {inspectingAccount && inspectingStats && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
-          <div className="bg-[#131317] border border-white/[0.08] rounded-2xl w-full max-w-5xl my-auto overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#18181E] flex flex-wrap items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-3">
-                {getAccountIcon(inspectingAccount)}
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base font-bold text-white font-heading tracking-tight">
-                      {inspectingAccount.name}
-                    </h3>
-                    <span className="text-xs text-slate-400 font-mono">
-                      #{inspectingAccount.accountNumber}
-                    </span>
-                    <span className="text-[10px] text-slate-300 bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 rounded font-mono">
-                      {inspectingAccount.broker}
-                    </span>
-                    <span className="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded font-medium">
-                      {inspectingAccount.phase || inspectingAccount.accountType}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-0.5 font-mono">
-                    {inspectingAccount.platform} · {inspectingAccount.currency} · {inspectingTrades.length} Trades Executed
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5">
-                {inspectingAccount.id === selectedAccountId ? (
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Active Account</span>
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => {
-                      onSelectAccount(inspectingAccount.id);
-                    }}
-                    className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 border border-blue-500/25 px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Set as Active</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setInspectingAccount(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
-                  title="Close Inspection Modal"
-                >
-                  <X className="w-5 h-5" strokeWidth={1.5} />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Scrollable Body */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
-              {/* Account Quick Metrics Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
-                    Current Balance
-                  </span>
-                  <span className="text-sm sm:text-base font-bold font-mono text-white mt-0.5 block">
-                    ${inspectingAccount.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
-                    Net Realized P&L
-                  </span>
-                  <span
-                    className={`text-sm sm:text-base font-bold font-mono mt-0.5 block ${
-                      inspectingStats.netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                  >
-                    {inspectingStats.netPnl >= 0 ? '+' : ''}${inspectingStats.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
-                    Win Rate
-                  </span>
-                  <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-0.5 block">
-                    {inspectingStats.winRate.toFixed(1)}%
-                  </span>
-                </div>
-
-                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
-                    Profit Factor
-                  </span>
-                  <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-0.5 block">
-                    {inspectingStats.profitFactor.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="bg-[#18181E] border border-white/[0.05] rounded-xl p-3 col-span-2 sm:col-span-1">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-heading">
-                    Initial Size
-                  </span>
-                  <span className="text-sm sm:text-base font-bold font-mono text-slate-300 mt-0.5 block">
-                    ${inspectingAccount.initialBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Sub-Tabs: Equity Curve vs P&L Calendar vs Trade History */}
-              <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3">
-                <button
-                  onClick={() => setInspectTab('EQUITY')}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                    inspectTab === 'EQUITY'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <LineChart className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  <span>Equity Curve</span>
-                </button>
-
-                <button
-                  onClick={() => setInspectTab('CALENDAR')}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                    inspectTab === 'CALENDAR'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <CalendarIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  <span>P&L Calendar</span>
-                </button>
-
-                <button
-                  onClick={() => setInspectTab('TRADES')}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                    inspectTab === 'TRADES'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <ListOrdered className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  <span>Executions ({inspectingTrades.length})</span>
-                </button>
-              </div>
-
-              {/* Tab Content */}
-              {inspectTab === 'EQUITY' && (
-                <div className="space-y-4">
-                  <EquityCurve
-                    account={inspectingAccount}
-                    trades={inspectingTrades}
-                    selectedDateStr={inspectDateStr}
-                  />
-                </div>
-              )}
-
-              {inspectTab === 'CALENDAR' && (
-                <div className="space-y-4">
-                  <CalendarHeatmap
-                    trades={inspectingTrades}
-                    onSelectDay={setInspectDateStr}
-                    selectedDateStr={inspectDateStr}
-                  />
-
-                  {inspectDateStr && (
-                    <div className="pt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-slate-300">
-                          Trades on {inspectDateStr} ({displayedInspectTrades.length})
-                        </span>
-                        <button
-                          onClick={() => setInspectDateStr(null)}
-                          className="text-xs text-blue-400 hover:underline cursor-pointer"
-                        >
-                          Clear Date Filter
-                        </button>
-                      </div>
-                      <TradeTable
-                        trades={displayedInspectTrades}
-                        onDeleteTrade={onDeleteTrade || (() => {})}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {inspectTab === 'TRADES' && (
-                <div className="space-y-4">
-                  <TradeTable
-                    trades={inspectingTrades}
-                    onDeleteTrade={onDeleteTrade || (() => {})}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Account Create / Edit Modal */}
-      {isAccountModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-[#18181E] border border-white/[0.08] rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-4 px-5 border-b border-white/[0.06] flex items-center justify-between bg-[#131317]">
-              <h3 className="font-semibold text-white text-sm tracking-tight font-heading">
-                {editingAccount ? 'Edit Account Configuration' : 'Add Trading Account'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsAccountModalOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
-              >
-                <X className="w-4 h-4" strokeWidth={1.5} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAccount} className="p-5 space-y-4">
-              {/* ACCOUNT NAME */}
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                  Account Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Main Trading Account"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
-                />
-              </div>
-
-              {/* BROKER / PROP FIRM & ACCOUNT ID */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Broker / Prop Firm
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="FundingPips"
-                    value={formBroker}
-                    onChange={(e) => setFormBroker(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Account ID
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="12345678"
-                    value={formAccountNumber}
-                    onChange={(e) => setFormAccountNumber(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* ACCOUNT CATEGORY & PHASE / STAGE */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Account Category
-                  </label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value as AccountCategory)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="PROP_CHALLENGE">Prop Evaluation</option>
-                    <option value="PROP_FUNDED">Prop Funded</option>
-                    <option value="LIVE_BROKER">Live Broker</option>
-                    <option value="DEMO">Demo / Paper</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Phase / Stage
-                  </label>
-                  <select
-                    value={formPhase}
-                    onChange={(e) => setFormPhase(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="Phase 1">Phase 1</option>
-                    <option value="Phase 2">Phase 2</option>
-                    <option value="Phase 3">Phase 3</option>
-                    <option value="Master / Funded">Master / Funded</option>
-                    <option value="Live">Live</option>
-                    <option value="Demo">Demo</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* ACCOUNT STATUS & PLATFORM */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Account Status
-                  </label>
-                  <select
-                    value={formStatus}
-                    onChange={(e) => setFormStatus(e.target.value as AccountStatus)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="ACTIVE">Active</option>
-                    <option value="PASSED">Passed</option>
-                    <option value="BREACHED">Breached</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Platform
-                  </label>
-                  <select
-                    value={formPlatform}
-                    onChange={(e) => setFormPlatform(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="MT5">MT5</option>
-                    <option value="MT4">MT4</option>
-                    <option value="cTrader">cTrader</option>
-                    <option value="TradingView">TradingView</option>
-                    <option value="DXtrade">DXtrade</option>
-                    <option value="Match-Trader">Match-Trader</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* ENVIRONMENT & CURRENCY */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Environment
-                  </label>
-                  <select
-                    value={formEnvironment}
-                    onChange={(e) => setFormEnvironment(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
-                  >
-                    <option value="Live">Live</option>
-                    <option value="Demo">Demo</option>
-                    <option value="Simulated">Simulated</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                    Currency
-                  </label>
-                  <select
-                    value={formCurrency}
-                    onChange={(e) => setFormCurrency(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors font-mono"
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="JPY">JPY (¥)</option>
-                    <option value="AUD">AUD ($)</option>
-                    <option value="CAD">CAD ($)</option>
-                    <option value="CHF">CHF (Fr)</option>
-                    <option value="NZD">NZD ($)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* STARTING BALANCE */}
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                  Starting Balance
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    placeholder="50,000"
-                    value={formInitialBalance}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFormInitialBalance(val);
-                      if (!formAccountSize || formAccountSize === formInitialBalance) {
-                        setFormAccountSize(val);
-                      }
-                    }}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* ACCOUNT SIZE */}
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 font-heading">
-                  Account Size
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">$</span>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    placeholder="50,000"
-                    value={formAccountSize}
-                    onChange={(e) => setFormAccountSize(e.target.value)}
-                    className="w-full bg-[#131317] border border-white/[0.08] focus:border-blue-500/50 rounded-lg pl-7 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* ACTIONS FOOTER */}
-              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsAccountModalOpen(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-sm"
-                >
-                  <Check className="w-3.5 h-3.5" strokeWidth={2} />
-                  <span>{editingAccount ? 'Save Changes' : 'Create Account'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {renderAccountModal()}
     </div>
   );
 };
