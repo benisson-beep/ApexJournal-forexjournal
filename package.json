@@ -1,6 +1,7 @@
 {
-  "name": "forex-journal",
-  "version": "0.1.0",
+  "name": "apex-journal",
+  "version": "1.0.0",
+  "description": "Institutional Forex trading journal and performance analytics terminal with MT4/MT5 webhook integration",
   "private": true,
   "scripts": {
     "dev": "next dev",

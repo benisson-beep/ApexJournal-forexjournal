@@ -7,7 +7,7 @@ import {
   calculateSetupAnalytics,
   calculateSessionAnalytics,
 } from '../../lib/analytics-math';
-import { AlertTriangle, Award, Brain, Clock, ShieldAlert, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Award, Brain, Clock, ShieldAlert, Target, TrendingUp } from 'lucide-react';
 
 interface PsychologyAnalyticsProps {
   trades: Trade[];

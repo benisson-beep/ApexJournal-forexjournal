@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Direction, SessionType, Trade, TradeTag } from '../../types/trade';
 import { calculatePips, calculateRMultiple, calculateEstimatedPnl } from '../../lib/forex-math';
-import { AlertCircle, Check, Plus, Tag, X, Sparkles } from 'lucide-react';
+import { AlertCircle, Check, Plus, Tag, X } from 'lucide-react';
 
 interface NewTradeModalProps {
   isOpen: boolean;

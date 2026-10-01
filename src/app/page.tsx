@@ -27,14 +27,14 @@ export default function HomePage() {
       </main>
       <LandingFooter />
 
-      {/* Floating Support Button */}
+      {/* Support / Contact Trigger */}
       <a
         href="#contact"
-        className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
-        title="Live Support"
-        aria-label="Contact Support"
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-[#131620] hover:bg-[#1a1f2e] border border-white/10 hover:border-white/25 text-slate-300 hover:text-white shadow-xl shadow-black/80 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+        title="Contact Desk"
+        aria-label="Contact Desk"
       >
-        <MessageSquare className="w-5 h-5 fill-white/20" />
+        <MessageSquare className="w-4 h-4" />
       </a>
     </div>
   );

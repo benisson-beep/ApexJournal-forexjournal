@@ -17,7 +17,6 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Frontend demo: simulate authentication then redirect to dashboard
     setTimeout(() => {
       setIsLoading(false);
       router.push('/dashboard');

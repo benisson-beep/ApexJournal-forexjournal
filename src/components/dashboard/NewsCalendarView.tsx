@@ -9,7 +9,7 @@ import {
   Search,
   Filter,
   Plus,
-  Sparkles,
+  Flame,
   Info,
   Folder,
 } from 'lucide-react';
@@ -455,7 +455,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
         <div className="bg-[#131317] border border-white/[0.06] p-4 rounded-xl lg:col-span-2">
           <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
               <span>Next High Impact Event</span>
             </span>
             {nextHighImpactEvent && (

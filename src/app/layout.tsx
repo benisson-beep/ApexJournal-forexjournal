@@ -20,7 +20,21 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "ApexJournal — Institutional Forex Trading Journal",
-  description: "Advanced Forex trading journal with automated MT4/MT5 sync, R-multiple analytics, and execution replay.",
+  description: "Performance analytics terminal and trading journal with real-time MT4/MT5 auto-sync, R-multiple tracking, and behavioral risk analysis.",
+  icons: {
+    icon: "/icon.svg",
+  },
+  openGraph: {
+    title: "ApexJournal — Institutional Forex Trading Journal",
+    description: "Performance analytics terminal and trading journal with real-time MT4/MT5 auto-sync, R-multiple tracking, and behavioral risk analysis.",
+    type: "website",
+    siteName: "ApexJournal",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ApexJournal — Institutional Forex Trading Journal",
+    description: "Performance analytics terminal and trading journal with real-time MT4/MT5 auto-sync, R-multiple tracking, and behavioral risk analysis.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

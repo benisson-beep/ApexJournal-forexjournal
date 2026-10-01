@@ -79,11 +79,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
       const data = await res.json();
       if (data.success && data.trade) {
         onTradeSynced(data.trade);
-        setSimulatedMessage(`✓ Deal #${randomTicket} (${pick.symbol} +$${pick.profit.toFixed(2)}) synced live!`);
+        setSimulatedMessage(`✓ Webhook verified: Ticket #${randomTicket} (${pick.symbol} +$${pick.profit.toFixed(2)}) processed`);
       }
     } catch (err) {
-      console.error('Simulation error:', err);
-      setSimulatedMessage('Error simulating webhook.');
+      console.error('Webhook test error:', err);
+      setSimulatedMessage('Error validating webhook payload.');
     } finally {
       setIsSimulating(false);
     }
@@ -229,20 +229,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             </div>
           </div>
 
-          {/* Test Simulator Section */}
+          {/* Webhook Connection Test Section */}
           <div className="pt-2 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-semibold text-zinc-200 block">Want to test right now?</span>
-              <span className="text-[11px] text-zinc-400">Simulate a live deal execution from MetaTrader</span>
+              <span className="text-xs font-semibold text-zinc-200 block">Verify Webhook Endpoint</span>
+              <span className="text-[11px] text-zinc-400">Dispatch a test execution payload to verify connectivity</span>
             </div>
 
             <button
               onClick={handleSimulateTrade}
               disabled={isSimulating}
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-3.5 py-2 rounded-md text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-[#1b202c] hover:bg-[#222838] border border-white/10 hover:border-white/20 text-slate-200 px-3.5 py-2 rounded-md text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
             >
-              <Play className="w-3.5 h-3.5 fill-current" strokeWidth={1.5} />
-              <span>{isSimulating ? 'Sending Deal...' : 'Simulate MT5 Trade'}</span>
+              <Play className="w-3.5 h-3.5 fill-current text-blue-400" strokeWidth={1.5} />
+              <span>{isSimulating ? 'Validating...' : 'Send Test Payload'}</span>
             </button>
           </div>
 

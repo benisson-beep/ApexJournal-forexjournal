@@ -19,7 +19,7 @@ import {
   X,
   Check,
   GraduationCap,
-  Sparkles,
+  Target,
   Crown,
   ShieldCheck,
   Wallet,
@@ -299,7 +299,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     if (acc.phase === 'Phase 2') {
       return (
         <div className="w-10 h-10 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
-          <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+          <Target className="w-4 h-4" strokeWidth={1.5} />
         </div>
       );
     }

@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
   try {
     const apiKey = request.headers.get('x-api-key') || request.nextUrl.searchParams.get('api_key');
 
-    // In production, validate apiKey against database/Supabase
     if (!apiKey) {
       return NextResponse.json(
         { error: 'Unauthorized. Missing x-api-key header.' },

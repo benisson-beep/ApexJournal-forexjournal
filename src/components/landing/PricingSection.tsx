@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
 export const PricingSection: React.FC = () => {
   const [annualBilling, setAnnualBilling] = useState(true);

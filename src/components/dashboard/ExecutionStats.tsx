@@ -112,7 +112,7 @@ export const ExecutionStats: React.FC<ExecutionStatsProps> = ({ trades }) => {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
 
-    // If fewer than 3, fill with default placeholders so layout matches 3 rings
+    // Default top instruments fallback when trade history is initializing
     const defaults = ['EURUSD', 'GBPUSD', 'USDJPY'];
     while (sorted.length < 3) {
       const fallbackSym = defaults[sorted.length] || 'XAUUSD';

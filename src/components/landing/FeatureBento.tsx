@@ -15,7 +15,7 @@ export const FeatureBento: React.FC = () => {
           Everything You Need to Trade Like a Quant Firm
         </h2>
         <p className="text-sm text-slate-400">
-          Generic spreadsheets and AI templates don't understand lot sizing, pip mechanics, or psychological discipline. ApexJournal was engineered specifically for serious Forex traders.
+          Generic spreadsheets and traditional accounting software don't understand lot sizing, pip mechanics, or execution psychology. ApexJournal was engineered specifically for serious Forex and prop traders.
         </p>
       </div>
 
