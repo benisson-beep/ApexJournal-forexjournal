@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '../../components/dashboard/Header';
 import { Sidebar, DashboardTab } from '../../components/dashboard/Sidebar';
 import { ProfileView } from '../../components/dashboard/ProfileView';
@@ -20,6 +21,7 @@ import { calculateAccountStats } from '../../lib/forex-math';
 import { getTradeDateStr } from '../../lib/analytics-math';
 import { Trade, TradingAccount } from '../../types/trade';
 import { Wallet } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import {
   fetchAccountsFromSupabase,
   fetchTradesFromSupabase,
@@ -32,6 +34,9 @@ import {
 } from '../../lib/supabase';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isLoading: authLoading, signOut } = useAuth();
+
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
@@ -49,14 +54,27 @@ export default function DashboardPage() {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
-  // Restore accounts and trades from localStorage first, then sync with Supabase
+  // User-scoped cache keys
+  const storageSuffix = user?.id ? `_${user.id}` : '';
+  const accountsStorageKey = `apex_accounts${storageSuffix}`;
+  const tradesStorageKey = `apex_trades${storageSuffix}`;
+
+  // Route protection: redirect to login if unauthenticated
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
+
+  // Restore accounts and trades for the authenticated user, then sync with Supabase
+  useEffect(() => {
+    if (!user) return;
     setHasMounted(true);
     let isSubscribed = true;
 
-    // 1. Initial immediate restore from localStorage
+    // 1. Initial immediate restore from user-scoped localStorage
     try {
-      const savedAccounts = localStorage.getItem('apex_accounts');
+      const savedAccounts = localStorage.getItem(accountsStorageKey);
       if (savedAccounts) {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed)) {
@@ -76,25 +94,31 @@ export default function DashboardPage() {
             setSelectedAccountId('');
           }
         }
+      } else {
+        setAccounts([]);
+        setSelectedAccountId('');
       }
-      const savedTrades = localStorage.getItem('apex_trades');
+
+      const savedTrades = localStorage.getItem(tradesStorageKey);
       if (savedTrades) {
         const parsed = JSON.parse(savedTrades);
         if (Array.isArray(parsed)) {
           const validTrades = parsed.filter((t) => t && t.accountId !== 'acc-main');
           setTrades(validTrades);
         }
+      } else {
+        setTrades([]);
       }
     } catch (err) {
       console.error('Failed to restore journal state from localStorage', err);
     }
 
-    // 2. Fetch from Supabase and sync
+    // 2. Fetch from Supabase with user scoping
     async function syncWithSupabase() {
       try {
         const [dbAccounts, dbTrades] = await Promise.all([
-          fetchAccountsFromSupabase(),
-          fetchTradesFromSupabase(),
+          fetchAccountsFromSupabase(user?.id),
+          fetchTradesFromSupabase(user?.id),
         ]);
 
         if (!isSubscribed) return;
@@ -109,32 +133,6 @@ export default function DashboardPage() {
           if (dbTrades.length > 0) {
             setTrades(dbTrades);
           }
-        } else {
-          // If Supabase is empty, check if we have local accounts/trades to migrate to Supabase
-          const localAccsRaw = localStorage.getItem('apex_accounts');
-          const localTradesRaw = localStorage.getItem('apex_trades');
-          const localAccs: TradingAccount[] = localAccsRaw ? JSON.parse(localAccsRaw) : [];
-          const localTrades: Trade[] = localTradesRaw ? JSON.parse(localTradesRaw) : [];
-
-          const validAccs = localAccs.filter(
-            (a) =>
-              a &&
-              a.id !== 'acc-main' &&
-              a.name !== 'Primary Account' &&
-              a.name !== 'Primary Trading Account' &&
-              !a.name?.toLowerCase().includes('fundingpips') &&
-              !a.broker?.toLowerCase().includes('fundingpips')
-          );
-          const validTrades = localTrades.filter((t) => t && t.accountId !== 'acc-main');
-
-          if (validAccs.length > 0) {
-            for (const acc of validAccs) {
-              await saveAccountToSupabase(acc);
-            }
-          }
-          if (validTrades.length > 0) {
-            await saveTradesBatchToSupabase(validTrades);
-          }
         }
       } catch (err) {
         console.error('Failed to sync with Supabase:', err);
@@ -146,27 +144,27 @@ export default function DashboardPage() {
     return () => {
       isSubscribed = false;
     };
-  }, []);
+  }, [user, accountsStorageKey, tradesStorageKey]);
 
   // Sync accounts to localStorage cache
   useEffect(() => {
-    if (!hasMounted) return;
+    if (!hasMounted || !user) return;
     try {
-      localStorage.setItem('apex_accounts', JSON.stringify(accounts));
+      localStorage.setItem(accountsStorageKey, JSON.stringify(accounts));
     } catch (err) {
       console.error('Failed to sync accounts to localStorage', err);
     }
-  }, [accounts, hasMounted]);
+  }, [accounts, hasMounted, user, accountsStorageKey]);
 
   // Sync trades to localStorage cache
   useEffect(() => {
-    if (!hasMounted) return;
+    if (!hasMounted || !user) return;
     try {
-      localStorage.setItem('apex_trades', JSON.stringify(trades));
+      localStorage.setItem(tradesStorageKey, JSON.stringify(trades));
     } catch (err) {
       console.error('Failed to sync trades to localStorage', err);
     }
-  }, [trades, hasMounted]);
+  }, [trades, hasMounted, user, tradesStorageKey]);
 
   // Filter trades for the selected account
   const accountTrades = useMemo(() => {
@@ -205,7 +203,9 @@ export default function DashboardPage() {
 
   const displayedCalendarTrades = useMemo(() => {
     if (!selectedDateStr) return calendarTrades;
-    return calendarTrades.filter((t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr));
+    return calendarTrades.filter(
+      (t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr)
+    );
   }, [calendarTrades, selectedDateStr]);
 
   const handleEditTrade = (trade: Trade) => {
@@ -245,12 +245,12 @@ export default function DashboardPage() {
     try {
       const currentAcc = accounts.find((a) => a.id === savedTrade.accountId);
       if (currentAcc) {
-        await saveAccountToSupabase(currentAcc);
+        await saveAccountToSupabase(currentAcc, user?.id);
         if (updatedBalance !== undefined) {
           await updateAccountBalanceInSupabase(savedTrade.accountId, updatedBalance);
         }
       }
-      await saveTradeToSupabase(savedTrade);
+      await saveTradeToSupabase(savedTrade, user?.id);
     } catch (err) {
       console.error('Error saving trade to Supabase:', err);
     }
@@ -279,12 +279,12 @@ export default function DashboardPage() {
     try {
       const currentAcc = accounts.find((a) => a.id === selectedAccountId);
       if (currentAcc) {
-        await saveAccountToSupabase(currentAcc);
+        await saveAccountToSupabase(currentAcc, user?.id);
         if (updatedBalance !== undefined) {
           await updateAccountBalanceInSupabase(selectedAccountId, updatedBalance);
         }
       }
-      await saveTradesBatchToSupabase(importedTrades);
+      await saveTradesBatchToSupabase(importedTrades, user?.id);
     } catch (err) {
       console.error('Error batch importing trades to Supabase:', err);
     }
@@ -327,7 +327,7 @@ export default function DashboardPage() {
     setActiveTab('OVERVIEW');
 
     try {
-      await saveAccountToSupabase(newAccount);
+      await saveAccountToSupabase(newAccount, user?.id);
     } catch (err) {
       console.error('Error saving account to Supabase:', err);
     }
@@ -339,7 +339,7 @@ export default function DashboardPage() {
     );
 
     try {
-      await saveAccountToSupabase(updatedAccount);
+      await saveAccountToSupabase(updatedAccount, user?.id);
     } catch (err) {
       console.error('Error updating account in Supabase:', err);
     }
@@ -361,6 +361,23 @@ export default function DashboardPage() {
       console.error('Error deleting account from Supabase:', err);
     }
   };
+
+  // Show authenticating terminal screen while session is being verified
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0F] flex flex-col items-center justify-center space-y-4 text-slate-300">
+        <div className="w-10 h-10 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+        <div className="text-center space-y-1">
+          <p className="text-sm font-bold tracking-tight text-white font-heading">
+            Apex<span className="text-red-500">Journal</span> Terminal
+          </p>
+          <p className="text-xs text-slate-400 font-mono">
+            Verifying institutional credentials...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0D0D0F] text-slate-100 flex selection:bg-blue-600/30 selection:text-blue-200">
@@ -393,13 +410,11 @@ export default function DashboardPage() {
           selectedDateStr={selectedDateStr}
           onClearDateFilter={() => setSelectedDateStr(null)}
           onOpenImportModal={() => setIsImportModalOpen(true)}
-          onOpenNewTrade={() => setIsModalOpen(true)}
         />
 
         {/* Main Dashboard Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 space-y-7">
-
-          {/* View 1: Performance & Accounts Overview (Portfolio Summation across all accounts) */}
+          {/* View 1: Performance & Accounts Overview */}
           {activeTab === 'OVERVIEW' && (
             <AccountOverview
               account={selectedAccount}
@@ -544,15 +559,15 @@ export default function DashboardPage() {
                 setAccounts([]);
                 setSelectedAccountId('');
                 if (typeof window !== 'undefined') {
-                  localStorage.removeItem('apex_trades');
-                  localStorage.removeItem('apex_accounts');
+                  localStorage.removeItem(tradesStorageKey);
+                  localStorage.removeItem(accountsStorageKey);
                 }
               }}
               onClearAllTrades={() => {
                 setTrades([]);
                 setAccounts((prev) => prev.map((a) => ({ ...a, currentBalance: a.initialBalance })));
                 if (typeof window !== 'undefined') {
-                  localStorage.setItem('apex_trades', JSON.stringify([]));
+                  localStorage.setItem(tradesStorageKey, JSON.stringify([]));
                 }
               }}
             />

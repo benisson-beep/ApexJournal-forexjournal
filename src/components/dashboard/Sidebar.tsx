@@ -13,7 +13,9 @@ import {
   Wallet,
   PanelLeft,
   Newspaper,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { TradingAccount } from '../../types/trade';
 
 export type DashboardTab = 'OVERVIEW' | 'LOG' | 'CALENDAR' | 'NEWS' | 'PSYCHOLOGY' | 'ACCOUNTS' | 'PROFILE' | 'SETTINGS';
@@ -47,6 +49,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedAccountId,
   onSelectAccount,
 }) => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
+
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Trader';
+  const displayEmail = user?.email || 'Authenticated User';
+  const initials = displayName
+    .split(' ')
+    .map((w: string) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'TR';
+
   const navItems = [
     {
       id: 'OVERVIEW' as DashboardTab,
@@ -249,8 +271,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom section: Collapse Toggle Button */}
-      <div className="p-3">
+      {/* Bottom section: User Profile Card, Logout & Collapse Toggle */}
+      <div className="p-3 border-t border-white/[0.06] space-y-2">
+        {/* User Identity & Logout Button */}
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-2 py-1">
+            <div
+              className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading"
+              title={`${displayName} (${displayEmail})`}
+            >
+              {initials}
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              title="Sign Out"
+              aria-label="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+            </button>
+          </div>
+        ) : (
+          <div className="bg-[#131317] border border-white/[0.06] rounded-lg p-2.5 space-y-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium text-slate-200 block truncate font-heading">
+                  {displayName}
+                </span>
+                <span className="text-[10px] text-slate-500 block truncate font-mono">
+                  {displayEmail}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded text-[11px] font-medium text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-colors cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-3 h-3" strokeWidth={1.5} />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        )}
+
+        {/* Collapse Toggle Button */}
         <button
           onClick={onToggleCollapse}
           className={`hidden md:flex w-full items-center gap-2 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] text-xs transition-colors cursor-pointer ${
@@ -277,7 +345,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Mobile Drawer */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0D0D0F] border-r border-white/[0.06] z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-black border-r border-white/[0.08] z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -286,7 +354,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Desktop Sticky Sidebar */}
       <aside
-        className={`hidden md:block sticky top-0 h-screen bg-[#0D0D0F] border-r border-white/[0.06] transition-all duration-200 shrink-0 z-30 ${
+        className={`hidden md:block sticky top-0 h-screen bg-black border-r border-white/[0.08] transition-all duration-200 shrink-0 z-30 ${
           isCollapsed ? 'w-16' : 'w-56'
         }`}
       >

@@ -90,7 +90,7 @@ export const ImportStatementModal: React.FC<ImportStatementModalProps> = ({
             </div>
           )}
           <p className="text-xs text-zinc-400 leading-relaxed">
-            In MT4/MT5, right-click on <strong>Account History</strong> $\rightarrow$ select <strong>Report</strong> or <strong>Save as Detailed Report</strong>, then upload the file below or paste its content.
+            In MT4/MT5, right-click on <strong>Account History</strong> → select <strong>Report</strong> or <strong>Save as Detailed Report</strong>, then upload the file below or paste its content.
           </p>
 
           {/* File Dropzone */}

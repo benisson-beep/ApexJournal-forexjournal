@@ -53,7 +53,7 @@ export const HeroSection: React.FC = () => {
             href="/dashboard"
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-sm px-7 py-3.5 rounded-xl transition-all"
           >
-            <span>Launch Live Demo</span>
+            <span>Open Trading Terminal</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
           </Link>
 
@@ -140,7 +140,7 @@ export const HeroSection: React.FC = () => {
                       <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-1.5 py-0.5 rounded font-mono">
                         BUY 5.0L
                       </span>
-                      <span className="text-slate-400 hidden sm:inline text-[11px]">1.08420 $\rightarrow$ 1.08940</span>
+                      <span className="text-slate-400 hidden sm:inline text-[11px]">1.08420 → 1.08940</span>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-slate-400 font-mono hidden md:inline text-[11px]">+52.0 pips</span>
@@ -156,7 +156,7 @@ export const HeroSection: React.FC = () => {
                       <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold px-1.5 py-0.5 rounded font-mono">
                         SELL 2.5L
                       </span>
-                      <span className="text-slate-400 hidden sm:inline text-[11px]">2518.40 $\rightarrow$ 2502.10</span>
+                      <span className="text-slate-400 hidden sm:inline text-[11px]">2518.40 → 2502.10</span>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-slate-400 font-mono hidden md:inline text-[11px]">+163.0 pips</span>

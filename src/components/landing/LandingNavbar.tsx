@@ -3,8 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const LandingNavbar: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md px-6 py-4">
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
@@ -43,20 +46,32 @@ export const LandingNavbar: React.FC = () => {
         </nav>
 
         {/* Right CTA */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm font-bold text-slate-200 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:block"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all"
-          >
-            <span>Launch Journal</span>
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-          </Link>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all"
+            >
+              <span>Go to Terminal</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-bold text-slate-200 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:block"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-2 bg-[#00c97b] hover:bg-emerald-400 active:scale-[0.98] text-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition-all"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

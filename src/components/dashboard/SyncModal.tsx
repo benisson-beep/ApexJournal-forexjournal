@@ -216,11 +216,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             <div className="text-xs text-zinc-300 space-y-2 bg-[#0D0D0F]/60 border border-white/[0.06] rounded-md p-3.5 leading-relaxed font-sans">
               <p className="flex items-start gap-2">
                 <strong className="text-zinc-400 font-mono">1.</strong>
-                <span>Open MT4/MT5 $\rightarrow$ <strong>File</strong> $\rightarrow$ <strong>Open Data Folder</strong> $\rightarrow$ drop the EA inside <code>MQL5/Experts</code> (or <code>MQL4/Experts</code>).</span>
+                <span>Open MT4/MT5 → <strong>File</strong> → <strong>Open Data Folder</strong> → drop the EA inside <code>MQL5/Experts</code> (or <code>MQL4/Experts</code>).</span>
               </p>
               <p className="flex items-start gap-2">
                 <strong className="text-zinc-400 font-mono">2.</strong>
-                <span>In MT4/MT5: Go to <strong>Tools $\rightarrow$ Options $\rightarrow$ Expert Advisors</strong>. Check <strong>"Allow WebRequest for listed URL"</strong> and add: <code className="text-zinc-300 bg-white/[0.05] px-1.5 py-0.5 rounded font-mono">{webhookUrl}</code></span>
+                <span>In MT4/MT5: Go to <strong>Tools → Options → Expert Advisors</strong>. Check <strong>"Allow WebRequest for listed URL"</strong> and add: <code className="text-zinc-300 bg-white/[0.05] px-1.5 py-0.5 rounded font-mono">{webhookUrl}</code></span>
               </p>
               <p className="flex items-start gap-2">
                 <strong className="text-zinc-400 font-mono">3.</strong>

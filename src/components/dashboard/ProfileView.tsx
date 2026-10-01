@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check } from 'lucide-react';
+import { Check, KeyRound, LogOut, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { Trade, TradingAccount, AccountStats } from '../../types/trade';
 
 interface ProfileViewProps {
@@ -64,10 +65,21 @@ const normalizeSession = (val: string): string => {
 };
 
 export const ProfileView: React.FC<ProfileViewProps> = () => {
+  const { user, updatePassword, signOut } = useAuth();
+
   // 1. Personal Information State
-  const [traderName, setTraderName] = useState('Trader');
-  const [email, setEmail] = useState('trader@apexjournal.io');
+  const [traderName, setTraderName] = useState(
+    user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Trader'
+  );
+  const [email, setEmail] = useState(user?.email || 'trader@apexjournal.io');
   const [bio, setBio] = useState('');
+
+  // Password Update State
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   // 2. Avatar State
   const [avatarUrl, setAvatarUrl] = useState<string>('');
@@ -90,6 +102,16 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Sync with authenticated user
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+    if (user?.user_metadata?.full_name && !localStorage.getItem('apex_profile_name')) {
+      setTraderName(user.user_metadata.full_name);
+    }
+  }, [user]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -190,12 +212,45 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess(false);
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    const { error } = await updatePassword(newPassword);
+    if (error) {
+      setPasswordError(error.message || 'Failed to update password.');
+      setPasswordLoading(false);
+    } else {
+      setPasswordSuccess(true);
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordLoading(false);
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
+
   // Generate Initials
   const initials =
     traderName
       .trim()
       .split(/\s+/)
-      .map((w) => w[0])
+      .map((w: string) => w[0])
       .filter(Boolean)
       .slice(0, 2)
       .join('')
@@ -426,6 +481,102 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
           </button>
         </div>
       </form>
+
+      {/* 6. Security & Password Change */}
+      <div className="pt-8 border-t border-white/[0.06] space-y-4">
+        <div className="flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-blue-400" />
+          <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-heading">
+            Security & Authentication
+          </h3>
+        </div>
+
+        <div className="bg-[#131317] border border-white/[0.06] rounded-xl p-4 space-y-4">
+          <div>
+            <span className="text-xs font-medium text-slate-200 block">Change Account Password</span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Update the password associated with your real trading account ({email}).
+            </span>
+          </div>
+
+          {passwordError && (
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{passwordError}</span>
+            </div>
+          )}
+
+          {passwordSuccess && (
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Password updated successfully!</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-slate-400 block">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••••••"
+                minLength={6}
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition-colors font-mono"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-slate-400 block">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••••••"
+                minLength={6}
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition-colors font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleUpdatePassword}
+              disabled={passwordLoading || !newPassword}
+              className="flex items-center gap-1.5 bg-[#18181E] hover:bg-[#202028] border border-white/[0.08] hover:border-white/[0.15] text-slate-200 disabled:opacity-50 text-xs font-medium px-3.5 py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+              <span>{passwordLoading ? 'Updating...' : 'Update Password'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. Session Sign Out Card */}
+      <div className="pt-6 border-t border-white/[0.06] flex items-center justify-between">
+        <div>
+          <span className="text-xs font-semibold text-slate-200 block font-heading">
+            Session Management
+          </span>
+          <span className="text-[11px] text-slate-400 block mt-0.5">
+            Securely sign out of this browser terminal session.
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-300 text-xs font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Sign Out</span>
+        </button>
+      </div>
     </div>
   );
 };

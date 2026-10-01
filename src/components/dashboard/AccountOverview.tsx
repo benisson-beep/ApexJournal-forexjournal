@@ -248,7 +248,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
                       {t.direction} {t.lotSize}L
                     </span>
                     <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
-                      {t.openPrice} $\rightarrow$ {t.closePrice}
+                      {t.openPrice} → {t.closePrice}
                     </span>
                   </div>
 

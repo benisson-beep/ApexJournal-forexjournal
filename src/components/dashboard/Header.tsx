@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNewTrade,
 }) => {
   return (
-    <header className="bg-[#0D0D0F]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 border-b border-white/[0.06]">
+    <header className="bg-black/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 border-b border-white/[0.08]">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3 min-w-0">
         {/* Left Side: Mobile Menu Button & Desktop Expand Button when collapsed + Page Title */}
         <div className="flex items-center gap-3 shrink-0">

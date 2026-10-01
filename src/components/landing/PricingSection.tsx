@@ -80,7 +80,7 @@ export const PricingSection: React.FC = () => {
           </div>
 
           <Link
-            href="/dashboard"
+            href="/register"
             className="w-full text-center bg-[#0c1018] hover:bg-[#131929] border border-white/10 text-slate-200 font-semibold text-xs py-3 rounded-xl transition-colors block"
           >
             Get Started Free
@@ -142,7 +142,7 @@ export const PricingSection: React.FC = () => {
           </div>
 
           <Link
-            href="/dashboard"
+            href="/register"
             className="w-full text-center bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-[#080b11] font-bold text-xs py-3 rounded-xl transition-all block"
           >
             Start 7-Day Free Trial

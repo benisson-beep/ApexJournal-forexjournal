@@ -1,34 +1,106 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Eye, EyeOff, ArrowLeft, Sun, Moon, AlertCircle, CheckCircle, Mail } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, isLoading: authLoading, signInWithEmail, signInWithGoogle, resendVerification } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isUnconfirmed, setIsUnconfirmed] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle query param messages (e.g., from reset password or email confirmation)
+  useEffect(() => {
+    const msg = searchParams.get('message');
+    if (msg) {
+      setSuccessMessage(msg);
+    }
+    const err = searchParams.get('error');
+    if (err) {
+      setErrorMessage(err === 'auth_callback_failed' ? 'Authentication callback failed. Please try signing in again.' : err);
+    }
+  }, [searchParams]);
+
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      router.replace(redirectTo);
+    }
+  }, [user, authLoading, router, searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsUnconfirmed(false);
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const { error } = await signInWithEmail(email, password);
+
+      if (error) {
+        if (error.message?.toLowerCase().includes('email not confirmed') || (error as any).code === 'email_not_confirmed') {
+          setIsUnconfirmed(true);
+          setErrorMessage('Please confirm your email address before signing in. Check your inbox for the verification link.');
+        } else if (error.message?.toLowerCase().includes('invalid login credentials')) {
+          setErrorMessage('Invalid email or password. Please verify your credentials and try again.');
+        } else {
+          setErrorMessage(error.message || 'Failed to sign in. Please try again.');
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful sign in
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      router.push(redirectTo);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'An unexpected error occurred during sign in.');
       setIsLoading(false);
-      router.push('/dashboard');
-    }, 600);
+    }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
+    setErrorMessage('');
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        setErrorMessage(error.message || 'Failed to sign in with Google.');
+        setIsLoading(false);
+      }
+      // If no error, browser will redirect to Google OAuth
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to initialize Google authentication.');
       setIsLoading(false);
-      router.push('/dashboard');
-    }, 600);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) return;
+    setResendStatus('sending');
+    const { error } = await resendVerification(email);
+    if (error) {
+      setErrorMessage(error.message || 'Failed to resend confirmation email.');
+      setResendStatus('idle');
+    } else {
+      setResendStatus('sent');
+      setSuccessMessage('A fresh confirmation link has been sent to your email.');
+    }
   };
 
   return (
@@ -71,7 +143,7 @@ export default function LoginPage() {
         )}
       </button>
 
-      <div className="w-full max-w-[420px] mx-auto space-y-8">
+      <div className="w-full max-w-[420px] mx-auto space-y-6">
         {/* Brand Logo & Name */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <Link href="/" className="inline-flex items-center gap-3 group cursor-pointer">
@@ -97,22 +169,70 @@ export default function LoginPage() {
           </Link>
 
           {/* Heading */}
-          <h1
-            className={`text-2xl sm:text-3xl font-bold tracking-tight pt-2 ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            Sign in to your account
-          </h1>
+          <div>
+            <h1
+              className={`text-2xl sm:text-3xl font-bold tracking-tight ${
+                isDarkMode ? 'text-white' : 'text-slate-900'
+              }`}
+            >
+              Sign in to your account
+            </h1>
+            <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Access your institutional trading journal and MT4/MT5 analytics
+            </p>
+          </div>
         </div>
 
+        {/* Status Messages */}
+        {errorMessage && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+              isDarkMode
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                : 'bg-rose-50 border-rose-200 text-rose-700'
+            }`}
+          >
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p>{errorMessage}</p>
+              {isUnconfirmed && (
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendStatus === 'sending' || resendStatus === 'sent'}
+                  className="font-semibold underline hover:no-underline text-xs block text-rose-400 hover:text-rose-300 cursor-pointer disabled:opacity-50"
+                >
+                  {resendStatus === 'sending'
+                    ? 'Resending...'
+                    : resendStatus === 'sent'
+                    ? 'Confirmation email sent!'
+                    : 'Resend confirmation email'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+              isDarkMode
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}
+          >
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <p className="flex-1">{successMessage}</p>
+          </div>
+        )}
+
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Address */}
-          <div className="space-y-2 text-left">
+          <div className="space-y-1.5 text-left">
             <label
               htmlFor="email"
-              className={`block text-sm font-semibold ${
+              className={`block text-xs font-semibold ${
                 isDarkMode ? 'text-slate-200' : 'text-slate-700'
               }`}
             >
@@ -120,11 +240,13 @@ export default function LoginPage() {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
+              placeholder="trader@example.com"
               className={`w-full rounded-xl px-4 py-3 text-sm transition-all outline-none border focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] ${
                 isDarkMode
                   ? 'bg-[#0d111a] border-[#1e2638] text-slate-100 placeholder:text-slate-500'
@@ -134,10 +256,10 @@ export default function LoginPage() {
           </div>
 
           {/* Password */}
-          <div className="space-y-2 text-left">
+          <div className="space-y-1.5 text-left">
             <label
               htmlFor="password"
-              className={`block text-sm font-semibold ${
+              className={`block text-xs font-semibold ${
                 isDarkMode ? 'text-slate-200' : 'text-slate-700'
               }`}
             >
@@ -146,7 +268,9 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 id="password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -160,7 +284,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1 transition-colors ${
+                className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1 transition-colors cursor-pointer ${
                   isDarkMode
                     ? 'text-slate-400 hover:text-slate-200'
                     : 'text-slate-500 hover:text-slate-700'
@@ -179,7 +303,7 @@ export default function LoginPage() {
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between pt-1">
             <label
-              className={`flex items-center gap-2.5 text-sm cursor-pointer select-none ${
+              className={`flex items-center gap-2 text-xs cursor-pointer select-none ${
                 isDarkMode ? 'text-slate-300' : 'text-slate-600'
               }`}
             >
@@ -193,38 +317,39 @@ export default function LoginPage() {
                     : 'bg-white border-slate-300'
                 }`}
               />
-              <span>Remember Me</span>
+              <span>Remember me</span>
             </label>
 
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-[#2563eb] hover:text-blue-500 transition-colors"
+              className="text-xs font-medium text-[#2563eb] hover:text-blue-500 transition-colors"
             >
-              Forgot Password?
+              Forgot password?
             </Link>
           </div>
 
-          {/* Sign In Button (Flat, without drop shadow) */}
+          {/* Sign In Button */}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:bg-[#1e40af] text-white font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isLoading || authLoading}
+            className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] active:bg-[#1e40af] text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <span>Sign in</span>
+              <span>Sign In</span>
             )}
           </button>
 
           {/* Divider */}
-          <div className="py-1 text-center">
+          <div className="relative py-2 flex items-center justify-center">
+            <div className={`w-full border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`} />
             <span
-              className={`text-xs font-bold tracking-wider ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              className={`absolute px-3 text-[11px] font-bold uppercase tracking-wider ${
+                isDarkMode ? 'bg-[#07090e] text-slate-400' : 'bg-[#f8fafc] text-slate-500'
               }`}
             >
-              OR
+              Or continue with
             </span>
           </div>
 
@@ -232,14 +357,13 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            disabled={isLoading}
-            className={`w-full font-semibold text-sm py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border ${
+            disabled={isLoading || authLoading}
+            className={`w-full font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border ${
               isDarkMode
                 ? 'bg-[#121622] hover:bg-[#181d2c] border-white/10 hover:border-white/20 text-slate-200'
                 : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
             }`}
           >
-            {/* Official Google SVG Icon */}
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
@@ -258,18 +382,18 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Continue with Google</span>
+            <span>Google</span>
           </button>
         </form>
 
         {/* Bottom Signup Link */}
         <div className="text-center pt-2">
           <p
-            className={`text-sm ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-600'
+            className={`text-xs ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-600'
             }`}
           >
-            Ready to trade?{' '}
+            Don't have an account yet?{' '}
             <Link
               href="/register"
               className="text-[#2563eb] hover:text-blue-500 font-semibold transition-colors"
@@ -280,5 +404,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#07090e] flex items-center justify-center text-slate-400 text-sm">
+          Loading login portal...
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
