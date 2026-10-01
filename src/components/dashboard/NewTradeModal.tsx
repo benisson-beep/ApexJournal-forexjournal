@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Direction, SessionType, Trade, TradeTag } from '../../types/trade';
+import { Direction, SessionType, Trade, TradeTag, TradingAccount } from '../../types/trade';
 import { calculatePips, calculateRMultiple, calculateEstimatedPnl } from '../../lib/forex-math';
-import { AlertCircle, Check, Plus, Tag, X } from 'lucide-react';
+import { AlertCircle, Check, Plus, Tag, X, Wallet } from 'lucide-react';
 
 interface NewTradeModalProps {
   isOpen: boolean;
   accountId: string;
+  accounts?: TradingAccount[];
   onClose: () => void;
   onSaveTrade: (trade: Trade) => void;
   initialNotes?: string;
@@ -28,6 +29,7 @@ const COMMON_TAGS: { name: string; type: 'SETUP' | 'MISTAKE' | 'CUSTOM' }[] = [
 export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   isOpen,
   accountId,
+  accounts = [],
   onClose,
   onSaveTrade,
   initialNotes,
@@ -46,6 +48,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
 
+  const [selectedAccId, setSelectedAccId] = useState<string>(accountId);
   const [symbol, setSymbol] = useState('');
   const [direction, setDirection] = useState<Direction>('BUY');
   const [lotSize, setLotSize] = useState<string>('');
@@ -85,6 +88,11 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
     if (isOpen) {
       isInitialLoadRef.current = true;
       if (editingTrade) {
+        if (editingTrade.accountId) {
+          setSelectedAccId(editingTrade.accountId);
+        } else if (accountId) {
+          setSelectedAccId(accountId);
+        }
         setSymbol(editingTrade.symbol);
         setDirection(editingTrade.direction);
         setLotSize(editingTrade.lotSize !== undefined ? String(editingTrade.lotSize) : '');
@@ -110,12 +118,17 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
         }
       } else {
         resetForm();
+        if (accountId) {
+          setSelectedAccId(accountId);
+        } else if (accounts && accounts.length > 0) {
+          setSelectedAccId(accounts[0].id);
+        }
         if (initialNotes) {
           setNotes(initialNotes);
         }
       }
     }
-  }, [isOpen, editingTrade, initialNotes]);
+  }, [isOpen, editingTrade, accountId, accounts, initialNotes]);
 
   const handleClose = () => {
     resetForm();
@@ -193,11 +206,13 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
     const closeDate = new Date(year, (month || 1) - 1, day || 1, hours || 12, minutes || 0, 0);
     const openDate = new Date(closeDate.getTime() - 3600000 * 2);
 
+    const targetAccountId = selectedAccId || editingTrade?.accountId || accountId;
+
     const savedTrade: Trade = {
       ...(editingTrade || {}),
       id: editingTrade?.id || `tr-${Date.now()}`,
       ticket: editingTrade?.ticket || String(Math.floor(10000000 + Math.random() * 90000000)),
-      accountId: editingTrade?.accountId || accountId,
+      accountId: targetAccountId,
       symbol: (symbol || 'EURUSD').toUpperCase(),
       direction,
       lotSize: numLotSize || 1.0,
@@ -247,14 +262,38 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-          {!accountId && (
+          {/* Target Account Selector */}
+          {accounts && accounts.length > 0 ? (
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Wallet className="w-3.5 h-3.5 text-blue-400" />
+                  Target Trading Account
+                </span>
+                <span className="text-[10px] text-zinc-500 lowercase">
+                  trade will be logged to this account
+                </span>
+              </label>
+              <select
+                value={selectedAccId}
+                onChange={(e) => setSelectedAccId(e.target.value)}
+                className="w-full bg-[#0D0D0F] border border-white/[0.08] rounded-md px-3 py-2 text-xs font-medium text-zinc-100 outline-none focus:border-blue-500/50 cursor-pointer"
+              >
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id} className="bg-[#18181E] text-zinc-200">
+                    {acc.name} ({acc.broker || 'Broker'} · #{acc.accountNumber || acc.id.slice(0, 6)}) — Balance: ${(acc.currentBalance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : !accountId ? (
             <div className="bg-amber-500/10 border border-amber-500/25 rounded-md p-3 flex items-start gap-2.5 text-xs text-amber-300">
               <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
               <span>
                 No active trading account selected. Please configure or select an account in the Accounts tab before logging executions.
               </span>
             </div>
-          )}
+          ) : null}
           {/* Symbol & Direction Toggle */}
           <div className="grid grid-cols-2 gap-4">
             <div>

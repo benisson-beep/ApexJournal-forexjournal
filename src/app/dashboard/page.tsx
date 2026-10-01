@@ -564,6 +564,7 @@ export default function DashboardPage() {
       <NewTradeModal
         isOpen={isModalOpen}
         accountId={selectedAccountId}
+        accounts={accounts}
         onClose={() => {
           setIsModalOpen(false);
           setInitialTradeNotes('');
