@@ -393,6 +393,7 @@ export default function DashboardPage() {
           selectedDateStr={selectedDateStr}
           onClearDateFilter={() => setSelectedDateStr(null)}
           onOpenImportModal={() => setIsImportModalOpen(true)}
+          onOpenNewTrade={() => setIsModalOpen(true)}
         />
 
         {/* Main Dashboard Workspace */}

@@ -4,14 +4,9 @@ import React from 'react';
 import {
   Menu,
   PanelLeftOpen,
-  LayoutDashboard,
-  Wallet,
-  ListFilter,
-  CalendarDays,
-  Newspaper,
-  Brain,
   Upload,
   Calendar,
+  Plus,
 } from 'lucide-react';
 import { DashboardTab } from './Sidebar';
 
@@ -20,29 +15,40 @@ interface HeaderProps {
   isSidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
   activeTab: DashboardTab;
-  onSelectTab: (tab: DashboardTab) => void;
-  accountsCount: number;
+  onSelectTab?: (tab: DashboardTab) => void;
+  accountsCount?: number;
   selectedDateStr: string | null;
   onClearDateFilter: () => void;
   onOpenImportModal: () => void;
+  onOpenNewTrade?: () => void;
 }
+
+const PAGE_TITLES: Record<DashboardTab, string> = {
+  OVERVIEW: 'Dashboard Overview',
+  ACCOUNTS: 'Trading Accounts',
+  LOG: 'Trade Journal',
+  CALENDAR: 'P&L Calendar',
+  NEWS: 'Economic Calendar',
+  PSYCHOLOGY: 'Edge & Psychology',
+  PROFILE: 'Trader Profile',
+  SETTINGS: 'Settings',
+};
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenMobileMenu,
   isSidebarCollapsed,
   onToggleSidebar,
   activeTab,
-  onSelectTab,
-  accountsCount,
   selectedDateStr,
   onClearDateFilter,
   onOpenImportModal,
+  onOpenNewTrade,
 }) => {
   return (
-    <header className="bg-[#0D0D0F]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2 border-b border-white/[0.06]">
+    <header className="bg-[#0D0D0F]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 border-b border-white/[0.06]">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3 min-w-0">
-        {/* Left Side: Mobile Menu Button & Desktop Expand Button when collapsed */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Left Side: Mobile Menu Button & Desktop Expand Button when collapsed + Page Title */}
+        <div className="flex items-center gap-3 shrink-0">
           {onOpenMobileMenu && (
             <button
               onClick={onOpenMobileMenu}
@@ -63,91 +69,18 @@ export const Header: React.FC<HeaderProps> = ({
               <PanelLeftOpen className="w-4 h-4" strokeWidth={1.5} />
             </button>
           )}
+
+          <h1 className="text-sm sm:text-base font-bold text-white font-sans tracking-tight">
+            {PAGE_TITLES[activeTab] || 'Dashboard'}
+          </h1>
         </div>
 
-        {/* Center / Left Navigation Tabs (Horizontally scrollable on small screens) */}
-        <div className="flex-1 min-w-0 flex items-center overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-0.5">
-          <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] p-1 rounded-md shrink-0">
-            <button
-              onClick={() => onSelectTab('OVERVIEW')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'OVERVIEW'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Overview</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('ACCOUNTS')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'ACCOUNTS'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <Wallet className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Accounts ({accountsCount})</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('LOG')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'LOG'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <ListFilter className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Trade Journal</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('CALENDAR')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'CALENDAR'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <CalendarDays className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>P&L Calendar</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('NEWS')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'NEWS'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <Newspaper className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Economic Calendar</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('PSYCHOLOGY')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 ${
-                activeTab === 'PSYCHOLOGY'
-                  ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-              }`}
-            >
-              <Brain className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>Edge & Psychology</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Right Side: Date Filter, Import CSV & Month Selector */}
+        {/* Right Side: Date Filter, Import CSV, Month Selector & Log Trade Button */}
         <div className="flex items-center gap-2 shrink-0">
           {selectedDateStr && (
-            <div className="text-xs text-slate-400 font-mono flex items-center gap-2 mr-1">
+            <div className="text-xs text-slate-400 font-mono flex items-center gap-2 mr-1 bg-[#131317] border border-white/[0.06] px-2.5 py-1.5 rounded-md">
               <span>
-                Date Filter: <strong className="text-emerald-400">{selectedDateStr}</strong>
+                Filter: <strong className="text-emerald-400">{selectedDateStr}</strong>
               </span>
               <button
                 onClick={onClearDateFilter}
@@ -163,13 +96,23 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 bg-[#131317] hover:bg-[#18181E] border border-white/[0.06] hover:border-white/[0.12] text-slate-200 text-xs font-medium px-3 py-1.5 rounded-md transition-colors cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
-            <span>Import CSV</span>
+            <span className="hidden sm:inline">Import CSV</span>
           </button>
 
-          <div className="flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
+          <div className="hidden sm:flex items-center gap-1 bg-[#131317] border border-white/[0.06] text-xs font-mono text-slate-400 px-3 py-1.5 rounded-md">
             <Calendar className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
             <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           </div>
+
+          {onOpenNewTrade && (
+            <button
+              onClick={onOpenNewTrade}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer shadow-sm shadow-blue-900/20"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Log Trade</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
