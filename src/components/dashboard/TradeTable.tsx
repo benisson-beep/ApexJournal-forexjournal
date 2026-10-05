@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Trade, Direction, SessionType } from '../../types/trade';
+import { useUserTimezone, getTimezoneAbbr } from '../../lib/timezone';
 import { ArrowDownLeft, ArrowUpRight, Clock, Edit2, Filter, Plus, Search, Tag, Trash2, X } from 'lucide-react';
 
 interface TradeTableProps {
@@ -12,6 +13,9 @@ interface TradeTableProps {
 }
 
 export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, onEditTrade, onOpenNewTrade }) => {
+  const userTimezone = useUserTimezone();
+  const tzAbbr = getTimezoneAbbr(userTimezone);
+
   const [search, setSearch] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState<string>('ALL');
   const [selectedSession, setSelectedSession] = useState<string>('ALL');
@@ -47,14 +51,17 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, o
   });
 
   const formatDate = (isoString: string) => {
+    if (!isoString) return '—';
     const d = new Date(isoString);
-    return d.toLocaleDateString('en-US', {
+    if (isNaN(d.getTime())) return isoString;
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: userTimezone,
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-    });
+    }).format(d);
   };
 
   return (
@@ -67,6 +74,13 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, o
           </h2>
           <span className="text-xs font-mono text-slate-400 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded">
             {filteredTrades.length} {filteredTrades.length === 1 ? 'deal' : 'deals'}
+          </span>
+          <span
+            className="text-[11px] font-mono text-slate-400 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded flex items-center gap-1"
+            title={`Operational Timezone: ${userTimezone}`}
+          >
+            <Clock className="w-3 h-3 text-blue-400" />
+            <span>{tzAbbr}</span>
           </span>
         </div>
 
@@ -157,7 +171,12 @@ export const TradeTable: React.FC<TradeTableProps> = ({ trades, onDeleteTrade, o
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-white/[0.06] bg-[#18181E] text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-              <th className="py-2.5 px-4">Date / Time</th>
+              <th className="py-2.5 px-4">
+                <span className="flex items-center gap-1.5">
+                  <span>Date / Time</span>
+                  <span className="text-[10px] text-blue-400 font-mono font-normal">({tzAbbr})</span>
+                </span>
+              </th>
               <th className="py-2.5 px-3">Symbol & Type</th>
               <th className="py-2.5 px-3 text-right">Lots</th>
               <th className="py-2.5 px-3 text-right">Entry / Exit</th>

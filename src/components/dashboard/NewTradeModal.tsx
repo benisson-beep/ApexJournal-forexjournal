@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { Direction, SessionType, Trade, TradeTag, TradingAccount } from '../../types/trade';
 import { calculatePips, calculateRMultiple, calculateEstimatedPnl } from '../../lib/forex-math';
+import {
+  useUserTimezone,
+  getDateStrInTimezone,
+  getTimeStrInTimezone,
+  parseLocalToUtcIso,
+  getTimezoneAbbr,
+} from '../../lib/timezone';
 import { AlertCircle, Check, Plus, Tag, X, Wallet } from 'lucide-react';
 
 interface NewTradeModalProps {
@@ -35,17 +42,15 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   initialNotes,
   editingTrade,
 }) => {
+  const userTimezone = useUserTimezone();
+  const tzAbbr = getTimezoneAbbr(userTimezone);
+
   const getInitialDate = () => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return getDateStrInTimezone(new Date(), userTimezone);
   };
 
   const getInitialTime = () => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    return getTimeStrInTimezone(new Date(), userTimezone);
   };
 
   const [selectedAccId, setSelectedAccId] = useState<string>(accountId);
@@ -107,14 +112,10 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
 
         const timeStr = editingTrade.closeTime || editingTrade.openTime;
         if (timeStr) {
-          const d = new Date(timeStr);
-          if (!isNaN(d.getTime())) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            setExecutionDate(`${y}-${m}-${day}`);
-            setExecutionTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
-          }
+          const dStr = getDateStrInTimezone(timeStr, userTimezone);
+          const tStr = getTimeStrInTimezone(timeStr, userTimezone);
+          if (dStr) setExecutionDate(dStr);
+          if (tStr) setExecutionTime(tStr);
         }
       } else {
         resetForm();
@@ -201,9 +202,8 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const [year, month, day] = (executionDate || getInitialDate()).split('-').map(Number);
-    const [hours, minutes] = (executionTime || '12:00').split(':').map(Number);
-    const closeDate = new Date(year, (month || 1) - 1, day || 1, hours || 12, minutes || 0, 0);
+    const closeIso = parseLocalToUtcIso(executionDate || getInitialDate(), executionTime || '12:00', userTimezone);
+    const closeDate = new Date(closeIso);
     const openDate = new Date(closeDate.getTime() - 3600000 * 2);
 
     const targetAccountId = selectedAccId || editingTrade?.accountId || accountId;
@@ -228,7 +228,7 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
       rMultiple,
       status: numNetPnl > 0 ? 'WIN' : numNetPnl < 0 ? 'LOSS' : 'BE',
       openTime: editingTrade?.openTime || openDate.toISOString(),
-      closeTime: closeDate.toISOString(),
+      closeTime: closeIso,
       session,
       tags: selectedTags,
       notes,
@@ -360,8 +360,9 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
-                Date
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Date</span>
+                <span className="text-[10px] text-blue-400 font-mono font-normal">({tzAbbr})</span>
               </label>
               <input
                 type="date"
@@ -373,8 +374,9 @@ export const NewTradeModal: React.FC<NewTradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
-                Time
+              <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Time</span>
+                <span className="text-[10px] text-blue-400 font-mono font-normal">({tzAbbr})</span>
               </label>
               <input
                 type="time"

@@ -14,6 +14,13 @@ import {
   Folder,
 } from 'lucide-react';
 import { ForexNewsEvent, NewsCalendarResponse } from '../../types/trade';
+import {
+  useUserTimezone,
+  getDateStrInTimezone,
+  getTimeStrInTimezone,
+  getTimezoneLabel,
+  getTimezoneAbbr,
+} from '../../lib/timezone';
 
 interface NewsCalendarViewProps {
   onOpenNewTradeWithContext?: (contextNotes: string) => void;
@@ -92,6 +99,7 @@ export const ImpactFolder: React.FC<{
 export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
   onOpenNewTradeWithContext,
 }) => {
+  const userTimezone = useUserTimezone();
   const [events, setEvents] = useState<ForexNewsEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -174,26 +182,18 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
     fetchNews();
   }, []);
 
-  // Calculate local date string YYYY-MM-DD
-  const formatLocalDateKey = (d: Date) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Calculate local date string YYYY-MM-DD in user operational timezone
+  const formatLocalDateKey = (d: Date) => getDateStrInTimezone(d, userTimezone);
 
-  const todayStr = useMemo(() => formatLocalDateKey(currentTime), [currentTime]);
+  const todayStr = useMemo(() => formatLocalDateKey(currentTime), [currentTime, userTimezone]);
   const tomorrowStr = useMemo(() => {
-    const tm = new Date(currentTime);
-    tm.setDate(tm.getDate() + 1);
+    const tm = new Date(currentTime.getTime() + 86400000);
     return formatLocalDateKey(tm);
-  }, [currentTime]);
+  }, [currentTime, userTimezone]);
 
   const getEventDateKey = (dateStr: string) => {
     try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return 'Unknown';
-      return formatLocalDateKey(d);
+      return getDateStrInTimezone(dateStr, userTimezone) || 'Unknown';
     } catch {
       return 'Unknown';
     }
@@ -212,6 +212,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
 
       if (!map.has(key)) {
         const label = d.toLocaleDateString('en-US', {
+          timeZone: userTimezone,
           weekday: 'short',
           month: 'short',
           day: 'numeric',
@@ -324,6 +325,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
           label: isNaN(d.getTime())
             ? 'Other'
             : d.toLocaleDateString('en-US', {
+                timeZone: userTimezone,
                 weekday: 'long',
                 month: 'short',
                 day: 'numeric',
@@ -414,14 +416,6 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
       prev.includes(currency) ? prev.filter((c) => c !== currency) : [...prev, currency]
     );
   };
-
-  const userTimezone = useMemo(() => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local';
-    } catch {
-      return 'Local';
-    }
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -559,9 +553,12 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
               Reset
             </button>
 
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.06]">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>{userTimezone}</span>
+            <div
+              className="flex items-center gap-1.5 text-xs text-slate-300 font-mono bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.06]"
+              title={`Operational Timezone: ${userTimezone}. Configure in Profile.`}
+            >
+              <Clock className="w-3.5 h-3.5 text-blue-400" />
+              <span>{getTimezoneLabel(userTimezone)}</span>
             </div>
 
             <button
@@ -847,7 +844,10 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                 {/* Table Header (Forex Factory Standard Layout) */}
                 <div className="bg-[#131317] border border-white/[0.06] rounded-b-xl overflow-hidden">
                   <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-400 bg-white/[0.02] border-b border-white/[0.06]">
-                    <div className="col-span-2">Time</div>
+                    <div className="col-span-2 flex items-center gap-1">
+                      <span>Time</span>
+                      <span className="text-[9px] text-blue-400 font-mono">({getTimezoneAbbr(userTimezone)})</span>
+                    </div>
                     <div className="col-span-1">Currency</div>
                     <div className="col-span-1 text-center">Impact</div>
                     <div className="col-span-4">Event</div>
@@ -863,7 +863,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                       const evDate = new Date(ev.date);
                       const evTimeMs = evDate.getTime();
                       const timeStr = !isNaN(evTimeMs)
-                        ? evDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        ? getTimeStrInTimezone(evDate, userTimezone)
                         : 'All Day';
 
                       const isPassed = !isNaN(evTimeMs)
@@ -888,7 +888,7 @@ export const NewsCalendarView: React.FC<NewsCalendarViewProps> = ({
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
                                 </span>
                                 <span className="text-[11px] font-mono font-bold text-blue-300 uppercase tracking-wider">
-                                  Current Time: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  Current Time: {getTimeStrInTimezone(currentTime, userTimezone, { withSeconds: true })} ({getTimezoneAbbr(userTimezone)})
                                 </span>
                               </div>
                               <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />

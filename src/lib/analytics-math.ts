@@ -1,4 +1,5 @@
 import { Trade, SessionType } from '../types/trade';
+import { getDateStrInTimezone } from './timezone';
 
 export interface DayPerformance {
   dateStr: string; // 'YYYY-MM-DD'
@@ -52,37 +53,34 @@ export function formatLocalDateStr(year: number, month: number, day: number): st
 }
 
 /**
- * Returns the local date string 'YYYY-MM-DD' for a trade's closeTime
+ * Returns the date string 'YYYY-MM-DD' for a trade's closeTime in user or specified operational timezone
  */
-export function getTradeDateStr(trade: Trade): string {
+export function getTradeDateStr(trade: Trade, tz?: string): string {
   if (!trade.closeTime) return '';
-  const d = new Date(trade.closeTime);
-  if (isNaN(d.getTime())) {
-    return trade.closeTime.slice(0, 10);
-  }
-  return formatLocalDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+  return getDateStrInTimezone(trade.closeTime, tz);
 }
 
 /**
- * Groups trades into a calendar month grid with weekly rollups
+ * Groups trades into a calendar month grid with weekly rollups in the user's operational timezone
  */
-export function buildMonthCalendar(trades: Trade[], year: number, month: number): WeekPerformance[] {
+export function buildMonthCalendar(trades: Trade[], year: number, month: number, tz?: string): WeekPerformance[] {
   // Map of date string -> DayPerformance
   const dayMap = new Map<string, DayPerformance>();
 
   for (const trade of trades) {
     if (!trade.closeTime) continue;
-    const d = new Date(trade.closeTime);
-    if (isNaN(d.getTime())) continue;
+    const dateStr = getTradeDateStr(trade, tz);
+    if (!dateStr) continue;
 
-    const tradeYear = d.getFullYear();
-    const tradeMonth = d.getMonth();
+    const [tY, tM, tD] = dateStr.split('-').map(Number);
+    const tradeYear = tY;
+    const tradeMonth = tM - 1; // 0-indexed month
+    const tradeDay = tD;
 
     if (tradeYear === year && tradeMonth === month) {
-      const dateStr = formatLocalDateStr(tradeYear, tradeMonth, d.getDate());
       const existing = dayMap.get(dateStr) || {
         dateStr,
-        dayNumber: d.getDate(),
+        dayNumber: tradeDay,
         netPnl: 0,
         tradeCount: 0,
         winningCount: 0,

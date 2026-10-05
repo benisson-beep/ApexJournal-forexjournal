@@ -19,6 +19,7 @@ import { ImportStatementModal } from '../../components/dashboard/ImportStatement
 import { INITIAL_ACCOUNTS, INITIAL_TRADES } from '../../lib/sample-data';
 import { calculateAccountStats } from '../../lib/forex-math';
 import { getTradeDateStr } from '../../lib/analytics-math';
+import { useUserTimezone } from '../../lib/timezone';
 import { Trade, TradingAccount } from '../../types/trade';
 import { Wallet } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -36,6 +37,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoading: authLoading, signOut } = useAuth();
+  const userTimezone = useUserTimezone();
 
   const [accounts, setAccounts] = useState<TradingAccount[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -167,11 +169,11 @@ export default function DashboardPage() {
     return trades.filter((t) => t.accountId === selectedAccountId);
   }, [trades, selectedAccountId]);
 
-  // Optionally filter by selected calendar date
+  // Optionally filter by selected calendar date (synchronized with operational timezone)
   const displayedTrades = useMemo(() => {
     if (!selectedDateStr) return accountTrades;
-    return accountTrades.filter((t) => t.closeTime.startsWith(selectedDateStr));
-  }, [accountTrades, selectedDateStr]);
+    return accountTrades.filter((t) => getTradeDateStr(t, userTimezone) === selectedDateStr);
+  }, [accountTrades, selectedDateStr, userTimezone]);
 
   const selectedAccount = useMemo(() => {
     return accounts.find((a) => a.id === selectedAccountId) || accounts[0] || null;
@@ -200,9 +202,9 @@ export default function DashboardPage() {
   const displayedCalendarTrades = useMemo(() => {
     if (!selectedDateStr) return calendarTrades;
     return calendarTrades.filter(
-      (t) => getTradeDateStr(t) === selectedDateStr || t.closeTime.startsWith(selectedDateStr)
+      (t) => getTradeDateStr(t, userTimezone) === selectedDateStr
     );
-  }, [calendarTrades, selectedDateStr]);
+  }, [calendarTrades, selectedDateStr, userTimezone]);
 
   const handleEditTrade = (trade: Trade) => {
     setEditingTrade(trade);

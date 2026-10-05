@@ -13,7 +13,6 @@ import {
   Wallet,
   PanelLeft,
   Newspaper,
-  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { TradingAccount } from '../../types/trade';
@@ -49,18 +48,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedAccountId,
   onSelectAccount,
 }) => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const [localAvatar, setLocalAvatar] = React.useState<string>('');
+  const [localName, setLocalName] = React.useState<string>('');
+  const [imgError, setImgError] = React.useState(false);
 
-  const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/login';
-  };
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedAvatar = localStorage.getItem('apex_profile_avatar');
+      if (savedAvatar) setLocalAvatar(savedAvatar);
+      const savedName = localStorage.getItem('apex_profile_name');
+      if (savedName) setLocalName(savedName);
+
+      const handleProfileUpdate = () => {
+        const updatedAvatar = localStorage.getItem('apex_profile_avatar');
+        if (updatedAvatar) setLocalAvatar(updatedAvatar);
+        const updatedName = localStorage.getItem('apex_profile_name');
+        if (updatedName) setLocalName(updatedName);
+        setImgError(false);
+      };
+
+      window.addEventListener('storage', handleProfileUpdate);
+      window.addEventListener('apex_profile_updated', handleProfileUpdate);
+      return () => {
+        window.removeEventListener('storage', handleProfileUpdate);
+        window.removeEventListener('apex_profile_updated', handleProfileUpdate);
+      };
+    }
+  }, []);
+
+  const avatarUrl =
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    localAvatar ||
+    '';
 
   const displayName =
+    localName ||
     user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
     user?.email?.split('@')[0] ||
     'Trader';
-  const displayEmail = user?.email || 'Authenticated User';
+
   const initials = displayName
     .split(' ')
     .map((w: string) => w[0])
@@ -271,51 +300,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom section: User Profile Card, Logout & Collapse Toggle */}
+      {/* Bottom section: User Profile Card & Collapse Toggle */}
       <div className="p-3 border-t border-white/[0.06] space-y-2">
-        {/* User Identity & Logout Button */}
+        {/* User Identity - Profile picture and names only */}
         {isCollapsed ? (
-          <div className="flex flex-col items-center gap-2 py-1">
-            <div
-              className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading"
-              title={`${displayName} (${displayEmail})`}
-            >
-              {initials}
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-              title="Sign Out"
-              aria-label="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
-            </button>
-          </div>
-        ) : (
-          <div className="bg-[#131317] border border-white/[0.06] rounded-lg p-2.5 space-y-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading shrink-0">
+          <button
+            type="button"
+            onClick={() => handleItemClick('PROFILE')}
+            className="w-full flex items-center justify-center py-1 cursor-pointer group"
+            title={displayName}
+          >
+            {avatarUrl && !imgError ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
+                className="w-8 h-8 rounded-full object-cover border border-white/10 group-hover:border-blue-500/50 transition-colors"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading group-hover:border-blue-500/60 transition-colors">
                 {initials}
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-slate-200 block truncate font-heading">
-                  {displayName}
-                </span>
-                <span className="text-[10px] text-slate-500 block truncate font-mono">
-                  {displayEmail}
-                </span>
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleItemClick('PROFILE')}
+            className="w-full bg-[#131317] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.12] rounded-lg p-2.5 flex items-center gap-2.5 transition-colors text-left cursor-pointer group"
+            title={`View profile: ${displayName}`}
+          >
+            {avatarUrl && !imgError ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
+                className="w-8 h-8 rounded-full object-cover border border-white/10 group-hover:border-blue-500/50 shrink-0 transition-colors"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs font-heading shrink-0 group-hover:border-blue-500/60 transition-colors">
+                {initials}
               </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-medium text-slate-200 block truncate font-heading group-hover:text-white transition-colors">
+                {displayName}
+              </span>
             </div>
-
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded text-[11px] font-medium text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut className="w-3 h-3" strokeWidth={1.5} />
-              <span>Sign Out</span>
-            </button>
-          </div>
+          </button>
         )}
 
         {/* Collapse Toggle Button */}

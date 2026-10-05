@@ -9,6 +9,14 @@ function determineSession(date: Date): SessionType {
   return 'Asian';
 }
 
+function parseStatementDate(dateStr: string, fallbackDate?: Date): Date {
+  if (!dateStr) return fallbackDate || new Date();
+  const cleaned = dateStr.trim().replace(/\./g, '-');
+  const parsed = Date.parse(cleaned);
+  if (!isNaN(parsed)) return new Date(parsed);
+  return fallbackDate || new Date();
+}
+
 /**
  * Parses raw text from MT4/MT5 CSV or tab-delimited statement report
  */
@@ -68,8 +76,8 @@ export function parseMetaTraderCsv(csvContent: string, accountId: string = ''): 
         const grossPnl = parseFloat(profitStr) || 0;
         const netPnl = Number((grossPnl + commission + swap).toFixed(2));
 
-        const closeDate = !isNaN(Date.parse(closeTimeStr)) ? new Date(closeTimeStr) : new Date();
-        const openDate = !isNaN(Date.parse(openTimeStr)) ? new Date(openTimeStr) : new Date(closeDate.getTime() - 3600000);
+        const closeDate = parseStatementDate(closeTimeStr);
+        const openDate = parseStatementDate(openTimeStr, new Date(closeDate.getTime() - 3600000));
 
         const pips = calculatePips(symbol, direction, openPrice, closePrice);
         const rMultiple = calculateRMultiple(direction, openPrice, closePrice, stopLoss);

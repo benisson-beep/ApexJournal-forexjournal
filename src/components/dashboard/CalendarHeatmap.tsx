@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trade } from '../../types/trade';
 import { buildMonthCalendar, DayPerformance } from '../../lib/analytics-math';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { useUserTimezone, getZonedDateParts, getTimezoneAbbr } from '../../lib/timezone';
+import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 
 interface CalendarHeatmapProps {
   trades: Trade[];
@@ -21,32 +22,33 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   onSelectDay,
   selectedDateStr,
 }) => {
-  // Dynamically default to the most recent trade's month, or current month if empty
-  const defaultDate = React.useMemo(() => {
+  const userTimezone = useUserTimezone();
+
+  // Dynamically default to the most recent trade's month in user's timezone, or current month if empty
+  const defaultDateParts = useMemo(() => {
     if (trades.length > 0) {
       const sorted = [...trades].sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime());
-      const d = new Date(sorted[0].closeTime);
-      if (!isNaN(d.getTime())) return d;
+      return getZonedDateParts(sorted[0].closeTime, userTimezone);
     }
-    return new Date();
-  }, [trades]);
+    return getZonedDateParts(new Date(), userTimezone);
+  }, [trades, userTimezone]);
 
-  const [currentYear, setCurrentYear] = useState(() => defaultDate.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(() => defaultDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(() => defaultDateParts.year);
+  const [currentMonth, setCurrentMonth] = useState(() => defaultDateParts.month);
 
-  // Automatically keep current month in view when trades are added
-  React.useEffect(() => {
+  // Automatically keep latest trade's month in view when trades list changes
+  useEffect(() => {
     if (trades.length > 0) {
       const sorted = [...trades].sort((a, b) => new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime());
-      const d = new Date(sorted[0].closeTime);
-      if (!isNaN(d.getTime())) {
-        setCurrentYear(d.getFullYear());
-        setCurrentMonth(d.getMonth());
-      }
+      const parts = getZonedDateParts(sorted[0].closeTime, userTimezone);
+      setCurrentYear(parts.year);
+      setCurrentMonth(parts.month);
     }
-  }, [trades]);
+  }, [trades, userTimezone]);
 
-  const weeks = buildMonthCalendar(trades, currentYear, currentMonth);
+  const weeks = useMemo(() => {
+    return buildMonthCalendar(trades, currentYear, currentMonth, userTimezone);
+  }, [trades, currentYear, currentMonth, userTimezone]);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -67,9 +69,9 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   };
 
   const handleGoToday = () => {
-    const now = new Date();
-    setCurrentYear(now.getFullYear());
-    setCurrentMonth(now.getMonth());
+    const todayParts = getZonedDateParts(new Date(), userTimezone);
+    setCurrentYear(todayParts.year);
+    setCurrentMonth(todayParts.month);
   };
 
   // Month-wide totals
@@ -125,23 +127,33 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
           )}
         </div>
 
-        {/* Right: Month Summary Pill (PnL: $4,023.92 | Days: 3) */}
-        <div className="flex items-center gap-3 bg-[#141417] border border-white/[0.08] rounded-xl px-4 py-2 shadow-sm">
-          <span className="text-xs text-slate-400 font-sans font-medium">PnL:</span>
-          <span
-            className={`font-bold font-mono text-xs sm:text-sm tabular-nums ${
-              monthNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-            }`}
+        {/* Right: Timezone Badge + Month Summary Pill */}
+        <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-1.5 bg-[#141417] border border-white/[0.08] rounded-xl px-3 py-2 text-xs font-mono text-slate-400 shadow-sm"
+            title={`Operational Timezone: ${userTimezone}. Configure in Profile.`}
           >
-            {monthNetPnl < 0 ? '-' : ''}${Math.abs(monthNetPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-          </span>
+            <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span className="text-slate-300 font-semibold">{getTimezoneAbbr(userTimezone)}</span>
+          </div>
 
-          <div className="h-3.5 w-px bg-white/[0.1]" />
+          <div className="flex items-center gap-3 bg-[#141417] border border-white/[0.08] rounded-xl px-4 py-2 shadow-sm">
+            <span className="text-xs text-slate-400 font-sans font-medium">PnL:</span>
+            <span
+              className={`font-bold font-mono text-xs sm:text-sm tabular-nums ${
+                monthNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+              }`}
+            >
+              {monthNetPnl < 0 ? '-' : ''}${Math.abs(monthNetPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
 
-          <span className="text-xs text-slate-400 font-sans font-medium">Days:</span>
-          <span className="font-bold font-mono text-xs sm:text-sm text-white">
-            {tradingDaysCountThisMonth}
-          </span>
+            <div className="h-3.5 w-px bg-white/[0.1]" />
+
+            <span className="text-xs text-slate-400 font-sans font-medium">Days:</span>
+            <span className="font-bold font-mono text-xs sm:text-sm text-white">
+              {tradingDaysCountThisMonth}
+            </span>
+          </div>
         </div>
       </div>
 

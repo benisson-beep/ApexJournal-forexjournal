@@ -1,28 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, KeyRound, LogOut, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Trade, TradingAccount, AccountStats } from '../../types/trade';
+import { TIMEZONES, getUserTimezone, isValidTimezone } from '../../lib/timezone';
 
 interface ProfileViewProps {
   account?: TradingAccount | null;
   trades?: Trade[];
   stats?: AccountStats;
 }
-
-const TIMEZONES = [
-  { value: 'UTC', label: 'UTC — Coordinated Universal Time', offset: 'UTC+00:00' },
-  { value: 'America/New_York', label: 'America / New York (EST / EDT)', offset: 'UTC-05:00' },
-  { value: 'Europe/London', label: 'Europe / London (GMT / BST)', offset: 'UTC+00:00' },
-  { value: 'Europe/Frankfurt', label: 'Europe / Frankfurt (CET / CEST)', offset: 'UTC+01:00' },
-  { value: 'Asia/Tokyo', label: 'Asia / Tokyo (JST)', offset: 'UTC+09:00' },
-  { value: 'Asia/Singapore', label: 'Asia / Singapore (SGT)', offset: 'UTC+08:00' },
-  { value: 'Asia/Dubai', label: 'Asia / Dubai (GST)', offset: 'UTC+04:00' },
-  { value: 'Australia/Sydney', label: 'Australia / Sydney (AEST / AEDT)', offset: 'UTC+10:00' },
-  { value: 'America/Chicago', label: 'America / Chicago (CST / CDT)', offset: 'UTC-06:00' },
-  { value: 'America/Los_Angeles', label: 'America / Los Angeles (PST / PDT)', offset: 'UTC-08:00' },
-];
 
 const CURRENCIES = [
   { code: 'USD', name: 'US Dollar', symbol: '$' },
@@ -92,8 +80,23 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
   const [primarySession, setPrimarySession] = useState('New York');
   const [strategyEdge, setStrategyEdge] = useState('');
 
+  const availableTimezones = useMemo(() => {
+    const list = [...TIMEZONES];
+    if (typeof window !== 'undefined') {
+      const systemTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (systemTz && isValidTimezone(systemTz) && !list.some((tz) => tz.value === systemTz)) {
+        list.unshift({
+          value: systemTz,
+          label: `Local System — ${systemTz}`,
+          offset: 'Detected',
+        });
+      }
+    }
+    return list;
+  }, []);
+
   // 4. Timezone State
-  const [timezone, setTimezone] = useState('America/New_York');
+  const [timezone, setTimezone] = useState(() => getUserTimezone());
 
   // 5. Currency State
   const [currency, setCurrency] = useState('USD');
@@ -108,8 +111,13 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
     if (user?.email) {
       setEmail(user.email);
     }
-    if (user?.user_metadata?.full_name && !localStorage.getItem('apex_profile_name')) {
-      setTraderName(user.user_metadata.full_name);
+    const metaName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+    if (metaName && !localStorage.getItem('apex_profile_name')) {
+      setTraderName(metaName);
+    }
+    const metaAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+    if (metaAvatar && !localStorage.getItem('apex_profile_avatar')) {
+      setAvatarUrl(metaAvatar);
     }
   }, [user]);
 
@@ -146,7 +154,11 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
       if (savedStrategy) setStrategyEdge(savedStrategy);
 
       const savedTimezone = localStorage.getItem('apex_profile_timezone');
-      if (savedTimezone) setTimezone(savedTimezone);
+      if (savedTimezone && isValidTimezone(savedTimezone)) {
+        setTimezone(savedTimezone);
+      } else {
+        setTimezone(getUserTimezone());
+      }
 
       const savedCurrency = localStorage.getItem('apex_profile_currency');
       if (savedCurrency) setCurrency(savedCurrency);
@@ -275,6 +287,7 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
             <img
               src={avatarUrl}
               alt={traderName}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
           ) : (
@@ -429,7 +442,7 @@ export const ProfileView: React.FC<ProfileViewProps> = () => {
                 onChange={(e) => setTimezone(e.target.value)}
                 className="w-full bg-[#0D0D0F] border border-white/[0.08] focus:border-blue-500/50 rounded-lg px-3 py-2 text-xs text-white focus:outline-none cursor-pointer transition-colors"
               >
-                {TIMEZONES.map((tz) => (
+                {availableTimezones.map((tz) => (
                   <option key={tz.value} value={tz.value}>
                     {tz.label} ({tz.offset})
                   </option>
