@@ -3,13 +3,20 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, ArrowLeft, Sun, Moon, AlertCircle, CheckCircle2, Mail, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Sun, Moon, AlertCircle, CheckCircle2, Mail, ExternalLink, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading: authLoading, signUpWithEmail, signInWithGoogle, resendVerification } = useAuth();
+  const {
+    user,
+    isLoading: authLoading,
+    signUpWithEmail,
+    signInWithGoogle,
+    resendVerification,
+    isGoogleEnabled,
+  } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,6 +29,7 @@ function RegisterForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [verificationPending, setVerificationPending] = useState(false);
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [showGoogleGuide, setShowGoogleGuide] = useState(false);
 
   // If already authenticated, redirect to dashboard
   useEffect(() => {
@@ -34,6 +42,7 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setShowGoogleGuide(false);
 
     if (password.length < 6) {
       setErrorMessage('Password must be at least 6 characters long.');
@@ -86,6 +95,11 @@ function RegisterForm() {
 
   const handleGoogleSignUp = async () => {
     setErrorMessage('');
+    if (!isGoogleEnabled) {
+      setShowGoogleGuide(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signInWithGoogle();
@@ -110,6 +124,10 @@ function RegisterForm() {
       setResendStatus('sent');
     }
   };
+
+  const isRateLimitError =
+    errorMessage.toLowerCase().includes('rate limit') ||
+    errorMessage.toLowerCase().includes('limit exceeded');
 
   return (
     <div
@@ -151,7 +169,7 @@ function RegisterForm() {
         )}
       </button>
 
-      <div className="w-full max-w-[440px] mx-auto space-y-6">
+      <div className="w-full max-w-[460px] mx-auto space-y-6">
         {/* Brand Logo & Name */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <Link href="/" className="inline-flex items-center gap-3 group cursor-pointer">
@@ -239,17 +257,81 @@ function RegisterForm() {
           </div>
         ) : (
           <>
-            {/* Error Message */}
+            {/* Error Message with Supabase Rate Limit Helper */}
             {errorMessage && (
               <div
-                className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+                className={`p-4 rounded-xl border text-xs space-y-2.5 ${
                   isDarkMode
-                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
-                    : 'bg-rose-50 border-rose-200 text-rose-700'
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
                 }`}
               >
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                <p className="flex-1">{errorMessage}</p>
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-1.5">
+                    <p className="font-semibold text-rose-300">{errorMessage}</p>
+
+                    {isRateLimitError && (
+                      <div className={`p-3 rounded-lg mt-2 text-[11px] space-y-1.5 border ${
+                        isDarkMode
+                          ? 'bg-[#090d15] border-amber-500/30 text-slate-300'
+                          : 'bg-amber-50 border-amber-200 text-slate-700'
+                      }`}>
+                        <div className="flex items-center gap-1.5 font-bold text-amber-400">
+                          <HelpCircle className="w-3.5 h-3.5" />
+                          <span>1-Click Fix in your Supabase Dashboard:</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          Supabase's default shared email service limits projects to 3 emails/hour. To allow <strong>instant unlimited signups</strong> without email confirmation:
+                        </p>
+                        <ol className="list-decimal list-inside space-y-1 pl-1 font-medium">
+                          <li>Open your <strong>Supabase Dashboard</strong>.</li>
+                          <li>Navigate to <strong>Authentication</strong> &rarr; <strong>Providers</strong> &rarr; <strong>Email</strong>.</li>
+                          <li>Turn <strong>OFF</strong> the <strong>&quot;Confirm email&quot;</strong> toggle and click <strong>Save</strong>.</li>
+                        </ol>
+                        <p className="text-[10px] text-slate-400 pt-1">
+                          After toggling it off, every trader can sign up and start journaling immediately with zero verification delays.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Google OAuth Guidance Modal/Notice */}
+            {showGoogleGuide && (
+              <div
+                className={`p-4 rounded-xl border text-xs space-y-2 ${
+                  isDarkMode
+                    ? 'bg-blue-500/10 border-blue-500/30 text-slate-200'
+                    : 'bg-blue-50 border-blue-200 text-slate-800'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-blue-400 text-xs flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Google OAuth Setup Required in Supabase
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleGuide(false)}
+                    className="text-slate-400 hover:text-white text-xs underline cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-300">
+                  Google sign-in is currently disabled in your Supabase project settings. To enable it:
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-300 pl-1">
+                  <li>Go to <strong>Supabase Dashboard</strong> &rarr; <strong>Authentication</strong> &rarr; <strong>Providers</strong> &rarr; <strong>Google</strong>.</li>
+                  <li>Toggle <strong>&quot;Enable Google provider&quot;</strong>.</li>
+                  <li>Paste your Google Cloud <strong>Client ID</strong> and <strong>Client Secret</strong>.</li>
+                </ol>
+                <p className="text-[11px] text-amber-300/90 pt-0.5">
+                  &bull; You can register right now using the <strong>Email &amp; Password</strong> form below!
+                </p>
               </div>
             )}
 
@@ -436,13 +518,13 @@ function RegisterForm() {
                 type="button"
                 onClick={handleGoogleSignUp}
                 disabled={isLoading || authLoading}
-                className={`w-full font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border ${
+                className={`w-full font-semibold text-xs py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed border relative ${
                   isDarkMode
                     ? 'bg-[#121622] hover:bg-[#181d2c] border-white/10 hover:border-white/20 text-slate-200'
                     : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
                 }`}
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -460,7 +542,12 @@ function RegisterForm() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Google</span>
+                <span>Continue with Google</span>
+                {!isGoogleEnabled && (
+                  <span className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-mono font-normal">
+                    Setup needed
+                  </span>
+                )}
               </button>
             </form>
 

@@ -117,32 +117,28 @@ const isMissingColumnError = (error: any) =>
 // --- Database Operations ---
 
 export async function fetchAccountsFromSupabase(userId?: string): Promise<TradingAccount[]> {
+  if (!userId) {
+    return [];
+  }
+
   try {
-    let query = supabase.from('accounts').select('*').order('created_at', { ascending: true });
+    const { data, error } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
 
-    if (userId) {
-      // First attempt with user_id filter if column exists
-      const { data: userScopedData, error: userError } = await supabase
-        .from('accounts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: true });
-
-      if (!userError && userScopedData) {
-        return userScopedData.map(fromDbAccount);
-      }
-
-      // If user_id column doesn't exist yet, fall back to unfiltered
-      if (!isMissingColumnError(userError)) {
-        console.error('Error fetching user accounts from Supabase:', userError);
-      }
-    }
-
-    const { data, error } = await query;
     if (error) {
-      console.error('Error fetching accounts from Supabase:', error);
+      if (isMissingColumnError(error)) {
+        console.warn(
+          'Supabase accounts table is missing user_id column or RLS is not configured yet. Returning empty list for safety. Run supabase/schema.sql to enable multi-user data isolation.'
+        );
+      } else {
+        console.error('Error fetching user accounts from Supabase:', error);
+      }
       return [];
     }
+
     return (data || []).map(fromDbAccount);
   } catch (err) {
     console.error('Unexpected error fetching accounts from Supabase:', err);
@@ -151,32 +147,28 @@ export async function fetchAccountsFromSupabase(userId?: string): Promise<Tradin
 }
 
 export async function fetchTradesFromSupabase(userId?: string): Promise<Trade[]> {
+  if (!userId) {
+    return [];
+  }
+
   try {
-    if (userId) {
-      const { data: userScopedData, error: userError } = await supabase
-        .from('trades')
-        .select('*')
-        .eq('user_id', userId)
-        .order('close_time', { ascending: false });
-
-      if (!userError && userScopedData) {
-        return userScopedData.map(fromDbTrade);
-      }
-
-      if (!isMissingColumnError(userError)) {
-        console.error('Error fetching user trades from Supabase:', userError);
-      }
-    }
-
     const { data, error } = await supabase
       .from('trades')
       .select('*')
+      .eq('user_id', userId)
       .order('close_time', { ascending: false });
 
     if (error) {
-      console.error('Error fetching trades from Supabase:', error);
+      if (isMissingColumnError(error)) {
+        console.warn(
+          'Supabase trades table is missing user_id column or RLS is not configured yet. Returning empty list for safety. Run supabase/schema.sql to enable multi-user data isolation.'
+        );
+      } else {
+        console.error('Error fetching user trades from Supabase:', error);
+      }
       return [];
     }
+
     return (data || []).map(fromDbTrade);
   } catch (err) {
     console.error('Unexpected error fetching trades from Supabase:', err);
@@ -185,21 +177,21 @@ export async function fetchTradesFromSupabase(userId?: string): Promise<Trade[]>
 }
 
 export async function saveAccountToSupabase(account: TradingAccount, userId?: string): Promise<boolean> {
+  if (!userId) {
+    console.warn('Cannot save account without authenticated userId');
+    return false;
+  }
+
   try {
-    if (userId) {
-      const { error } = await supabase.from('accounts').upsert(toDbAccount(account, userId));
-      if (!error) return true;
-
-      // If error is not missing column, log error
-      if (!isMissingColumnError(error)) {
-        console.error('Error saving account with user_id to Supabase:', error);
+    const { error } = await supabase.from('accounts').upsert(toDbAccount(account, userId));
+    if (error) {
+      if (isMissingColumnError(error)) {
+        console.warn(
+          'Supabase accounts table is missing user_id column. Run supabase/schema.sql in your Supabase SQL Editor.'
+        );
+      } else {
+        console.error('Error saving account to Supabase:', error);
       }
-    }
-
-    // Fallback: save without user_id if column does not exist
-    const { error: fallbackError } = await supabase.from('accounts').upsert(toDbAccount(account));
-    if (fallbackError) {
-      console.error('Error saving account to Supabase:', fallbackError);
       return false;
     }
     return true;
@@ -209,9 +201,13 @@ export async function saveAccountToSupabase(account: TradingAccount, userId?: st
   }
 }
 
-export async function deleteAccountFromSupabase(accountId: string): Promise<boolean> {
+export async function deleteAccountFromSupabase(accountId: string, userId?: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from('accounts').delete().eq('id', accountId);
+    let query = supabase.from('accounts').delete().eq('id', accountId);
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+    const { error } = await query;
     if (error) {
       console.error('Error deleting account from Supabase:', error);
       return false;
@@ -224,19 +220,21 @@ export async function deleteAccountFromSupabase(accountId: string): Promise<bool
 }
 
 export async function saveTradeToSupabase(trade: Trade, userId?: string): Promise<boolean> {
+  if (!userId) {
+    console.warn('Cannot save trade without authenticated userId');
+    return false;
+  }
+
   try {
-    if (userId) {
-      const { error } = await supabase.from('trades').upsert(toDbTrade(trade, userId));
-      if (!error) return true;
-
-      if (!isMissingColumnError(error)) {
-        console.error('Error saving trade with user_id to Supabase:', error);
+    const { error } = await supabase.from('trades').upsert(toDbTrade(trade, userId));
+    if (error) {
+      if (isMissingColumnError(error)) {
+        console.warn(
+          'Supabase trades table is missing user_id column. Run supabase/schema.sql in your Supabase SQL Editor.'
+        );
+      } else {
+        console.error('Error saving trade to Supabase:', error);
       }
-    }
-
-    const { error: fallbackError } = await supabase.from('trades').upsert(toDbTrade(trade));
-    if (fallbackError) {
-      console.error('Error saving trade to Supabase:', fallbackError);
       return false;
     }
     return true;
@@ -247,22 +245,18 @@ export async function saveTradeToSupabase(trade: Trade, userId?: string): Promis
 }
 
 export async function saveTradesBatchToSupabase(trades: Trade[], userId?: string): Promise<boolean> {
-  if (trades.length === 0) return true;
+  if (!userId || trades.length === 0) return true;
   try {
-    if (userId) {
-      const rows = trades.map((t) => toDbTrade(t, userId));
-      const { error } = await supabase.from('trades').upsert(rows);
-      if (!error) return true;
-
-      if (!isMissingColumnError(error)) {
-        console.error('Error batch saving trades with user_id to Supabase:', error);
+    const rows = trades.map((t) => toDbTrade(t, userId));
+    const { error } = await supabase.from('trades').upsert(rows);
+    if (error) {
+      if (isMissingColumnError(error)) {
+        console.warn(
+          'Supabase trades table is missing user_id column. Run supabase/schema.sql in your Supabase SQL Editor.'
+        );
+      } else {
+        console.error('Error batch saving trades to Supabase:', error);
       }
-    }
-
-    const rows = trades.map((t) => toDbTrade(t));
-    const { error: fallbackError } = await supabase.from('trades').upsert(rows);
-    if (fallbackError) {
-      console.error('Error batch saving trades to Supabase:', fallbackError);
       return false;
     }
     return true;
@@ -272,9 +266,13 @@ export async function saveTradesBatchToSupabase(trades: Trade[], userId?: string
   }
 }
 
-export async function deleteTradeFromSupabase(tradeId: string): Promise<boolean> {
+export async function deleteTradeFromSupabase(tradeId: string, userId?: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from('trades').delete().eq('id', tradeId);
+    let query = supabase.from('trades').delete().eq('id', tradeId);
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+    const { error } = await query;
     if (error) {
       console.error('Error deleting trade from Supabase:', error);
       return false;
@@ -288,14 +286,20 @@ export async function deleteTradeFromSupabase(tradeId: string): Promise<boolean>
 
 export async function updateAccountBalanceInSupabase(
   accountId: string,
-  newBalance: number
+  newBalance: number,
+  userId?: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    let query = supabase
       .from('accounts')
       .update({ current_balance: newBalance })
       .eq('id', accountId);
 
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { error } = await query;
     if (error) {
       console.error('Error updating account balance in Supabase:', error);
       return false;

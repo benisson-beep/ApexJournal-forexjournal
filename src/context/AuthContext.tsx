@@ -8,6 +8,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isGoogleEnabled: boolean;
+  isMailerAutoconfirm: boolean;
   signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUpWithEmail: (
     email: string,
@@ -28,11 +30,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState<boolean>(false);
+  const [isMailerAutoconfirm, setIsMailerAutoconfirm] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Fetch initial session from Supabase
+    // 1. Fetch Supabase auth provider settings
+    async function checkAuthSettings() {
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        const supabaseKey =
+          process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+          '';
+        if (!supabaseUrl) return;
+
+        const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+          headers: { apikey: supabaseKey },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setIsGoogleEnabled(Boolean(data?.external?.google));
+            setIsMailerAutoconfirm(Boolean(data?.mailer_autoconfirm));
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch Supabase auth provider settings:', err);
+      }
+    }
+
+    checkAuthSettings();
+
+    // 2. Fetch initial session from Supabase
     async function getInitialSession() {
       try {
         const { data, error } = await supabase.auth.getSession();
@@ -54,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getInitialSession();
 
-    // 2. Listen to real-time auth changes (Sign in, Sign out, Token Refresh, Password recovery)
+    // 3. Listen to real-time auth changes (Sign in, Sign out, Token Refresh, Password recovery)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
@@ -64,7 +95,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
 
       if (event === 'SIGNED_OUT') {
-        // Clear cached profile metadata if needed
         try {
           localStorage.removeItem('apex_current_user_email');
         } catch {
@@ -129,7 +159,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         setIsLoading(false);
-        return { error, user: null, session: null };
+        let userMessage = error.message;
+
+        if (
+          error.message?.toLowerCase().includes('rate limit') ||
+          (error as any).status === 429
+        ) {
+          userMessage =
+            "Supabase free email rate limit exceeded (3 emails/hour). In your Supabase dashboard, go to Authentication > Providers > Email and turn OFF 'Confirm email' to allow instant, unlimited signups.";
+        }
+
+        error.message = userMessage;
+        return {
+          error,
+          user: null,
+          session: null,
+        };
       }
 
       setSession(data.session);
@@ -143,6 +188,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
+    // Graceful check: Prevent raw 400 error page if Google provider isn't enabled in Supabase
+    if (!isGoogleEnabled) {
+      return {
+        error: {
+          name: 'ProviderNotEnabled',
+          message:
+            'Google Sign-In is not enabled yet in your Supabase project. To enable it, open your Supabase Dashboard > Authentication > Providers > Google and configure your Google OAuth credentials, or sign in with Email & Password below.',
+        } as AuthError,
+      };
+    }
+
     try {
       const redirectUrl =
         typeof window !== 'undefined'
@@ -183,6 +239,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl,
       });
+
+      if (
+        error &&
+        (error.message?.toLowerCase().includes('rate limit') || (error as any).status === 429)
+      ) {
+        error.message =
+          'Email rate limit reached for the hour. Please wait a short while or configure custom SMTP in Supabase.';
+        return {
+          error,
+        };
+      }
 
       return { error };
     } catch (err: any) {
@@ -230,6 +297,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       session,
       isLoading,
+      isGoogleEnabled,
+      isMailerAutoconfirm,
       signInWithEmail,
       signUpWithEmail,
       signInWithGoogle,
@@ -239,7 +308,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       resendVerification,
       refreshUser,
     }),
-    [user, session, isLoading]
+    [user, session, isLoading, isGoogleEnabled, isMailerAutoconfirm]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

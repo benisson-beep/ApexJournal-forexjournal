@@ -1,7 +1,7 @@
 -- =========================================================================
 -- ApexJournal Supabase Schema Migration: Multi-User Authentication & RLS
 -- =========================================================================
--- Run this in your Supabase SQL Editor:
+-- Run this in your Supabase Dashboard SQL Editor:
 -- https://supabase.com/dashboard/project/_/sql
 --
 -- This script:
@@ -9,6 +9,7 @@
 -- 2. Enables Row Level Security (RLS) on accounts and trades.
 -- 3. Creates strict security policies ensuring every user can only view,
 --    insert, update, and delete their own trading accounts and trades.
+-- 4. Automatically assigns any existing legacy un-scoped rows to your first/admin user.
 -- =========================================================================
 
 -- 1. Add user_id column to accounts
@@ -80,3 +81,18 @@ CREATE POLICY "Users can delete their own trades"
   ON public.trades FOR DELETE
   TO authenticated
   USING (auth.uid() = user_id);
+
+-- 6. Assign any existing legacy rows to your primary user
+-- This ensures existing trades/accounts don't get lost or orphaned,
+-- while completely hiding them from any other newly registered users.
+DO $$
+DECLARE
+  primary_user_id UUID;
+BEGIN
+  SELECT id INTO primary_user_id FROM auth.users ORDER BY created_at ASC LIMIT 1;
+  
+  IF primary_user_id IS NOT NULL THEN
+    UPDATE public.accounts SET user_id = primary_user_id WHERE user_id IS NULL;
+    UPDATE public.trades SET user_id = primary_user_id WHERE user_id IS NULL;
+  END IF;
+END $$;

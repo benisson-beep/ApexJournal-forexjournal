@@ -62,6 +62,9 @@ export default function DashboardPage() {
   // Route protection: redirect to login if unauthenticated
   useEffect(() => {
     if (!authLoading && !user) {
+      setAccounts([]);
+      setTrades([]);
+      setSelectedAccountId('');
       router.replace('/login');
     }
   }, [user, authLoading, router]);
@@ -113,7 +116,7 @@ export default function DashboardPage() {
       console.error('Failed to restore journal state from localStorage', err);
     }
 
-    // 2. Fetch from Supabase with user scoping
+    // 2. Fetch from Supabase with strict user scoping
     async function syncWithSupabase() {
       try {
         const [dbAccounts, dbTrades] = await Promise.all([
@@ -123,17 +126,10 @@ export default function DashboardPage() {
 
         if (!isSubscribed) return;
 
-        if (dbAccounts.length > 0 || dbTrades.length > 0) {
-          if (dbAccounts.length > 0) {
-            setAccounts(dbAccounts);
-            setSelectedAccountId((prev) =>
-              prev && dbAccounts.some((a) => a.id === prev) ? prev : dbAccounts[0].id
-            );
-          }
-          if (dbTrades.length > 0) {
-            setTrades(dbTrades);
-          }
-        }
+        // Authoritatively align state with the user's database records
+        setAccounts(dbAccounts);
+        setSelectedAccountId(dbAccounts.length > 0 ? dbAccounts[0].id : '');
+        setTrades(dbTrades);
       } catch (err) {
         console.error('Failed to sync with Supabase:', err);
       }
@@ -247,7 +243,7 @@ export default function DashboardPage() {
       if (currentAcc) {
         await saveAccountToSupabase(currentAcc, user?.id);
         if (updatedBalance !== undefined) {
-          await updateAccountBalanceInSupabase(savedTrade.accountId, updatedBalance);
+          await updateAccountBalanceInSupabase(savedTrade.accountId, updatedBalance, user?.id);
         }
       }
       await saveTradeToSupabase(savedTrade, user?.id);
@@ -281,7 +277,7 @@ export default function DashboardPage() {
       if (currentAcc) {
         await saveAccountToSupabase(currentAcc, user?.id);
         if (updatedBalance !== undefined) {
-          await updateAccountBalanceInSupabase(selectedAccountId, updatedBalance);
+          await updateAccountBalanceInSupabase(selectedAccountId, updatedBalance, user?.id);
         }
       }
       await saveTradesBatchToSupabase(importedTrades, user?.id);
@@ -312,9 +308,9 @@ export default function DashboardPage() {
 
     // Persist deletion to Supabase
     try {
-      await deleteTradeFromSupabase(id);
+      await deleteTradeFromSupabase(id, user?.id);
       if (tradeToDelete.accountId && updatedBalance !== undefined) {
-        await updateAccountBalanceInSupabase(tradeToDelete.accountId, updatedBalance);
+        await updateAccountBalanceInSupabase(tradeToDelete.accountId, updatedBalance, user?.id);
       }
     } catch (err) {
       console.error('Error deleting trade from Supabase:', err);
@@ -356,7 +352,7 @@ export default function DashboardPage() {
     setTrades((prev) => prev.filter((t) => t.accountId !== accountIdToDelete));
 
     try {
-      await deleteAccountFromSupabase(accountIdToDelete);
+      await deleteAccountFromSupabase(accountIdToDelete, user?.id);
     } catch (err) {
       console.error('Error deleting account from Supabase:', err);
     }
